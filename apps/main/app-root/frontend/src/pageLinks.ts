@@ -18,7 +18,15 @@ export const pageLinks = {
   Profile: () => '/profile',
   Settings: () => '/settings',
   Home: () => '/',
-  Game: () => '/game',
+  Room: (chapterId: number | string = ':chapterId') => `/rooms/${chapterId}`,
+  Game: (
+    chapterId: number | string = ':chapterId',
+    levelId: number | string = ':levelId',
+  ) => `/chapter/${chapterId}/level/${levelId}`,
+  Result: (
+    chapterId: number | string = ':chapterId',
+    levelId: number | string = ':levelId',
+  ) => `/chapter/${chapterId}/level/${levelId}/result`,
 
 
   global_shortcut_home: () => '/', // MUST BE '/', do not change

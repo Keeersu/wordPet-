@@ -41,9 +41,10 @@
  * </page-design>
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useMemo } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
+import { useGameStore } from '@/store/GameContext'
 
 // ============================================================================
 // Mock Data
@@ -158,6 +159,14 @@ function getRandomEncourage(isCorrect: boolean): string {
 
 type AnswerState = 'idle' | 'correct' | 'wrong_first' | 'wrong_second'
 
+const CHAPTER_NAME_MAP: Record<number, string> = {
+  1: '街角流浪',
+  2: '温暖新家',
+  3: '幼儿园',
+  4: '公园探险',
+  5: '厨房美食',
+}
+
 // ============================================================================
 // Sub-components
 // ============================================================================
@@ -258,11 +267,13 @@ function FeedbackSheet({
   question,
   encourageText,
   onNext,
+  onRetry,
 }: {
   answerState: 'correct' | 'wrong_first' | 'wrong_second'
   question: Question
   encourageText: string
   onNext: () => void
+  onRetry: () => void
 }) {
   const isCorrect = answerState === 'correct'
   const isWrongSecond = answerState === 'wrong_second'
@@ -354,10 +365,10 @@ function FeedbackSheet({
           </div>
         )}
 
-        {/* Action button — only for wrong_second (correct & wrong_first auto-close) */}
-        {isWrongSecond && (
+        {/* Action button */}
+        {(isCorrect || isWrongFirst || isWrongSecond) && (
           <button
-            onClick={onNext}
+            onClick={isWrongFirst ? onRetry : onNext}
             style={{
               width: '100%',
               padding: '14px',
@@ -372,7 +383,7 @@ function FeedbackSheet({
               boxShadow: '0 3px 0 0 #D99A20',
             }}
           >
-            下一题 →
+            {isWrongFirst ? '再试一次 ↩' : '下一题 →'}
           </button>
         )}
       </div>
@@ -394,6 +405,12 @@ function FeedbackSheet({
 
 function Game() {
   const navigate = useNavigate()
+  const { chapterId: chapterIdParam, levelId: levelIdParam } = useParams()
+  const { gameState, updateGameState } = useGameStore()
+
+  const chapterId = Number(chapterIdParam ?? gameState.currentChapter)
+  const levelId = Number(levelIdParam ?? gameState.currentLevel)
+  const chapterName = CHAPTER_NAME_MAP[chapterId] ?? `第${chapterId}章`
 
   // Game state
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -403,9 +420,9 @@ function Game() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [encourageText, setEncourageText] = useState('')
-  const [isComplete, setIsComplete] = useState(false)
   // Track correct count for completion screen
   const [correctCount, setCorrectCount] = useState(0)
+  const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number }>>({})
 
   const question = QUESTIONS[currentIndex]
 
@@ -485,15 +502,45 @@ function Game() {
         setAnswerState('correct')
         setEncourageText(getRandomEncourage(true))
         setCorrectCount((c) => c + 1)
+        setWordStats((prev) => {
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          return {
+            ...prev,
+            [question.word]: {
+              correct: existing.correct + 1,
+              wrong: existing.wrong,
+            },
+          }
+        })
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
         setAnswerState('wrong_first')
         setEncourageText(getRandomEncourage(false))
+        setWordStats((prev) => {
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          return {
+            ...prev,
+            [question.word]: {
+              correct: existing.correct,
+              wrong: existing.wrong + 1,
+            },
+          }
+        })
         setShowFeedback(true)
       } else {
         setAnswerState('wrong_second')
         setEncourageText(getRandomEncourage(false))
+        setWordStats((prev) => {
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          return {
+            ...prev,
+            [question.word]: {
+              correct: existing.correct,
+              wrong: existing.wrong + 1,
+            },
+          }
+        })
         setShowFeedback(true)
       }
     },
@@ -505,7 +552,55 @@ function Game() {
     setShowFeedback(false)
 
     if (currentIndex + 1 >= TOTAL_QUESTIONS) {
-      setIsComplete(true)
+      const accuracy = correctCount / TOTAL_QUESTIONS
+      const completedAt = new Date().toISOString()
+
+      updateGameState((prev) => {
+        const completedKey = `${chapterId}-${levelId}`
+        const nextWordHistory = { ...prev.wordHistory }
+
+        for (const [word, stats] of Object.entries(wordStats)) {
+          const existing = nextWordHistory[word] ?? {
+            correct: 0,
+            wrong: 0,
+            lastSeen: completedAt,
+          }
+          nextWordHistory[word] = {
+            ...existing,
+            correct: existing.correct + stats.correct,
+            wrong: existing.wrong + stats.wrong,
+            lastSeen: completedAt,
+          }
+        }
+
+        const nextState = {
+          ...prev,
+          completedLevels: {
+            ...prev.completedLevels,
+            [completedKey]: {
+              accuracy,
+              completedAt,
+            },
+          },
+          wordHistory: nextWordHistory,
+        }
+
+        if (levelId === 4) {
+          return {
+            ...nextState,
+            currentChapter: Math.min(chapterId + 1, 5),
+            currentLevel: 1,
+          }
+        }
+
+        return {
+          ...nextState,
+          currentChapter: chapterId,
+          currentLevel: Math.min(levelId + 1, 4),
+        }
+      })
+
+      void navigate(`/chapter/${chapterId}/level/${levelId}/result`)
       return
     }
 
@@ -513,90 +608,18 @@ function Game() {
     setAnswerState('idle')
     setSelectedOption(null)
     setAttemptCount(0)
-  }, [currentIndex])
+  }, [chapterId, correctCount, currentIndex, levelId, navigate, updateGameState, wordStats])
 
-  // Auto-close feedback sheet for correct & first wrong (0.8s)
-  useEffect(() => {
-    if (!showFeedback) return
-    if (answerState === 'correct') {
-      const timer = setTimeout(() => {
-        handleNext()
-      }, 800)
-      return () => clearTimeout(timer)
-    }
-    if (answerState === 'wrong_first') {
-      const timer = setTimeout(() => {
-        setShowFeedback(false)
-        setAnswerState('idle')
-        setSelectedOption(null)
-      }, 1200)
-      return () => clearTimeout(timer)
-    }
-  }, [showFeedback, answerState, handleNext])
+  const handleRetry = useCallback(() => {
+    setShowFeedback(false)
+    setAnswerState('idle')
+    setSelectedOption(null)
+  }, [])
 
   // Handle exit
   const handleExitConfirm = useCallback(() => {
     void navigate(-1)
   }, [navigate])
-
-  // Completion screen
-  if (isComplete) {
-    return (
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '100vh',
-          backgroundColor: '#F5E6C8',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-          color: '#5D4037',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-        }}
-      >
-        <div
-          style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            backgroundColor: '#66BB6A',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          <Icon icon="lucide:trophy" style={{ width: '40px', height: '40px', color: 'white' }} />
-        </div>
-        <p style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>
-          本关完成！
-        </p>
-        <p style={{ fontSize: '16px', color: 'rgba(93,64,55,0.6)', margin: '0 0 32px' }}>
-          答对 {correctCount} / {TOTAL_QUESTIONS} 题
-        </p>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            padding: '14px 48px',
-            borderRadius: '14px',
-            border: 'none',
-            backgroundColor: '#FFB840',
-            fontSize: '16px',
-            fontWeight: 700,
-            color: '#3D1F00',
-            cursor: 'pointer',
-            fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-            boxShadow: '0 3px 0 0 #D99A20',
-          }}
-        >
-          返回首页
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div
@@ -668,7 +691,7 @@ function Game() {
               color: '#5D4037',
             }}
           >
-            第 1 关 · WordPet
+            第 {levelId} 关 · {chapterName}
           </span>
 
           {/* Right spacer */}
@@ -781,6 +804,7 @@ function Game() {
           question={question}
           encourageText={encourageText}
           onNext={handleNext}
+          onRetry={handleRetry}
         />
       )}
 
