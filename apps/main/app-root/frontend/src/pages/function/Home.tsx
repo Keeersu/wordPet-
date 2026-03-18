@@ -53,10 +53,13 @@
  * </page-design>
  */
 
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { MainTabBar } from '@/components/function/MainTabBar'
 import { pageLinks } from '../../pageLinks'
+import { useGameStore } from '@/store/GameContext'
+import type { GameState } from '@/store/gameStore'
 
 type RoomStatus = 'in_progress' | 'completed' | 'locked'
 
@@ -67,38 +70,40 @@ interface Room {
   progress: string
   status: RoomStatus
   themeColor: string
-  shadowColor: string
 }
 
-const rooms: Room[] = [
+const chapterMeta = [
   {
     id: 1,
     nameCn: '街角流浪',
     nameEn: 'Street Corner',
-    progress: '1/4',
-    status: 'in_progress',
     themeColor: '#F5E6C8',
-    shadowColor: '#C07800',
   },
   {
     id: 2,
     nameCn: '温暖新家',
     nameEn: 'Warm Home',
-    progress: '4/4',
-    status: 'completed',
     themeColor: '#C8E8F5',
-    shadowColor: '#2EA69E',
   },
   {
     id: 3,
     nameCn: '幼儿园',
     nameEn: 'Kindergarten',
-    progress: '0/4',
-    status: 'locked',
-    themeColor: '#E0E0E0',
-    shadowColor: '#808080',
+    themeColor: '#D8F0FF',
   },
-]
+  {
+    id: 4,
+    nameCn: '公园探险',
+    nameEn: 'Park Adventure',
+    themeColor: '#E5F4D8',
+  },
+  {
+    id: 5,
+    nameCn: '厨房美食',
+    nameEn: 'Kitchen Feast',
+    themeColor: '#FFF0D9',
+  },
+] as const
 
 const statusLabel: Record<RoomStatus, string> = {
   in_progress: '进行中',
@@ -110,6 +115,19 @@ const statusBgColor: Record<RoomStatus, string> = {
   in_progress: '#FFB840',
   completed: '#4CAF50',
   locked: '#9E9E9E',
+}
+
+function getCompletedLevelCount(
+  chapterId: number,
+  completedLevels: GameState['completedLevels'],
+): number {
+  let count = 0
+  for (let levelId = 1; levelId <= 4; levelId += 1) {
+    if (completedLevels[`${chapterId}-${levelId}`]) {
+      count += 1
+    }
+  }
+  return count
 }
 
 function RoomCard({ room }: { room: Room }) {
@@ -220,6 +238,30 @@ function RoomCard({ room }: { room: Room }) {
 
 function Home() {
   const navigate = useNavigate()
+  const { gameState } = useGameStore()
+
+  const rooms = useMemo<Room[]>(() => {
+    return chapterMeta.map((chapter) => {
+      const completedCount = getCompletedLevelCount(chapter.id, gameState.completedLevels)
+      const status: RoomStatus =
+        chapter.id > gameState.currentChapter
+          ? 'locked'
+          : completedCount >= 4
+            ? 'completed'
+            : 'in_progress'
+
+      return {
+        id: chapter.id,
+        nameCn: chapter.nameCn,
+        nameEn: chapter.nameEn,
+        progress: `${Math.min(completedCount, 4)}/4`,
+        status,
+        themeColor: chapter.themeColor,
+      }
+    })
+  }, [gameState.completedLevels, gameState.currentChapter])
+
+  const unlockedRoomCount = rooms.filter((room) => room.status !== 'locked').length
 
   return (
     <div
@@ -255,7 +297,7 @@ function Home() {
             }}
           >
             <Icon icon="lucide:home" className="w-5 h-5" style={{ color: '#FFB840' }} />
-            <span className="font-bold text-[16px]">3</span>
+            <span className="font-bold text-[16px]">{unlockedRoomCount}</span>
           </div>
 
           {/* Right: settings gear */}
