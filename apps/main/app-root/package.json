@@ -1,0 +1,42 @@
+{
+  "name": "app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter frontend --filter backend --parallel dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "test": "pnpm --filter bdd-test test",
+    "codegen": "pnpm --filter backend codegen",
+    "db:try-migrate": "pnpm --filter backend db:try-migrate",
+    "build": "pnpm --filter backend --filter frontend --parallel build",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "install:all": "pnpm install",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "wrangler": "^4.70.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch@<3.1.4": ">=3.1.4",
+      "minimatch@>=9.0.0 <9.0.7": ">=9.0.7",
+      "rollup@>=4.0.0 <4.59.0": ">=4.59.0",
+      "esbuild@<=0.24.2": ">=0.25.0",
+      "undici@>=7.0.0 <7.18.2": ">=7.18.2",
+      "ajv@<6.14.0": "~6.14.0"
+    }
+  },
+  "paraflow": {
+    "version": 1
+  }
+}
