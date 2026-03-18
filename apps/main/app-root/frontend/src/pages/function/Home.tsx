@@ -130,12 +130,13 @@ function getCompletedLevelCount(
   return count
 }
 
-function RoomCard({ room }: { room: Room }) {
+function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
   const isLocked = room.status === 'locked'
   const isCompleted = room.status === 'completed'
 
   return (
     <div
+      onClick={onClick}
       style={{
         position: 'relative',
         width: '311px',
@@ -144,6 +145,7 @@ function RoomCard({ room }: { room: Room }) {
         flexShrink: 0,
         filter: isCompleted ? 'saturate(0.7)' : isLocked ? 'grayscale(0.8)' : undefined,
         opacity: isLocked ? 0.7 : 1,
+        cursor: isLocked ? 'default' : 'pointer',
       }}
     >
       {/* 层1：房间背景色块，底部对齐 */}
@@ -262,6 +264,17 @@ function Home() {
   }, [gameState.completedLevels, gameState.currentChapter])
 
   const unlockedRoomCount = rooms.filter((room) => room.status !== 'locked').length
+  const activeChapterId = gameState.currentChapter
+  const activeLevelId = gameState.currentLevel
+
+  const handleRoomCardClick = (room: Room) => {
+    if (room.status === 'locked') return
+    navigate(`/rooms/${room.id}`)
+  }
+
+  const handleFabClick = () => {
+    navigate(`/chapter/${activeChapterId}/level/${activeLevelId}`)
+  }
 
   return (
     <div
@@ -330,7 +343,7 @@ function Home() {
         }}
       >
         {rooms.map((room) => (
-          <RoomCard key={room.id} room={room} />
+          <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
         ))}
 
         {/* 4. Bottom scene placeholder */}
@@ -358,6 +371,7 @@ function Home() {
 
       {/* 6. FAB — fixed bottom-right */}
       <button
+        onClick={handleFabClick}
         className="fixed z-40 flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
         style={{
           width: '56px',
