@@ -65,6 +65,49 @@ function speakWord(word: string, gameState: GameState, sentence?: string) {
 }
 
 // ============================================================================
+// LLM Adaptive Difficulty
+// ============================================================================
+
+const LLM_API_URL = 'https://ai-platform-test.zhenguanyu.com/litellm/v1/chat/completions'
+const LLM_API_KEY = 'sk-ZDolX3RGKGtyyWiaP0zXOQ'
+
+async function adjustDifficulty(
+  accuracy: number,
+  currentDifficulty: number,
+  stats: Record<string, { correct: number; wrong: number }>,
+): Promise<1 | 2 | 3 | 4> {
+  try {
+    const wrongWords = Object.entries(stats)
+      .filter(([, s]) => s.wrong > 0)
+      .map(([w]) => w)
+
+    const response = await fetch(LLM_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${LLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'doubao-seed-1.8',
+        max_tokens: 10,
+        messages: [
+          {
+            role: 'user',
+            content: `你是英语学习难度调整助手。当前难度${currentDifficulty}（1=最简单,4=最难），本关正确率${Math.round(accuracy * 100)}%，答错单词：${wrongWords.join(',') || '无'}。请只返回1到4之间的一个数字作为下一关难度，不要说其他任何内容。`,
+          },
+        ],
+      }),
+    })
+    const data = await response.json()
+    const result = parseInt(data.choices?.[0]?.message?.content?.trim())
+    if (result >= 1 && result <= 4) return result as 1 | 2 | 3 | 4
+    return currentDifficulty as 1 | 2 | 3 | 4
+  } catch {
+    return currentDifficulty as 1 | 2 | 3 | 4
+  }
+}
+
+// ============================================================================
 // Mock Data
 // ============================================================================
 
@@ -590,12 +633,18 @@ function Game() {
   )
 
   // Handle next question
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     setShowFeedback(false)
 
     if (currentIndex + 1 >= TOTAL_QUESTIONS) {
       const accuracy = correctCount / TOTAL_QUESTIONS
       const completedAt = new Date().toISOString()
+
+      const newDifficulty = await adjustDifficulty(
+        accuracy,
+        gameState.adaptiveDifficulty.current,
+        wordStats,
+      )
 
       updateGameState((prev) => {
         const completedKey = `${chapterId}-${levelId}`
@@ -630,6 +679,12 @@ function Game() {
           },
           unlockedFurniture: nextUnlockedFurniture,
           wordHistory: nextWordHistory,
+          difficulty: newDifficulty,
+          adaptiveDifficulty: {
+            ...prev.adaptiveDifficulty,
+            current: newDifficulty,
+            levelHistory: [...prev.adaptiveDifficulty.levelHistory, newDifficulty],
+          },
         }
 
         if (levelId === 4) {
@@ -655,7 +710,7 @@ function Game() {
     setAnswerState('idle')
     setSelectedOption(null)
     setAttemptCount(0)
-  }, [chapterId, correctCount, currentIndex, levelId, navigate, updateGameState, wordStats])
+  }, [chapterId, correctCount, currentIndex, gameState.adaptiveDifficulty.current, levelId, navigate, updateGameState, wordStats])
 
   useEffect(() => {
     if (!showFeedback) return
