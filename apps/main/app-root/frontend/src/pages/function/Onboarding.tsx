@@ -81,17 +81,17 @@ function Onboarding() {
         {/* 3. Appearance */}
         <div className="mb-3">
           <p className="mb-2 text-sm font-semibold text-[#5D4037]">选择外观</p>
-          <div className="flex justify-center gap-2">
+          <div className="flex gap-2">
             {APPEARANCE_OPTIONS.map((opt) => (
+              /* 🖼️ ASSET | 猫咪外观预览 | 后期替换为 1:1 猫咪图片 /assets/onboarding/cat/appearance_{id}.png */
               <button
                 key={opt.id}
                 onClick={() => setAppearance(opt.id)}
-                className={`flex h-20 w-16 flex-col items-center justify-center rounded-xl bg-white ${
+                className={`flex-1 rounded-xl bg-white p-1.5 ${
                   appearance === opt.id ? 'border-2 border-[#FFB840]' : 'border-2 border-transparent'
                 }`}
               >
-                <div className={`h-12 w-12 rounded-lg ${opt.color} ${opt.border ?? ''}`} />
-                <span className="mt-1 text-center text-xs text-[#5D4037]">{opt.label}</span>
+                <div className={`aspect-square w-full rounded-lg ${opt.color} ${opt.border ?? ''}`} />
               </button>
             ))}
           </div>
