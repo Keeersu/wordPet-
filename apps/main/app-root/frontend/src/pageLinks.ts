@@ -18,6 +18,7 @@ export const pageLinks = {
   Profile: () => '/profile',
   Settings: () => '/settings',
   Onboarding: () => '/onboarding',
+  OnboardingLevel: () => '/onboarding/level',
   Home: () => '/',
   Room: (chapterId: number | string = ':chapterId') => `/rooms/${chapterId}`,
   Game: (
