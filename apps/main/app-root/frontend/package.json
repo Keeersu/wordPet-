@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && pnpm build:ssr && pnpm prerender",
-    "build:ssr": "vite build --config vite.config.ssr.ts",
-    "prerender": "tsx scripts/prerender.ts",
+    "build": "vite build",
+    "build:ssr": "echo \"SSR build disabled\"",
+    "prerender": "echo \"Prerender disabled\"",
     "preview": "vite preview",
     "lint": "CSS_CHECK_ONLY=1 vite build && eslint . --fix",
     "typecheck": "tsc --noEmit"

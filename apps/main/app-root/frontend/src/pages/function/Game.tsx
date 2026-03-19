@@ -45,6 +45,24 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import type { GameState } from '@/store/gameStore'
+
+// ============================================================================
+// TTS
+// ============================================================================
+
+function speakWord(word: string, gameState: GameState, sentence?: string) {
+  if (!gameState.settings.soundEnabled) return
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+
+  const text = sentence ? `${word}. ${sentence}` : word
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.lang = 'en-US'
+  utter.rate = 0.85
+  utter.pitch = 1
+  window.speechSynthesis.speak(utter)
+}
 
 // ============================================================================
 // Mock Data
@@ -267,11 +285,13 @@ function FeedbackSheet({
   question,
   encourageText,
   onNext,
+  onSpeak,
 }: {
   answerState: 'correct' | 'wrong_first' | 'wrong_second'
   question: Question
   encourageText: string
   onNext: () => void
+  onSpeak?: () => void
 }) {
   const isCorrect = answerState === 'correct'
   const isWrongSecond = answerState === 'wrong_second'
@@ -345,6 +365,28 @@ function FeedbackSheet({
               >
                 {question.correctAnswer}
               </span>
+              {onSpeak && (
+                <button
+                  onClick={onSpeak}
+                  style={{
+                    marginLeft: 'auto',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255,184,64,0.15)',
+                    border: '1.5px solid #FFB840',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    fontSize: 20,
+                    lineHeight: 1,
+                  }}
+                >
+                  🔊
+                </button>
+              )}
             </div>
             <p style={{ fontSize: '14px', color: '#5D4037', margin: '0 0 4px', fontWeight: 600 }}>
               {question.meaning}
@@ -510,6 +552,7 @@ function Game() {
             },
           }
         })
+        speakWord(question.word, gameState)
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
@@ -539,6 +582,7 @@ function Game() {
             },
           }
         })
+        speakWord(question.correctAnswer, gameState, question.sentence)
         setShowFeedback(true)
       }
     },
@@ -766,6 +810,28 @@ function Game() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           }}
         >
+          {/* TTS speaker button */}
+          <button
+            onClick={() => speakWord(question.word, gameState)}
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255,184,64,0.12)',
+              border: '1.5px solid rgba(255,184,64,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 3,
+            }}
+          >
+            <Icon icon="lucide:volume-2" style={{ width: 16, height: 16, color: '#FFB840' }} />
+          </button>
+
           {/* Progress text */}
           <p
             style={{
@@ -823,6 +889,11 @@ function Game() {
           question={question}
           encourageText={encourageText}
           onNext={handleNext}
+          onSpeak={
+            answerState === 'wrong_second'
+              ? () => speakWord(question.correctAnswer, gameState, question.sentence)
+              : undefined
+          }
         />
       )}
 
