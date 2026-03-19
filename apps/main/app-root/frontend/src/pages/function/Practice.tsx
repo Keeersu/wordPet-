@@ -6,48 +6,92 @@
  * Design for: Mobile
  * </base-info>
  * <page-design>
- * ## Features & Interactions
- * - 选择不同的练习模式（测验、拼写、闪卡）
- * - 查看今日待复习任务
- * - 导航：首页 (Tab)、图鉴 (Tab)、我的 (Tab)
- * 
- * ## Basic Layout
- * Tab-based: Header + Main + Tab Bar
- * 
- * ## Reuse Components
- * - `MainTabBar`
- * 
  * ## Page Layout
- * `h-screen flex flex-col`
- * 
- * **Header**: nav-bar - 居中标题 "练习"
- * 
- * **Main** `flex-1 overflow-y-auto px-4 py-4 space-y-6`:
- * 1. **今日任务** (hero card): 
- *    - 布局: Overlay / Padded
- *    - 内容: 标题 "今日待复习" + 巨大数字 "24" 词 + "开始复习" 主按钮
- * 2. **练习模式** (quick-actions): grid-2col
- *    - 卡片: 包含图标、模式名称（如：趣味拼写）、描述说明
- * 3. **学习记录** (list): 
- *    - 标题: "最近练习"
- *    - 列表项: 练习类型名称 + 正确率 + 时间标签
- * 
- * **Bottom**: Reuse `MainTabBar`, activeKey="practice"
- * 
- * ## Mock Data
- * 今日任务：24词待复习。
- * 模式：趣味拼写、闪卡记忆、听音辨词、看图选词。
- * 记录：听音辨词 (正确率 90%, 昨天)、趣味拼写 (正确率 85%, 2天前)。
- * 
- * ## Reference
- * - site-map.md
+ * 顶部标题，居中占位文案，底部 MainTabBar
  * </page-design>
  */
 
-import { PagePlaceholder } from '@/components/function/base/PagePlaceholder'
+import { useNavigate } from 'react-router-dom'
+import { Icon } from '@iconify/react'
+import { MainTabBar } from '@/components/function/MainTabBar'
 
 function Practice() {
-  return <PagePlaceholder title="Practice" />
+  const navigate = useNavigate()
+
+  return (
+    <div
+      style={{
+        height: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#FFF8E7',
+        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
+        color: '#5D4037',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 16px 12px',
+          background: 'rgba(255,248,231,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(93,64,55,0.08)',
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 12px',
+            borderRadius: 10,
+            border: '2px solid rgba(93,64,55,0.12)',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
+            cursor: 'pointer',
+            color: '#5D4037',
+            fontWeight: 700,
+            fontSize: 14,
+            fontFamily: 'inherit',
+          }}
+        >
+          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+          返回
+        </button>
+
+        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>练习</div>
+
+        <div style={{ width: 68 }} />
+      </div>
+
+      {/* Content */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          paddingBottom: 100,
+        }}
+      >
+        <span style={{ fontSize: 48 }}>🎮</span>
+        <p style={{ fontSize: 20, fontWeight: 900, margin: 0 }}>练习</p>
+        <p style={{ fontSize: 14, color: 'rgba(93,64,55,0.5)', margin: 0 }}>敬请期待 🐾</p>
+      </div>
+
+      <MainTabBar />
+    </div>
+  )
 }
 
 export default Practice
