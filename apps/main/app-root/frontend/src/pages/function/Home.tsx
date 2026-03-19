@@ -53,7 +53,7 @@
  * </page-design>
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { MainTabBar } from '@/components/function/MainTabBar'
@@ -240,7 +240,8 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
 
 function Home() {
   const navigate = useNavigate()
-  const { gameState } = useGameStore()
+  const { gameState, updateGameState } = useGameStore()
+  const [showSettings, setShowSettings] = useState(false)
 
   const rooms = useMemo<Room[]>(() => {
     return chapterMeta.map((chapter) => {
@@ -313,7 +314,7 @@ function Home() {
 
           {/* Right: settings gear */}
           <button
-            onClick={() => navigate(pageLinks.Settings())}
+            onClick={() => setShowSettings(true)}
             className="p-2 rounded-[12px] active:translate-y-[2px] active:shadow-none transition-all"
             style={{
               backgroundColor: 'white',
@@ -383,6 +384,189 @@ function Home() {
       >
         <Icon icon="lucide:play" style={{ width: '28px', height: '28px', color: 'white', marginLeft: '2px' }} />
       </button>
+
+      {/* 7. Settings Modal */}
+      {showSettings && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+          }}
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            style={{
+              width: 'calc(100% - 48px)',
+              maxWidth: 360,
+              position: 'relative',
+              borderRadius: 20,
+              overflow: 'hidden',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
+              color: '#5D4037',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 🖼️ ASSET | 设置弹窗背景 | PNG @3x | /assets/ui/settings-bg.png */}
+            <img
+              src="/assets/ui/settings-bg.png"
+              alt=""
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                zIndex: 0,
+              }}
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+            <div style={{ position: 'absolute', inset: 0, backgroundColor: '#FFE8A0', zIndex: -1 }} />
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* 橙色横幅标题 */}
+            <div
+              style={{
+                backgroundColor: '#FFB840',
+                padding: 14,
+                textAlign: 'center',
+                fontSize: 18,
+                fontWeight: 900,
+                color: 'white',
+              }}
+            >
+              ⚙️ 设置
+            </div>
+
+            {/* 弹窗主体 */}
+            <div
+              style={{
+                backgroundColor: 'transparent',
+                padding: '20px 24px 24px',
+              }}
+            >
+              {/* 音乐 / 音效 两列 */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {/* 音乐 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音乐</div>
+                  <button
+                    onClick={() =>
+                      updateGameState((prev) => ({
+                        ...prev,
+                        settings: { ...prev.settings, musicEnabled: !prev.settings.musicEnabled },
+                      }))
+                    }
+                    style={{
+                      width: '100%',
+                      height: 52,
+                      borderRadius: 12,
+                      border: 'none',
+                      backgroundColor: gameState.settings.musicEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
+                      boxShadow: gameState.settings.musicEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)',
+                      color: gameState.settings.musicEnabled ? 'white' : 'rgba(93,64,55,0.4)',
+                      fontSize: 16,
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'transform 80ms ease, box-shadow 80ms ease',
+                    }}
+                    onPointerDown={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
+                        ? '0 1px 0 0 #4A9050'
+                        : '0 1px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerUp={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerLeave={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                  >
+                    🎵 {gameState.settings.musicEnabled ? '开' : '关'}
+                  </button>
+                </div>
+
+                {/* 音效 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音效</div>
+                  <button
+                    onClick={() =>
+                      updateGameState((prev) => ({
+                        ...prev,
+                        settings: { ...prev.settings, soundEnabled: !prev.settings.soundEnabled },
+                      }))
+                    }
+                    style={{
+                      width: '100%',
+                      height: 52,
+                      borderRadius: 12,
+                      border: 'none',
+                      backgroundColor: gameState.settings.soundEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
+                      boxShadow: gameState.settings.soundEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)',
+                      color: gameState.settings.soundEnabled ? 'white' : 'rgba(93,64,55,0.4)',
+                      fontSize: 16,
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'transform 80ms ease, box-shadow 80ms ease',
+                    }}
+                    onPointerDown={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
+                        ? '0 1px 0 0 #4A9050'
+                        : '0 1px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerUp={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerLeave={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                  >
+                    🔊 {gameState.settings.soundEnabled ? '开' : '关'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 分割线 */}
+              <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.1)', margin: '16px 0' }} />
+
+              <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.5)', textAlign: 'center' }}>
+                👩‍💻 猫卷装修队
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.3)', textAlign: 'center', marginTop: 6 }}>
+                VERSION: 1.3.0
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
