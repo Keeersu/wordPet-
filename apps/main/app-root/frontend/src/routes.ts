@@ -20,6 +20,7 @@ import Result from './pages/function/Result'
 import Room from './pages/function/Room'
 import Onboarding from './pages/function/Onboarding'
 import OnboardingLevel from './pages/function/OnboardingLevel'
+import Splash from './pages/function/Splash'
 
 
 type Store = ReturnType<typeof createStore>
@@ -39,6 +40,7 @@ type Store = ReturnType<typeof createStore>
 function createBusinessRoutes(store: Store): RouteObject[] {
   return [
     // == BUSINESS_ROUTES ==
+    { path: pageLinks.Splash(), element: createElement(Splash) },
     { path: pageLinks.Home(), element: createElement(Home) },
     { path: pageLinks.Collection(), element: createElement(Collection) },
     { path: pageLinks.Practice(), element: createElement(Practice) },

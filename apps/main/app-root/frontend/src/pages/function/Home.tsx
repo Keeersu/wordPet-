@@ -369,20 +369,31 @@ function Home() {
       <MainTabBar />
 
       {/* 6. FAB — fixed bottom-right */}
+      {/* 🖼️ ASSET | 快速开始按钮 | PNG @3x | /assets/ui/buttons/btn-quick-start.png */}
       <button
         onClick={handleFabClick}
-        className="fixed z-40 flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
+        className="flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
         style={{
-          width: '56px',
-          height: '56px',
-          bottom: 'calc(24px + env(safe-area-inset-bottom, 34px))',
-          right: '24px',
+          position: 'fixed',
+          zIndex: 40,
+          width: '64px',
+          height: '64px',
+          bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
+          right: '20px',
           backgroundColor: '#FFB840',
           border: '3px solid white',
           boxShadow: '0 4px 0 0 #A06800',
+          overflow: 'hidden',
         }}
       >
-        <Icon icon="lucide:play" style={{ width: '28px', height: '28px', color: 'white', marginLeft: '2px' }} />
+        <img
+          src="/assets/ui/buttons/btn-quick-start.png"
+          alt="Start"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+          onError={(e) => {
+            ;(e.target as HTMLImageElement).style.display = 'none'
+          }}
+        />
       </button>
 
       {/* 7. Settings Modal */}

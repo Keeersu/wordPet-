@@ -19,6 +19,7 @@ export const pageLinks = {
   Settings: () => '/settings',
   Onboarding: () => '/onboarding',
   OnboardingLevel: () => '/onboarding/level',
+  Splash: () => '/splash',
   Home: () => '/',
   Room: (chapterId: number | string = ':chapterId') => `/rooms/${chapterId}`,
   Game: (

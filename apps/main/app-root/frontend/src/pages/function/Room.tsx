@@ -451,17 +451,10 @@ function Room() {
       {/* ── 顶部导航 ── */}
       <div
         style={{
-          position: 'sticky',
-          top: 0,
+          position: 'fixed',
+          top: 16,
+          left: 16,
           zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 16px 12px',
-          background: 'rgba(255,248,231,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(93,64,55,0.08)',
         }}
       >
         <button
@@ -485,13 +478,6 @@ function Room() {
           <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
           返回
         </button>
-
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>
-          {chapter.nameCn}
-        </div>
-
-        {/* 占位，让标题居中 */}
-        <div style={{ width: 68 }} />
       </div>
 
       {/* ── 可滚动内容区 ── */}

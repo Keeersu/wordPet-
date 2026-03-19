@@ -647,18 +647,12 @@ function Game() {
   )
 
   // Handle next question
-  const handleNext = useCallback(async () => {
+  const handleNext = useCallback(() => {
     setShowFeedback(false)
 
     if (currentIndex + 1 >= TOTAL_QUESTIONS) {
       const accuracy = correctCount / TOTAL_QUESTIONS
       const completedAt = new Date().toISOString()
-
-      const newDifficulty = await adjustDifficulty(
-        accuracy,
-        gameState.adaptiveDifficulty.current,
-        wordStats,
-      )
 
       updateGameState((prev) => {
         const completedKey = `${chapterId}-${levelId}`
@@ -693,12 +687,6 @@ function Game() {
           },
           unlockedFurniture: nextUnlockedFurniture,
           wordHistory: nextWordHistory,
-          difficulty: newDifficulty,
-          adaptiveDifficulty: {
-            ...prev.adaptiveDifficulty,
-            current: newDifficulty,
-            levelHistory: [...prev.adaptiveDifficulty.levelHistory, newDifficulty],
-          },
         }
 
         if (levelId === 4) {
@@ -717,6 +705,20 @@ function Game() {
       })
 
       void navigate(`/chapter/${chapterId}/level/${levelId}/result`)
+
+      adjustDifficulty(accuracy, gameState.adaptiveDifficulty.current, wordStats).then(
+        (newDifficulty) => {
+          updateGameState((prev) => ({
+            ...prev,
+            difficulty: newDifficulty,
+            adaptiveDifficulty: {
+              ...prev.adaptiveDifficulty,
+              current: newDifficulty,
+              levelHistory: [...prev.adaptiveDifficulty.levelHistory, newDifficulty],
+            },
+          }))
+        },
+      )
       return
     }
 

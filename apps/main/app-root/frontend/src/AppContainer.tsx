@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Toaster, toast } from '@/components/function/base/Toaster'
 import { useParaflowRouteInteceptor, HttpError, AuthRequiredError, ForbiddenError, FormError, NativeModalBlockedError } from '@paraflow-ai/frontend-libs'
 import { pageLinks } from './pageLinks'
@@ -64,6 +64,15 @@ function handleNativeModalError(error: NativeModalBlockedError) {
 export function AppContainer() {
   useParaflowRouteInteceptor()
   const navigate = useNavigate()
+  const location = useLocation()
+  const hasRedirected = useRef(false)
+
+  useEffect(() => {
+    if (!hasRedirected.current && location.pathname === '/') {
+      hasRedirected.current = true
+      navigate('/splash', { replace: true })
+    }
+  }, [location.pathname, navigate])
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {

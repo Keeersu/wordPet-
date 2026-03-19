@@ -22,7 +22,6 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
-import { MainTabBar } from '@/components/function/MainTabBar'
 
 const PERSONALITY_LABEL: Record<string, string> = {
   homebody: '居家',
@@ -91,6 +90,27 @@ function Profile() {
           borderBottom: '1px solid rgba(93,64,55,0.08)',
         }}
       >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 12px',
+            borderRadius: 10,
+            border: '2px solid rgba(93,64,55,0.12)',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
+            cursor: 'pointer',
+            color: '#5D4037',
+            fontWeight: 700,
+            fontSize: 14,
+            fontFamily: 'inherit',
+          }}
+        >
+          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+          返回
+        </button>
         <div style={{ fontWeight: 900, fontSize: 18 }}>我的</div>
         <button
           onClick={() => navigate('/settings')}
@@ -303,8 +323,6 @@ function Profile() {
         </div>
       </div>
 
-      {/* ── 底部 TabBar ── */}
-      <MainTabBar />
     </div>
   )
 }

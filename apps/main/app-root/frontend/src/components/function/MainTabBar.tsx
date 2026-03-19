@@ -1,71 +1,69 @@
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Icon } from '@iconify/react'
+import { useNavigate } from 'react-router-dom'
 import { pageLinks } from '../../pageLinks'
 
 const tabs = [
-  { id: 'collection', icon: 'lucide:book-open', label: '图鉴', path: pageLinks.Collection() },
-  { id: 'practice', icon: 'lucide:gamepad-2', label: '练习', path: pageLinks.Practice() },
-  { id: 'profile', icon: 'lucide:user', label: '我的', path: pageLinks.Profile() },
+  { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4' },
+  { id: 'practice', label: '练习', path: pageLinks.Practice(), color: '#FFB840' },
+  { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A' },
 ] as const
 
 export function MainTabBar() {
   const navigate = useNavigate()
-  const location = useLocation()
 
   return (
     <div
       style={{
         position: 'fixed',
-        bottom: 'calc(24px + env(safe-area-inset-bottom, 34px))',
-        left: '24px',
+        bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
+        left: 20,
         display: 'flex',
-        gap: '16px',
-        alignItems: 'flex-end',
-        zIndex: 40,
+        gap: 12,
+        zIndex: 39,
       }}
     >
-      {tabs.map((tab) => {
-        const isActive = location.pathname === tab.path
-        return (
-          <button
-            key={tab.id}
-            onClick={() => navigate(tab.path)}
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.9)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              cursor: 'pointer',
+      {tabs.map((tab) => (
+        // 🖼️ ASSET | Tab图标 | PNG @3x | /assets/ui/icons/icon-{id}.png
+        <button
+          key={tab.id}
+          onClick={() => navigate(tab.path)}
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            backgroundColor: tab.color,
+            boxShadow: '0 4px 0 0 rgba(0,0,0,0.15)',
+            border: '3px solid white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            position: 'relative',
+            transition: 'transform 80ms ease, box-shadow 80ms ease',
+          }}
+          onPointerDown={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(0,0,0,0.15)'
+          }}
+          onPointerUp={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(0,0,0,0.15)'
+          }}
+          onPointerLeave={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(0,0,0,0.15)'
+          }}
+        >
+          <img
+            src={`/assets/ui/icons/icon-${tab.id}.png`}
+            alt={tab.label}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).style.display = 'none'
             }}
-          >
-            <Icon
-              icon={tab.icon}
-              style={{
-                width: '18px',
-                height: '18px',
-                color: isActive ? '#FFB840' : 'rgba(93,64,55,0.4)',
-              }}
-            />
-            <span
-              style={{
-                fontSize: '10px',
-                marginTop: '1px',
-                color: isActive ? '#FFB840' : 'rgba(93,64,55,0.4)',
-                fontWeight: isActive ? 700 : 400,
-                fontFamily: "'PingFang SC', sans-serif",
-              }}
-            >
-              {tab.label}
-            </span>
-          </button>
-        )
-      })}
+          />
+        </button>
+      ))}
     </div>
   )
 }
