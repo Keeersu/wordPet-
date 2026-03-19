@@ -294,9 +294,7 @@ function Home() {
         className="fixed top-0 left-0 right-0 z-50"
         style={{
           paddingTop: 16,
-          background: 'rgba(255,255,255,0.5)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          background: 'transparent',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">

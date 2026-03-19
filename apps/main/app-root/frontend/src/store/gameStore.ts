@@ -100,7 +100,32 @@ export function getGameState(): GameState {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return createDefaultState()
     const parsed = JSON.parse(raw) as GameState
-    return parsed ?? createDefaultState()
+    if (!parsed) return createDefaultState()
+
+    const completedLevels = parsed.completedLevels ?? {}
+    let maxChapter = 1
+    let maxLevel = 1
+
+    for (const key of Object.keys(completedLevels)) {
+      const [ch, lv] = key.split('-').map(Number)
+      if (ch > maxChapter || (ch === maxChapter && lv >= maxLevel)) {
+        maxChapter = ch
+        maxLevel = lv
+      }
+    }
+
+    if (maxChapter > parsed.currentChapter ||
+        (maxChapter === parsed.currentChapter && maxLevel >= parsed.currentLevel)) {
+      if (maxLevel >= 4) {
+        parsed.currentChapter = Math.min(maxChapter + 1, 5)
+        parsed.currentLevel = 1
+      } else {
+        parsed.currentChapter = maxChapter
+        parsed.currentLevel = maxLevel + 1
+      }
+    }
+
+    return parsed
   } catch {
     return createDefaultState()
   }

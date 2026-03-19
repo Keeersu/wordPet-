@@ -112,6 +112,7 @@ async function adjustDifficulty(
 // ============================================================================
 
 interface Question {
+  type: 'multiple_choice' | 'fill_blank' | 'picture_match'
   word: string
   meaning: string
   sentence: string
@@ -120,7 +121,9 @@ interface Question {
 }
 
 const QUESTIONS: Question[] = [
+  // ── multiple_choice (4) ──
   {
+    type: 'multiple_choice',
     word: 'sofa',
     meaning: 'n. 沙发；长沙发',
     sentence: 'Come sit on the sofa.',
@@ -128,6 +131,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'sofa',
   },
   {
+    type: 'multiple_choice',
     word: 'lamp',
     meaning: 'n. 灯；台灯',
     sentence: 'Turn on the lamp, please.',
@@ -135,6 +139,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'lamp',
   },
   {
+    type: 'multiple_choice',
     word: 'chair',
     meaning: 'n. 椅子',
     sentence: 'Please sit in the chair.',
@@ -142,34 +147,41 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'chair',
   },
   {
+    type: 'multiple_choice',
     word: 'table',
     meaning: 'n. 桌子',
     sentence: 'Put it on the table.',
     options: ['desk', 'table', 'floor', 'wall'],
     correctAnswer: 'table',
   },
+  // ── fill_blank (3) ──
   {
+    type: 'fill_blank',
     word: 'clock',
     meaning: 'n. 时钟',
-    sentence: 'The clock shows three.',
+    sentence: 'The ___ shows three.',
     options: ['watch', 'phone', 'clock', 'bell'],
     correctAnswer: 'clock',
   },
   {
+    type: 'fill_blank',
     word: 'window',
     meaning: 'n. 窗户',
-    sentence: 'Open the window for fresh air.',
+    sentence: 'Open the ___ for fresh air.',
     options: ['window', 'mirror', 'door', 'wall'],
     correctAnswer: 'window',
   },
   {
+    type: 'fill_blank',
     word: 'pillow',
     meaning: 'n. 枕头',
-    sentence: 'Rest your head on the pillow.',
+    sentence: 'Rest your head on the ___.',
     options: ['blanket', 'sheet', 'pillow', 'towel'],
     correctAnswer: 'pillow',
   },
+  // ── picture_match (3) ──
   {
+    type: 'picture_match',
     word: 'carpet',
     meaning: 'n. 地毯',
     sentence: 'The cat sleeps on the carpet.',
@@ -177,6 +189,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'carpet',
   },
   {
+    type: 'picture_match',
     word: 'shelf',
     meaning: 'n. 架子；搁板',
     sentence: 'Put the books on the shelf.',
@@ -184,6 +197,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'shelf',
   },
   {
+    type: 'picture_match',
     word: 'mirror',
     meaning: 'n. 镜子',
     sentence: 'Look at yourself in the mirror.',
@@ -825,30 +839,40 @@ function Game() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          paddingTop: '52px',
+          paddingTop: '80px',
         }}
       >
-        {/* Word illustration placeholder */}
-        <div
-          style={{
-            width: '160px',
-            height: '160px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,184,64,0.3)',
-            border: '3px solid white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '28px',
-            color: 'rgba(93,64,55,0.4)',
-            fontWeight: 700,
-            textAlign: 'center',
-            marginBottom: '-80px',
-            zIndex: 2,
-          }}
-        >
-          {question.word.charAt(0).toUpperCase()}
-        </div>
+        {question.type === 'multiple_choice' && (
+          <div
+            style={{
+              width: 160,
+              height: 160,
+              borderRadius: 16,
+              backgroundColor: 'rgba(255,184,64,0.2)',
+              border: '3px solid white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+              marginBottom: -80,
+              zIndex: 2,
+            }}
+          >
+            {/* 🖼️ ASSET | 单词图片 | /assets/words/{word}.png */}
+            <img
+              src={`/assets/words/${question.word}.png`}
+              alt={question.word}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+            <span style={{ position: 'relative', zIndex: 1, fontSize: 48, color: 'rgba(93,64,55,0.3)' }}>
+              {question.word.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
 
         {/* White question card */}
         <div
@@ -858,11 +882,12 @@ function Game() {
             width: 'calc(100% - 32px)',
             backgroundColor: 'white',
             borderRadius: '20px',
-            paddingTop: '80px',
+            paddingTop: question.type === 'multiple_choice' ? '80px' : '24px',
             paddingBottom: '24px',
             paddingLeft: '20px',
             paddingRight: '20px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            marginTop: question.type === 'multiple_choice' ? 0 : 24,
           }}
         >
           {/* TTS speaker button */}
@@ -899,17 +924,59 @@ function Game() {
             第 {currentIndex + 1} 题 · 共 {TOTAL_QUESTIONS} 题
           </p>
 
-          {/* Question text */}
+          {/* ── Type-dependent hint area ── */}
+          {question.type === 'picture_match' && (
+            <p
+              style={{
+                textAlign: 'center',
+                fontSize: 32,
+                fontWeight: 900,
+                color: '#FFB840',
+                margin: '12px 0 0',
+                lineHeight: 1.3,
+              }}
+            >
+              {question.meaning}
+            </p>
+          )}
+
+          {question.type === 'fill_blank' && (
+            <p
+              style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: '#5D4037',
+                margin: '12px 0 0',
+                lineHeight: 1.6,
+                fontFamily: "'Nunito', sans-serif",
+              }}
+            >
+              {question.sentence.split('___').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span style={{ color: '#FFB840', fontWeight: 900 }}>___</span>
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
+
+          {/* Question text (type-dependent) */}
           <p
             style={{
               textAlign: 'center',
               fontSize: '17px',
               fontWeight: 700,
               color: '#5D4037',
-              margin: '16px 0',
+              margin: '12px 0 16px',
             }}
           >
-            选出正确的单词
+            {question.type === 'fill_blank'
+              ? '选出划线处的单词'
+              : question.type === 'picture_match'
+                ? '选出对应的英文单词'
+                : '这张图对应哪个单词？'}
           </p>
 
           {/* Option buttons */}
