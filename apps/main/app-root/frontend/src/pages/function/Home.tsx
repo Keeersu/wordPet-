@@ -289,11 +289,11 @@ function Home() {
         }}
       />
 
-      {/* 2. Sticky top navigation bar */}
+      {/* 2. Fixed top navigation bar */}
       <div
-        className="sticky top-0 z-30"
+        className="fixed top-0 left-0 right-0 z-50"
         style={{
-          paddingTop: 52,
+          paddingTop: 16,
           background: 'rgba(255,255,255,0.5)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
@@ -337,7 +337,7 @@ function Home() {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '16px',
-          paddingTop: '16px',
+          paddingTop: '84px',
           paddingBottom: '90px',
           overflowY: 'auto',
         }}

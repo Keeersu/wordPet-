@@ -41,7 +41,7 @@
  * </page-design>
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
@@ -267,17 +267,15 @@ function FeedbackSheet({
   question,
   encourageText,
   onNext,
-  onRetry,
 }: {
   answerState: 'correct' | 'wrong_first' | 'wrong_second'
   question: Question
   encourageText: string
   onNext: () => void
-  onRetry: () => void
 }) {
   const isCorrect = answerState === 'correct'
   const isWrongSecond = answerState === 'wrong_second'
-  const isWrongFirst = answerState === 'wrong_first'
+  const headerText = isWrongSecond ? '正确答案是——' : encourageText
 
   return (
     <>
@@ -319,7 +317,7 @@ function FeedbackSheet({
             />
           </div>
           <span style={{ fontSize: '17px', fontWeight: 700, color: '#5D4037' }}>
-            {encourageText}
+            {headerText}
           </span>
         </div>
 
@@ -366,9 +364,9 @@ function FeedbackSheet({
         )}
 
         {/* Action button */}
-        {(isCorrect || isWrongFirst || isWrongSecond) && (
+        {isWrongSecond && (
           <button
-            onClick={isWrongFirst ? onRetry : onNext}
+            onClick={onNext}
             style={{
               width: '100%',
               padding: '14px',
@@ -383,7 +381,7 @@ function FeedbackSheet({
               boxShadow: '0 3px 0 0 #D99A20',
             }}
           >
-            {isWrongFirst ? '再试一次 ↩' : '下一题 →'}
+            下一题 →
           </button>
         )}
       </div>
@@ -465,9 +463,9 @@ function Game() {
       if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second')) {
         return {
           ...baseStyle,
-          backgroundColor: '#EF5350',
-          color: 'white',
-          boxShadow: '0 3px 0 0 #D32F2F',
+          backgroundColor: answerState === 'wrong_second' ? '#FFEBEE' : '#EF5350',
+          color: answerState === 'wrong_second' ? '#C62828' : 'white',
+          boxShadow: answerState === 'wrong_second' ? '0 3px 0 0 #F8BBD0' : '0 3px 0 0 #D32F2F',
         }
       }
 
@@ -477,7 +475,7 @@ function Game() {
         backgroundColor: '#FFF8E7',
         color: '#5D4037',
         boxShadow: '0 3px 0 0 #E8D5B0',
-        opacity: 0.5,
+        opacity: answerState === 'wrong_second' ? 0.4 : 0.5,
       }
     },
     [answerState, selectedOption, question],
@@ -530,7 +528,7 @@ function Game() {
         setShowFeedback(true)
       } else {
         setAnswerState('wrong_second')
-        setEncourageText(getRandomEncourage(false))
+        setEncourageText('正确答案是——')
         setWordStats((prev) => {
           const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
           return {
@@ -610,11 +608,25 @@ function Game() {
     setAttemptCount(0)
   }, [chapterId, correctCount, currentIndex, levelId, navigate, updateGameState, wordStats])
 
-  const handleRetry = useCallback(() => {
-    setShowFeedback(false)
-    setAnswerState('idle')
-    setSelectedOption(null)
-  }, [])
+  useEffect(() => {
+    if (!showFeedback) return
+
+    if (answerState === 'wrong_first') {
+      const timer = setTimeout(() => {
+        setShowFeedback(false)
+        setAnswerState('idle')
+        setSelectedOption(null)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+
+    if (answerState === 'correct') {
+      const timer = setTimeout(() => {
+        handleNext()
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+  }, [answerState, handleNext, showFeedback])
 
   // Handle exit
   const handleExitConfirm = useCallback(() => {
@@ -649,11 +661,13 @@ function Game() {
       {/* Top navigation bar */}
       <div
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
-          zIndex: 20,
-          paddingTop: '52px',
-          background: 'transparent',
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          paddingTop: '16px',
+          background: '#F5E6C8',
         }}
       >
         <div
@@ -707,7 +721,7 @@ function Game() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          paddingTop: '24px',
+          paddingTop: '52px',
         }}
       >
         {/* Word illustration placeholder */}
@@ -804,7 +818,6 @@ function Game() {
           question={question}
           encourageText={encourageText}
           onNext={handleNext}
-          onRetry={handleRetry}
         />
       )}
 
