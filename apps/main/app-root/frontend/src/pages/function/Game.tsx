@@ -555,6 +555,10 @@ function Game() {
 
       updateGameState((prev) => {
         const completedKey = `${chapterId}-${levelId}`
+        const furnitureId = `furniture_ch${chapterId}_lv${levelId}`
+        const nextUnlockedFurniture = prev.unlockedFurniture.includes(furnitureId)
+          ? prev.unlockedFurniture
+          : [...prev.unlockedFurniture, furnitureId]
         const nextWordHistory = { ...prev.wordHistory }
 
         for (const [word, stats] of Object.entries(wordStats)) {
@@ -580,6 +584,7 @@ function Game() {
               completedAt,
             },
           },
+          unlockedFurniture: nextUnlockedFurniture,
           wordHistory: nextWordHistory,
         }
 
