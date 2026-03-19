@@ -18,6 +18,7 @@ import Settings from './pages/function/Settings'
 import Game from './pages/function/Game'
 import Result from './pages/function/Result'
 import Room from './pages/function/Room'
+import Onboarding from './pages/function/Onboarding'
 
 
 type Store = ReturnType<typeof createStore>
@@ -42,6 +43,7 @@ function createBusinessRoutes(store: Store): RouteObject[] {
     { path: pageLinks.Practice(), element: createElement(Practice) },
     { path: pageLinks.Profile(), element: createElement(Profile) },
     { path: pageLinks.Settings(), element: createElement(Settings) },
+    { path: pageLinks.Onboarding(), element: createElement(Onboarding) },
     { path: pageLinks.Game(), element: createElement(Game) },
     { path: pageLinks.Result(), element: createElement(Result) },
     { path: pageLinks.Room(), element: createElement(Room) },
