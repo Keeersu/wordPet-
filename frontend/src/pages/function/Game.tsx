@@ -28,7 +28,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
-import type { GameState } from '@/store/gameStore'
+// GameState type no longer needed at module level
 import {
   generateQuestions,
   adjustNextQuestion,
@@ -40,10 +40,7 @@ import { speakWord as _speakWord } from '@/lib/utils/tts'
 import { getRandomEncourage } from '@/lib/utils/encouragements'
 import { getChapterName } from '@/data/chapters'
 
-// ── TTS 封装：使用 ttsEnabled 控制朗读 ──
-function speakWord(word: string, gameState: GameState, sentence?: string) {
-  _speakWord(word, { enabled: gameState.settings.ttsEnabled, sentence })
-}
+// ── TTS 工具函数已移入组件内部（speak），同时检查页面朗读开关 + 全局 ttsEnabled ──
 
 // ============================================================================
 // LLM Adaptive Difficulty (关卡结束后大调整)
@@ -588,6 +585,13 @@ function Game() {
 
   // ── 自动朗读开关（答题页内，默认开启） ──
   const [autoRead, setAutoRead] = useState(true)
+  const autoReadRef = useRef(true) // ref 同步，供回调函数读取最新值
+
+  /** 组件内 TTS：同时检查页面朗读开关和全局 ttsEnabled */
+  const speak = useCallback((word: string, sentence?: string) => {
+    if (!autoReadRef.current) return
+    _speakWord(word, { enabled: gameState.settings.ttsEnabled, sentence })
+  }, [gameState.settings.ttsEnabled])
 
   // ── 题内实时微调追踪 ──
   const recentResults = useRef<boolean[]>([]) // 最近 3 题结果
@@ -620,6 +624,11 @@ function Game() {
   }, []) // 仅挂载时检查一次
 
   const question = questions[currentIndex]
+
+  // ── 同步 autoRead ref ──
+  useEffect(() => {
+    autoReadRef.current = autoRead
+  }, [autoRead])
 
   // ── 自动朗读：每道新题出现时自动朗读单词 ──
   useEffect(() => {
@@ -746,7 +755,7 @@ function Game() {
         setEncourageText(getRandomEncourage(true))
         setCorrectCount((c) => c + 1)
         recordAnswer(question.word, true, newAttemptCount)
-        speakWord(question.word, gameState)
+        speak(question.word)
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
@@ -758,11 +767,11 @@ function Game() {
         setAnswerState('wrong_second')
         setEncourageText('正确答案是——')
         recordAnswer(question.word, false, newAttemptCount)
-        speakWord(question.correctAnswer, gameState, question.sentence)
+        speak(question.correctAnswer, question.sentence)
         setShowFeedback(true)
       }
     },
-    [optionsDisabled, attemptCount, question, gameState, recordAnswer],
+    [optionsDisabled, attemptCount, question, speak, recordAnswer],
   )
 
   // ── 字母拼写完成回调 ──
@@ -772,9 +781,9 @@ function Game() {
     setEncourageText(getRandomEncourage(true))
     setCorrectCount((c) => c + 1)
     recordAnswer(question.word, true, 1)
-    speakWord(question.word, gameState)
+    speak(question.word)
     setShowFeedback(true)
-  }, [question, gameState, recordAnswer])
+  }, [question, speak, recordAnswer])
 
   const handleSpellingWrong = useCallback(() => {
     if (!question) return
@@ -785,12 +794,12 @@ function Game() {
       setAnswerState('wrong_second')
       setEncourageText('正确答案是——')
       recordAnswer(question.word, false, newAttemptCount)
-      speakWord(question.correctAnswer, gameState, question.sentence)
+      speak(question.correctAnswer, question.sentence)
       setShowFeedback(true)
     } else {
       recordAnswer(question.word, false, newAttemptCount)
     }
-  }, [question, attemptCount, gameState, recordAnswer])
+  }, [question, attemptCount, speak, recordAnswer])
 
   // ── 下一题 ──
   const handleNext = useCallback(() => {
@@ -1022,7 +1031,15 @@ function Game() {
               <button
                 onClick={() => {
                   if (!ttsOn) return // 全局朗读已关闭，按钮不可操作
-                  setAutoRead((prev) => !prev)
+                  setAutoRead((prev) => {
+                    const next = !prev
+                    autoReadRef.current = next
+                    // 关闭时立刻停止正在播放的语音
+                    if (!next && window.speechSynthesis) {
+                      window.speechSynthesis.cancel()
+                    }
+                    return next
+                  })
                 }}
                 style={{
                   width: '40px',
@@ -1225,8 +1242,8 @@ function Game() {
           encourageText={encourageText}
           onNext={handleNext}
           onSpeak={
-            answerState === 'wrong_second' && gameState.settings.ttsEnabled
-              ? () => speakWord(question.correctAnswer, gameState, question.sentence)
+            answerState === 'wrong_second' && gameState.settings.ttsEnabled && autoRead
+              ? () => _speakWord(question.correctAnswer, { enabled: true, sentence: question.sentence })
               : undefined
           }
         />
