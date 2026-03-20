@@ -597,7 +597,7 @@ function Game() {
   const recentResults = useRef<boolean[]>([]) // 最近 3 题结果
   const sentenceLevelOverride = useRef<'basic' | 'advanced' | null>(null)
 
-  // ── LLM 难度变化提示（关卡开始时展示） ──
+  // ── LLM 难度变化提示（仅在难度确实发生变化且尚未展示时才弹出） ──
   const [difficultyToast, setDifficultyToast] = useState<{
     show: boolean
     direction: 'up' | 'down' | 'same'
@@ -607,20 +607,28 @@ function Game() {
 
   useEffect(() => {
     const history = gameState.adaptiveDifficulty.levelHistory
-    if (history.length >= 2) {
-      const prev = history[history.length - 2]
-      const curr = history[history.length - 1]
-      if (prev !== curr) {
-        setDifficultyToast({
-          show: true,
-          direction: curr > prev ? 'up' : 'down',
-          from: prev,
-          to: curr,
-        })
-        const timer = setTimeout(() => setDifficultyToast(null), 4000)
-        return () => clearTimeout(timer)
-      }
-    }
+    if (history.length < 2) return
+
+    const prev = history[history.length - 2]
+    const curr = history[history.length - 1]
+    if (prev === curr) return // 难度没变，不提示
+
+    // 用 localStorage 记录上次已展示 Toast 时对应的 levelHistory 长度，
+    // 避免重复进入同一关时反复弹出同一条提示
+    const toastKey = 'wordpet_difficulty_toast_shown_at'
+    const lastShownAt = Number(localStorage.getItem(toastKey) || '0')
+    if (lastShownAt >= history.length) return // 这次变化已经展示过了
+
+    localStorage.setItem(toastKey, String(history.length))
+
+    setDifficultyToast({
+      show: true,
+      direction: curr > prev ? 'up' : 'down',
+      from: prev,
+      to: curr,
+    })
+    const timer = setTimeout(() => setDifficultyToast(null), 4000)
+    return () => clearTimeout(timer)
   }, []) // 仅挂载时检查一次
 
   const question = questions[currentIndex]
