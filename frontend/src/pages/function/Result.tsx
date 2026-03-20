@@ -15,7 +15,7 @@
  *     - 中文释义
  *     - 🔊 发音按钮
  *     - 点击展开：例句 + 答题次数明细
- *   - 底部三按钮：返回房间 / 再来一遍 / 下一关
+ *   - 底部三按钮：返回首页（图标） / 再来一遍 / 下一关（或全部通关）
  *
  * ## Page Layout
  * 先全屏 overlay 动画，过渡到顶部固定导航 + 中间可滚动内容 + 底部固定三按钮
@@ -325,6 +325,17 @@ function Result() {
 
   const handleReplay = () => navigate(`/chapter/${chapterId}/level/${levelId}`)
 
+  // 下一关逻辑
+  const MAX_CHAPTERS = 5
+  const LEVELS_PER_CHAPTER = 4
+  const hasNextLevel = !(chapterId >= MAX_CHAPTERS && levelId >= LEVELS_PER_CHAPTER)
+  const nextChapter = levelId >= LEVELS_PER_CHAPTER ? chapterId + 1 : chapterId
+  const nextLevel = levelId >= LEVELS_PER_CHAPTER ? 1 : levelId + 1
+
+  const handleNextLevel = () => {
+    navigate(`/chapter/${nextChapter}/level/${nextLevel}`)
+  }
+
   // ── Reveal 阶段 ──
   if (stage === 'reveal') {
     return (
@@ -564,7 +575,7 @@ function Result() {
         </div>
       </div>
 
-      {/* ── 底部固定按钮区（2 按钮） ── */}
+      {/* ── 底部固定按钮区（3 按钮） ── */}
       <div
         style={{
           position: 'fixed',
@@ -579,6 +590,41 @@ function Result() {
           animation: 'detailSlideUp 500ms 300ms ease-out both',
         }}
       >
+        {/* 返回首页 */}
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            width: 46,
+            height: 46,
+            flexShrink: 0,
+            borderRadius: 14,
+            border: '2px solid rgba(93,64,55,0.15)',
+            backgroundColor: 'white',
+            color: '#5D4037',
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            boxShadow: '0 3px 0 0 rgba(93,64,55,0.08)',
+            transition: 'transform 80ms ease, box-shadow 80ms ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onPointerDown={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(93,64,55,0.08)'
+          }}
+          onPointerUp={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
+          }}
+          onPointerLeave={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
+          }}
+        >
+          <Icon icon="lucide:home" style={{ width: 20, height: 20 }} />
+        </button>
+
         {/* 再来一遍 */}
         <button
           onClick={handleReplay}
@@ -612,38 +658,81 @@ function Result() {
           再来一遍
         </button>
 
-        {/* 返回首页 */}
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            flex: 1,
-            padding: '13px 4px',
-            borderRadius: 14,
-            border: '2.5px solid white',
-            backgroundColor: '#FFB840',
-            color: '#3D1F00',
-            fontWeight: 900,
-            fontSize: 14,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 3px 0 0 #A06800',
-            transition: 'transform 80ms ease, box-shadow 80ms ease',
-          }}
-          onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #A06800'
-          }}
-          onPointerUp={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-          }}
-          onPointerLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-          }}
-        >
-          返回首页
-        </button>
+        {/* 下一关 */}
+        {hasNextLevel ? (
+          <button
+            onClick={handleNextLevel}
+            style={{
+              flex: 1,
+              padding: '13px 4px',
+              borderRadius: 14,
+              border: '2.5px solid white',
+              backgroundColor: '#FFB840',
+              color: '#3D1F00',
+              fontWeight: 900,
+              fontSize: 14,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: '0 3px 0 0 #A06800',
+              transition: 'transform 80ms ease, box-shadow 80ms ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+            }}
+            onPointerDown={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #A06800'
+            }}
+            onPointerUp={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
+            }}
+            onPointerLeave={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
+            }}
+          >
+            下一关
+            <Icon icon="lucide:arrow-right" style={{ width: 16, height: 16 }} />
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              flex: 1,
+              padding: '13px 4px',
+              borderRadius: 14,
+              border: '2.5px solid white',
+              backgroundColor: '#66BB6A',
+              color: 'white',
+              fontWeight: 900,
+              fontSize: 14,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: '0 3px 0 0 #4A9050',
+              transition: 'transform 80ms ease, box-shadow 80ms ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+            }}
+            onPointerDown={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #4A9050'
+            }}
+            onPointerUp={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #4A9050'
+            }}
+            onPointerLeave={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #4A9050'
+            }}
+          >
+            🎉 全部通关！
+          </button>
+        )}
       </div>
     </div>
   )
