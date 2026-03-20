@@ -32,6 +32,8 @@ export const pageLinks = {
   ) => `/chapter/${chapterId}/level/${levelId}/result`,
 
 
+  Login: () => '/login',
+
   global_shortcut_home: () => '/', // MUST BE '/', do not change
   global_shortcut_login: () => '/login',
 }

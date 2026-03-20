@@ -1,20 +1,20 @@
 /*
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
- * Description: 个人主页，展示猫咪信息卡、学习统计、冒险进度和已学单词回顾。
+ * Description: 个人主页，展示猫咪信息卡、登录状态/云同步、学习统计、冒险进度和已学单词回顾。
  * Style referenceFiles:
  * Design for: Mobile
  * </base-info>
  * <page-design>
  * ## Features & Interactions
+ * - 登录状态卡 / 云同步提示（已登录：用户信息 + 同步状态 + 登出按钮；未登录：引导登录横幅）
  * - 猫咪信息卡（头像占位 + 名字 + 标签）
  * - 学习统计 3 列 grid（已学单词 / 完成关卡 / 解锁家具）
  * - 冒险进度条（已完成关卡 / 20 总关卡）
  * - 已学单词回顾（2 列网格，显示正确率）
- * - 底部 MainTabBar
  *
  * ## Page Layout
- * h-screen flex flex-col，顶部固定 Header，中间可滚动内容，底部 MainTabBar
+ * h-screen flex flex-col，顶部固定 Header，中间可滚动内容
  * </page-design>
  */
 
@@ -22,6 +22,8 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import { useAuth } from '@/store/AuthContext'
+import { pageLinks } from '@/pageLinks'
 
 const PERSONALITY_LABEL: Record<string, string> = {
   homebody: '居家',
@@ -41,11 +43,48 @@ const cardStyle: React.CSSProperties = {
   padding: '14px 16px',
 }
 
+// ─── 同步状态指示器 ──────────────────────────────────────────────────────────
+
+function SyncStatusBadge({ status }: { status: string }) {
+  const config = {
+    idle: { label: '未同步', color: 'rgba(93,64,55,0.35)', bg: 'rgba(93,64,55,0.06)' },
+    syncing: { label: '同步中...', color: '#FFB840', bg: 'rgba(255,184,64,0.12)' },
+    synced: { label: '已同步', color: '#66BB6A', bg: 'rgba(102,187,106,0.12)' },
+    error: { label: '同步失败', color: '#EF5350', bg: 'rgba(239,83,80,0.12)' },
+  }[status] || { label: '未知', color: 'gray', bg: '#eee' }
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        fontSize: 11,
+        fontWeight: 700,
+        padding: '2px 8px',
+        borderRadius: 20,
+        backgroundColor: config.bg,
+        color: config.color,
+      }}
+    >
+      {status === 'syncing' && (
+        <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>
+          <Icon icon="lucide:loader-2" style={{ width: 10, height: 10 }} />
+        </span>
+      )}
+      {status === 'synced' && <Icon icon="lucide:check-circle-2" style={{ width: 10, height: 10 }} />}
+      {status === 'error' && <Icon icon="lucide:alert-circle" style={{ width: 10, height: 10 }} />}
+      {config.label}
+    </span>
+  )
+}
+
 // ─── 主页面 ──────────────────────────────────────────────────────────────────
 
 function Profile() {
   const navigate = useNavigate()
-  const { gameState } = useGameStore()
+  const { gameState, syncStatus } = useGameStore()
+  const { user, isLoggedIn, logout } = useAuth()
   const { cat } = gameState
 
   const wordCount = Object.keys(gameState.wordHistory).length
@@ -62,6 +101,10 @@ function Profile() {
   }, [gameState.wordHistory])
 
   const genderSuffix = cat.gender === 'male' ? 'm' : 'f'
+
+  const handleLogout = async () => {
+    await logout()
+  }
 
   return (
     <div
@@ -143,6 +186,99 @@ function Profile() {
           paddingBottom: 120,
         }}
       >
+        {/* 0. 账号 & 云同步卡 */}
+        {isLoggedIn ? (
+          // ─── 已登录状态 ────
+          <div style={{ ...cardStyle, padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontWeight: 900, fontSize: 14 }}>☁️ 云同步</div>
+              <SyncStatusBadge status={syncStatus} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(102,187,106,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: 18,
+                }}
+              >
+                👤
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>{user?.name || '用户'}</div>
+                <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)', fontWeight: 600 }}>
+                  {user?.email}
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: '1.5px solid rgba(239,83,80,0.3)',
+                  backgroundColor: 'rgba(239,83,80,0.05)',
+                  color: '#EF5350',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                登出
+              </button>
+            </div>
+          </div>
+        ) : (
+          // ─── 未登录状态 — 云同步引导横幅 ────
+          <button
+            onClick={() => navigate(pageLinks.Login(), { state: { from: '/profile' } })}
+            style={{
+              ...cardStyle,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '14px 16px',
+              cursor: 'pointer',
+              border: '2px dashed rgba(255,184,64,0.4)',
+              backgroundColor: 'rgba(255,184,64,0.06)',
+              textAlign: 'left',
+              fontFamily: 'inherit',
+              color: '#5D4037',
+            }}
+          >
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,184,64,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                fontSize: 20,
+              }}
+            >
+              ☁️
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 2 }}>
+                注册账号后，换设备也能继续你的故事
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.45)', fontWeight: 600 }}>
+                点击登录/注册，开启云同步 →
+              </div>
+            </div>
+            <Icon icon="lucide:chevron-right" style={{ width: 18, height: 18, color: 'rgba(93,64,55,0.3)', flexShrink: 0 }} />
+          </button>
+        )}
+
         {/* 1. 猫咪卡片 */}
         <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 14, padding: '16px' }}>
           {/* 🖼️ ASSET | 猫咪头像 | /assets/cat/appearance_{appearance}_{personality}_{m|f}.png */}
@@ -323,6 +459,12 @@ function Profile() {
         </div>
       </div>
 
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }

@@ -96,21 +96,42 @@
 - [x] 1.5.5 点击单词卡展开详情（例句 + 答题统计 + 一次通过标记）
 - [x] 1.5.6 底部增加「再来一遍」按钮（3 按钮：房间 / 再来一遍 / 下一关）
 
-### Phase 2: 信息存储与登录功能 - `pending`
-> 目标：将游戏进度存储到服务端，支持用户登录
+### Phase 2: 信息存储与登录功能 - `complete`
+> 目标：将游戏进度存储到服务端，支持用户登录认证，实现多设备数据同步
+
+**技术方案**：
+- 使用项目已有的 Hono + Drizzle + PGLite 后端架构
+- 内置 Auth 系统（fake auth in prototype mode, real auth in production）
+- 后端创建 gameState 存储 API（基于 userId）
+- 前端改造 gameStore 支持双模式：离线 localStorage + 在线云同步
 
 **任务分解**：
-- [ ] 2.1 评估存储方案
-  - 当前使用 localStorage 存储 gameState
-  - 需要接入后端（Paraflow 自带 Hono + Drizzle）或使用统一登录
-  - 确认是否使用 Rush 平台的 unified-login 还是自建登录
-- [ ] 2.2 接入登录认证
-  - 调用 unified-login-add workflow
-  - 或自建简单的用户认证系统
-- [ ] 2.3 实现数据同步
-  - 登录后将 localStorage 数据同步到服务端
-  - 支持多设备同步
-  - 离线时继续使用 localStorage，联网后自动同步
+- [x] 2.1 技术方案评估与决策
+  - 使用项目内置 auth gateway（fake in prototype, production in deploy）
+  - 后端使用 Hono API 存储用户进度到 PostgreSQL/PGLite
+  - gameState schema 保持不变，整体作为 JSONB 存储
+- [x] 2.2 创建数据库 schema（用户进度表）
+  - `user_game_progress` 表：id (UUID PK), userId (unique), gameState (JSONB), version, timestamps
+  - Drizzle ORM schema + SQL 迁移文件
+- [x] 2.3 创建后端 API 路由
+  - `GET /api/game-state` - 获取当前用户的游戏进度（auth required）
+  - `POST /api/game-state` - 保存/更新游戏进度（upsert by userId）
+  - `ALL /api/auth/*` - Auth 代理路由转发到 auth gateway
+- [x] 2.4 实现登录认证
+  - 创建 Login.tsx 登录/注册页面（邮箱+密码）
+  - authStore.ts 封装 signIn/signUp/signOut/getSession API
+  - AuthContext.tsx 全局认证状态管理
+  - App.tsx 集成 AuthProvider
+- [x] 2.5 前端改造 - 数据同步逻辑
+  - GameContext 增加 syncToCloud / loadFromCloud 方法
+  - 每次 updateGameState 自动保存到 localStorage + 云端（双 debounce）
+  - 合并策略：比较 completedLevels 数量取更多进度的版本
+  - 启动时自动尝试云端同步（已登录用户）
+  - 离线容错：服务端不可用时 fallback 到 localStorage
+- [x] 2.6 Profile 页面更新
+  - 已登录：用户信息 + 邮箱 + SyncStatusBadge + 登出按钮
+  - 未登录：引导登录横幅「注册账号后，换设备也能继续你的故事 →」
+  - syncStatus 四态：idle / syncing / synced / error
 
 ### Phase 3: 难度等级系统完善 - `pending` 🔴 高优先级
 > 目标：让用户选择的英语水平真正影响游戏体验，实现 PRD 中的三维差异化设计

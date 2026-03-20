@@ -87,3 +87,60 @@
 **修改文件**：
 - `frontend/src/pages/function/Game.tsx` - 新增 firstCorrect 追踪 + route state 传递
 - `frontend/src/pages/function/Result.tsx` - 完全重构本关单词区块
+
+### 2026-03-20 - Phase 2 完成：信息存储与登录功能
+- ✅ 后端数据库 schema 创建
+  - `user_game_progress` 表（userId, gameState JSONB, version, timestamps）
+  - Drizzle ORM schema 定义 + SQL 迁移文件
+  - 更新 migrations.ts 注册新迁移
+- ✅ 后端 API 路由实现
+  - `GET /api/game-state` - 获取当前用户游戏进度
+  - `POST /api/game-state` - 保存/更新游戏进度（upsert by userId）
+  - `ALL /api/auth/*` - Auth 代理路由（转发到 auth gateway）
+  - 支持从 auth session 获取 userId 进行权限验证
+- ✅ 前端 Auth 服务层（authStore.ts）
+  - signIn / signUp / signOut / getSession API 封装
+  - saveGameStateToServer / loadGameStateFromServer 数据同步 API
+  - localStorage 缓存用户信息（离线可用）
+- ✅ 前端 AuthContext 全局认证状态
+  - AuthProvider 挂载在 App.tsx 顶层
+  - useAuth hook 提供 user / isLoggedIn / refreshSession / logout
+  - 启动时自动检查 session
+- ✅ 登录/注册页面（Login.tsx）
+  - 登录/注册 Tab 切换
+  - 邮箱 + 密码 + 昵称（注册时）表单
+  - 错误提示、loading 状态
+  - 登录成功后自动同步 gameState 到云端
+  - "暂不登录，以游客身份继续" 跳过选项
+- ✅ GameContext 数据同步改造
+  - 双模式保存：localStorage（300ms debounce）+ 云端（1.5s debounce）
+  - syncStatus 状态：idle / syncing / synced / error
+  - loadFromCloud 合并策略：比较 completedLevels 数量取更多进度的版本
+  - 同级别时合并 wordHistory（取答题次数更多的记录）
+  - 启动时自动尝试云端同步（已登录用户）
+- ✅ Profile 页面更新
+  - 已登录：显示用户信息 + 邮箱 + 同步状态徽章 + 登出按钮
+  - 未登录：云同步引导横幅「注册账号后，换设备也能继续你的故事 →」
+  - SyncStatusBadge 组件（idle/syncing/synced/error 四种状态）
+- ✅ 路由系统更新
+  - pageLinks 新增 Login: () => '/login'
+  - routes.ts 注册 Login 页面
+- ✅ 编译通过，HMR 正常，无运行时错误
+
+**新增文件**：
+- `backend/src/api/gameState.ts` - 游戏进度 API
+- `backend/src/api/auth.ts` - Auth 代理 API
+- `backend/drizzle/0001_user_game_progress.sql` - 数据库迁移
+- `frontend/src/store/authStore.ts` - Auth 服务封装
+- `frontend/src/store/AuthContext.tsx` - 全局认证 Context
+- `frontend/src/pages/function/Login.tsx` - 登录/注册页面
+
+**修改文件**：
+- `backend/src/schema.ts` - 新增 userGameProgress 表定义
+- `backend/src/app.ts` - 注册 auth + game-state 路由
+- `backend/drizzle/migrations.ts` - 注册新迁移
+- `frontend/src/App.tsx` - 集成 AuthProvider
+- `frontend/src/store/GameContext.tsx` - 添加云同步逻辑
+- `frontend/src/pages/function/Profile.tsx` - 添加登录状态/云同步 UI
+- `frontend/src/pageLinks.ts` - 新增 Login 链接
+- `frontend/src/routes.ts` - 注册 Login 路由

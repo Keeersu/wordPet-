@@ -12,12 +12,15 @@ import type { Env, Bindings } from './types/env'
 import type { Gateways } from './infra/gateway'
 import { withSentry } from '@sentry/cloudflare'
 import { cronApp } from './jobs/cron'
+import { gameStateApp } from './api/gameState'
+import { authApp } from './api/auth'
 
 
 
 function registerRoutes(app: Hono<Env>) {
 
-
+  app.route('/api/auth', authApp)
+  app.route('/api/game-state', gameStateApp)
   app.route('/api/cron', cronApp)
 }
 
