@@ -352,7 +352,7 @@ function Home() {
           bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
           right: '20px',
           backgroundColor: '#FFB840',
-          border: '3px solid white',
+          border: '3px solid #F5C87A',
           boxShadow: '0 4px 0 0 #A06800',
           overflow: 'hidden',
         }}

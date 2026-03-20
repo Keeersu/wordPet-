@@ -579,7 +579,7 @@ function Practice() {
             </button>
             <button
               onClick={() => startReview(weakWords)}
-              style={{ padding: '12px 24px', borderRadius: 12, border: 'none', backgroundColor: '#FFB840', boxShadow: '0 3px 0 0 #A06800', color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ padding: '12px 24px', borderRadius: 12, border: '2px solid #F5C87A', backgroundColor: '#FFB840', boxShadow: '0 3px 0 0 #A06800', color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}
             >
               再来一轮
             </button>

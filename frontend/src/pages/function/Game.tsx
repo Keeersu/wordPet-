@@ -1094,7 +1094,7 @@ function Game() {
               height: 160,
               borderRadius: 16,
               backgroundColor: 'rgba(255,184,64,0.2)',
-              border: '3px solid white',
+              border: '3px solid #F5C87A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

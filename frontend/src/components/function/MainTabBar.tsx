@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { pageLinks } from '../../pageLinks'
 
 const tabs = [
-  { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4' },
-  { id: 'practice', label: '复习', path: pageLinks.Practice(), color: '#FFB840' },
-  { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A' },
+  { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4', borderColor: '#9AE0DA' },
+  { id: 'practice', label: '复习', path: pageLinks.Practice(), color: '#FFB840', borderColor: '#F5C87A' },
+  { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A', borderColor: '#A5D6A7' },
 ] as const
 
 export function MainTabBar() {
@@ -32,7 +32,7 @@ export function MainTabBar() {
             borderRadius: '50%',
             backgroundColor: tab.color,
             boxShadow: '0 4px 0 0 rgba(0,0,0,0.15)',
-            border: '3px solid white',
+            border: `3px solid ${tab.borderColor}`,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',

@@ -636,7 +636,7 @@ function Room() {
               width: '100%',
               padding: '14px',
               borderRadius: 16,
-              border: '2.5px solid white',
+              border: '2.5px solid #F5C87A',
               backgroundColor: '#FFB840',
               boxShadow: '0 4px 0 0 #A06800',
               color: '#3D1F00',

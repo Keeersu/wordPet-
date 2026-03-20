@@ -660,7 +660,7 @@ function Result() {
               flex: 1,
               padding: '13px 4px',
               borderRadius: 14,
-              border: '2.5px solid white',
+              border: '2.5px solid #F5C87A',
               backgroundColor: '#FFB840',
               color: '#3D1F00',
               fontWeight: 900,
