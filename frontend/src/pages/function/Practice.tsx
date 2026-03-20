@@ -26,43 +26,20 @@ import { MainTabBar } from '@/components/function/MainTabBar'
 import { useGameStore } from '@/store/GameContext'
 import { chapterWordsMap } from '@/data/words'
 import type { WordConfig, DifficultyLevel } from '@/data/words/types'
-import { getSentence, getDistractors } from '@/data/words/types'
-import { getQuestionTypeDistribution } from '@/data/difficulty'
-import type { QuestionType } from '@/data/difficulty'
+import { generateReviewQuestions, type ReviewWordInput } from '@/data/questionGenerator'
 import type { GeneratedQuestion } from '@/data/questionGenerator'
+import { speakWord as _speakWord } from '@/lib/utils/tts'
+import { rateColor, rateBgColor as rateBg } from '@/lib/utils/colors'
+import { CARD_STYLE } from '@/lib/utils/styles'
+import { CHAPTERS, CHAPTER_MAP } from '@/data/chapters'
 
-// ─── 章节中文名 ────────────────────────────────────────────────────────
-const CHAPTER_NAMES: Record<number, { emoji: string; en: string; zh: string }> = {
-  1: { emoji: '🏠', en: 'My Home', zh: '我的家' },
-  2: { emoji: '🌳', en: 'Nature', zh: '大自然' },
-  3: { emoji: '🍎', en: 'Food & Drink', zh: '食物饮料' },
-  4: { emoji: '🐶', en: 'Animals', zh: '动物世界' },
-  5: { emoji: '👕', en: 'Clothes', zh: '穿衣打扮' },
-}
-
-// ─── 样式常量 ────────────────────────────────────────────────────────
+// ─── 样式常量（在公共 CARD_STYLE 基础上增加 padding） ─────────────────
 const cardStyle: React.CSSProperties = {
-  backgroundColor: 'white',
-  borderRadius: 16,
-  border: '2px solid rgba(93,64,55,0.1)',
-  boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
+  ...CARD_STYLE,
   padding: '14px 16px',
 }
 
-function rateColor(rate: number): string {
-  if (rate >= 80) return '#66BB6A'
-  if (rate >= 60) return '#FFB840'
-  return '#EF5350'
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 80) return 'rgba(102,187,106,0.12)'
-  if (rate >= 60) return 'rgba(255,184,64,0.12)'
-  return 'rgba(239,83,80,0.12)'
-}
-
-// ─── 工具函数 ────────────────────────────────────────────────────────
-
+// ─── 工具函数（shuffle 仅用于 startReview 的 weakWords 乱序） ────────
 function shuffle<T>(arr: T[]): T[] {
   const result = [...arr]
   for (let i = result.length - 1; i > 0; i--) {
@@ -70,17 +47,6 @@ function shuffle<T>(arr: T[]): T[] {
     ;[result[i], result[j]] = [result[j], result[i]]
   }
   return result
-}
-
-function scrambleLetters(word: string): string[] {
-  const letters = word.split('')
-  let scrambled = shuffle(letters)
-  let attempts = 0
-  while (scrambled.join('') === word && attempts < 10) {
-    scrambled = shuffle(letters)
-    attempts++
-  }
-  return scrambled
 }
 
 // ─── 弱词数据结构 ────────────────────────────────────────────────────
@@ -97,145 +63,42 @@ interface WeakWord {
 
 interface ChapterWeakGroup {
   chapterId: number
-  name: typeof CHAPTER_NAMES[number]
+  name: { emoji: string; en: string; zh: string }
   words: WeakWord[]
   avgRate: number
 }
 
-// ─── 复习题目生成器（仅针对弱词） ────────────────────────────────────
+// ─── 复习题目生成：使用集中式 questionGenerator.generateReviewQuestions ──
 
-function generateReviewQuestion(
-  wordConfig: WordConfig,
-  questionType: QuestionType,
-  difficulty: DifficultyLevel,
-  allWords: WordConfig[],
-): GeneratedQuestion {
-  const sentencePair = getSentence(wordConfig, difficulty)
-
-  switch (questionType) {
-    case 'multiple_choice': {
-      const distractors = getDistractors(wordConfig, difficulty, allWords)
-      return {
-        type: 'multiple_choice',
-        word: wordConfig.word,
-        meaning: wordConfig.meaning,
-        pos: wordConfig.pos,
-        sentence: sentencePair.en,
-        sentenceZh: sentencePair.zh,
-        options: shuffle([wordConfig.word, ...distractors.slice(0, 3)]),
-        correctAnswer: wordConfig.word,
-        image: wordConfig.image,
-      }
-    }
-    case 'fill_blank': {
-      const distractors = getDistractors(wordConfig, difficulty, allWords)
-      let sentence = sentencePair.en
-      if (!sentence.includes('___')) {
-        const regex = new RegExp(`\\b${wordConfig.word}\\b`, 'i')
-        sentence = sentence.replace(regex, '___')
-      }
-      return {
-        type: 'fill_blank',
-        word: wordConfig.word,
-        meaning: wordConfig.meaning,
-        pos: wordConfig.pos,
-        sentence,
-        sentenceZh: sentencePair.zh,
-        options: shuffle([wordConfig.word, ...distractors.slice(0, 3)]),
-        correctAnswer: wordConfig.word,
-        image: wordConfig.image,
-      }
-    }
-    case 'letter_match':
-      return {
-        type: 'letter_match',
-        word: wordConfig.word,
-        meaning: wordConfig.meaning,
-        pos: wordConfig.pos,
-        sentence: sentencePair.en,
-        sentenceZh: sentencePair.zh,
-        options: [],
-        correctAnswer: wordConfig.word,
-        image: wordConfig.image,
-        letters: scrambleLetters(wordConfig.word),
-      }
-    case 'word_spelling':
-      return {
-        type: 'word_spelling',
-        word: wordConfig.word,
-        meaning: wordConfig.meaning,
-        pos: wordConfig.pos,
-        sentence: sentencePair.en,
-        sentenceZh: sentencePair.zh,
-        options: [],
-        correctAnswer: wordConfig.word,
-        image: wordConfig.image,
-        letters: scrambleLetters(wordConfig.word),
-      }
-    case 'picture_matching': {
-      const others = allWords.filter((w) => w.word !== wordConfig.word)
-      const distractorWords = shuffle(others).slice(0, 3)
-      return {
-        type: 'picture_matching',
-        word: wordConfig.word,
-        meaning: wordConfig.meaning,
-        pos: wordConfig.pos,
-        sentence: sentencePair.en,
-        sentenceZh: sentencePair.zh,
-        options: shuffle([wordConfig.meaning, ...distractorWords.map((w) => w.meaning)]),
-        correctAnswer: wordConfig.meaning,
-        image: wordConfig.image,
-        matchPairs: shuffle([wordConfig, ...distractorWords].map((w) => ({
-          word: w.word,
-          meaning: w.meaning,
-          image: w.image,
-        }))),
-      }
-    }
-  }
-}
-
-function generateReviewQuestions(
-  weakWords: WeakWord[],
-  difficulty: DifficultyLevel,
-): GeneratedQuestion[] {
-  if (weakWords.length === 0) return []
-
-  // 取最多 10 个弱词
-  const selected = weakWords.slice(0, 10)
-  const count = selected.length
-
-  // 获取题型分配
-  const typeDistribution = getQuestionTypeDistribution(difficulty).slice(0, count)
-
-  // 收集所有可用词作为干扰项来源
-  const allWordConfigs: WordConfig[] = []
-  for (const words of Object.values(chapterWordsMap)) {
-    allWordConfigs.push(...words)
-  }
-
-  return selected.map((ww, i) => {
-    const qType = typeDistribution[i % typeDistribution.length]
-    return generateReviewQuestion(ww.config, qType, difficulty, allWordConfigs)
-  })
-}
-
-// ─── TTS ────────────────────────────────────────────────────────────
-
+// ─── TTS：使用公共 speakWord ────────────────────────────────────────
 function speakWord(word: string, enabled: boolean) {
-  if (!enabled || !window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const utter = new SpeechSynthesisUtterance(word)
-  utter.lang = 'en-US'
-  utter.rate = 0.85
-  window.speechSynthesis.speak(utter)
+  _speakWord(word, { enabled })
 }
 
 // ─── 主页面 ────────────────────────────────────────────────────────
 
 function Practice() {
   const navigate = useNavigate()
-  const { gameState, dispatch } = useGameStore()
+  const { gameState, updateGameState } = useGameStore()
+
+  // 记录单词答题结果（替代原 dispatch RECORD_WORD）
+  const recordWordResult = useCallback((word: string, correct: boolean) => {
+    updateGameState((prev) => {
+      const existing = prev.wordHistory[word] ?? { correct: 0, wrong: 0, lastSeen: '' }
+      return {
+        ...prev,
+        wordHistory: {
+          ...prev.wordHistory,
+          [word]: {
+            ...existing,
+            correct: existing.correct + (correct ? 1 : 0),
+            wrong: existing.wrong + (correct ? 0 : 1),
+            lastSeen: new Date().toISOString(),
+          },
+        },
+      }
+    })
+  }, [updateGameState])
 
   // ── 收集弱词（正确率 < 70%） ──
   const { weakWords, chapterGroups, totalAvgRate } = useMemo(() => {
@@ -267,9 +130,12 @@ function Practice() {
     }
     for (const [cid, words] of byChapter) {
       const avg = Math.round(words.reduce((s, w) => s + w.rate, 0) / words.length)
+      const chMeta = CHAPTER_MAP[cid]
       groups.push({
         chapterId: cid,
-        name: CHAPTER_NAMES[cid] || { emoji: '📖', en: `Chapter ${cid}`, zh: `第${cid}章` },
+        name: chMeta
+          ? { emoji: chMeta.emoji, en: chMeta.nameEn, zh: chMeta.nameCn }
+          : { emoji: '📖', en: `Chapter ${cid}`, zh: `第${cid}章` },
         words,
         avgRate: avg,
       })
@@ -306,10 +172,19 @@ function Practice() {
 
   const currentQ = questions[currentIdx] || null
 
-  // 开始复习
+  // 开始复习（使用集中式 generateReviewQuestions）
   const startReview = useCallback((wordsToReview: WeakWord[]) => {
+    const reviewInputs: ReviewWordInput[] = shuffle(wordsToReview).map((w) => ({
+      word: w.word,
+      meaning: w.meaning,
+      pos: w.pos,
+      rate: w.rate,
+      total: w.total,
+      chapterId: w.chapterId,
+      config: w.config,
+    }))
     const qs = generateReviewQuestions(
-      shuffle(wordsToReview),
+      reviewInputs,
       gameState.difficulty as DifficultyLevel,
     )
     if (qs.length === 0) return
@@ -339,13 +214,10 @@ function Practice() {
     if (correct) setSessionCorrect((p) => p + 1)
 
     // 更新 wordHistory
-    dispatch({
-      type: 'RECORD_WORD',
-      payload: { word: currentQ.word, correct },
-    })
+    recordWordResult(currentQ.word, correct)
 
     speakWord(currentQ.word, gameState.settings.soundEnabled)
-  }, [isCorrect, currentQ, dispatch, gameState.settings.soundEnabled])
+  }, [isCorrect, currentQ, recordWordResult, gameState.settings.soundEnabled])
 
   // 处理字母点击（letter_match / word_spelling）
   const handleLetterClick = useCallback((letterIdx: number) => {
@@ -374,17 +246,14 @@ function Practice() {
           setSelectedAnswer(formed)
           setSessionTotal((p) => p + 1)
           if (correct) setSessionCorrect((p) => p + 1)
-          dispatch({
-            type: 'RECORD_WORD',
-            payload: { word: currentQ.word, correct },
-          })
+          recordWordResult(currentQ.word, correct)
           speakWord(currentQ.word, gameState.settings.soundEnabled)
         }, 200)
       }
 
       return next
     })
-  }, [isCorrect, currentQ, availableLetters, dispatch, gameState.settings.soundEnabled])
+  }, [isCorrect, currentQ, availableLetters, recordWordResult, gameState.settings.soundEnabled])
 
   // 撤销最后一个字母
   const handleUndoLetter = useCallback(() => {

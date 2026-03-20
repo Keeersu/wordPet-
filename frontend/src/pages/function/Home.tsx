@@ -60,6 +60,7 @@ import { MainTabBar } from '@/components/function/MainTabBar'
 import { pageLinks } from '../../pageLinks'
 import { useGameStore } from '@/store/GameContext'
 import type { GameState } from '@/store/gameStore'
+import { CHAPTERS } from '@/data/chapters'
 
 type RoomStatus = 'in_progress' | 'completed' | 'locked'
 
@@ -72,38 +73,8 @@ interface Room {
   themeColor: string
 }
 
-const chapterMeta = [
-  {
-    id: 1,
-    nameCn: '街角流浪',
-    nameEn: 'Street Corner',
-    themeColor: '#F5E6C8',
-  },
-  {
-    id: 2,
-    nameCn: '温暖新家',
-    nameEn: 'Warm Home',
-    themeColor: '#C8E8F5',
-  },
-  {
-    id: 3,
-    nameCn: '幼儿园',
-    nameEn: 'Kindergarten',
-    themeColor: '#D8F0FF',
-  },
-  {
-    id: 4,
-    nameCn: '公园探险',
-    nameEn: 'Park Adventure',
-    themeColor: '#E5F4D8',
-  },
-  {
-    id: 5,
-    nameCn: '厨房美食',
-    nameEn: 'Kitchen Feast',
-    themeColor: '#FFF0D9',
-  },
-] as const
+/** 使用公共章节元数据 */
+const chapterMeta = CHAPTERS
 
 const statusLabel: Record<RoomStatus, string> = {
   in_progress: '进行中',

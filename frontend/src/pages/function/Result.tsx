@@ -27,6 +27,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
 import FurnitureReveal from './FurnitureReveal'
+import { speakWord as _speakWord } from '@/lib/utils/tts'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -40,17 +41,10 @@ interface LevelWordDetail {
 
 type MasteryLevel = 'mastered' | 'weak' | 'failed'
 
-// ─── TTS ─────────────────────────────────────────────────────────────────────
+// ─── TTS（使用公共 speakWord） ──────────────────────────────────────────────
 
 function speakWord(word: string, sentence?: string) {
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const text = sentence ? `${word}. ${sentence}` : word
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'en-US'
-  utter.rate = 0.85
-  utter.pitch = 1
-  window.speechSynthesis.speak(utter)
+  _speakWord(word, { sentence })
 }
 
 // ─── 家具名映射 ──────────────────────────────────────────────────────────────

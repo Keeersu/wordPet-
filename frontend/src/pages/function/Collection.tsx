@@ -25,15 +25,12 @@ import { MainTabBar } from '@/components/function/MainTabBar'
 import { useGameStore } from '@/store/GameContext'
 import { chapterWordsMap } from '@/data/words'
 import type { WordConfig } from '@/data/words'
+import { CHAPTERS } from '@/data/chapters'
+import { rateColor, rateBgColor as rateBg } from '@/lib/utils/colors'
+import { CARD_STYLE } from '@/lib/utils/styles'
 
-/** 章节元数据（与 Home.tsx 保持一致） */
-const chapterMeta = [
-  { id: 1, nameCn: '街角流浪', nameEn: 'Street Corner', emoji: '🏙️', themeColor: '#F5E6C8' },
-  { id: 2, nameCn: '温暖新家', nameEn: 'Warm Home', emoji: '🏠', themeColor: '#C8E8F5' },
-  { id: 3, nameCn: '幼儿园', nameEn: 'Kindergarten', emoji: '🎒', themeColor: '#D8F0FF' },
-  { id: 4, nameCn: '公园探险', nameEn: 'Park Adventure', emoji: '🌳', themeColor: '#E5F4D8' },
-  { id: 5, nameCn: '厨房美食', nameEn: 'Kitchen Feast', emoji: '🍳', themeColor: '#FFF0D9' },
-] as const
+/** 使用公共章节元数据 */
+const chapterMeta = CHAPTERS
 
 interface LearnedWord {
   word: string
@@ -44,26 +41,9 @@ interface LearnedWord {
   rate: number
 }
 
-// ─── 卡片容器样式 ────────────────────────────────────────────────────────────
+// ─── 样式（使用公共 CARD_STYLE） ────────────────────────────────────────
 
-const cardStyle: React.CSSProperties = {
-  backgroundColor: 'white',
-  borderRadius: 16,
-  border: '2px solid rgba(93,64,55,0.1)',
-  boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-}
-
-function rateColor(rate: number): string {
-  if (rate >= 80) return '#66BB6A'
-  if (rate >= 60) return '#FFB840'
-  return '#EF5350'
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 80) return 'rgba(102,187,106,0.12)'
-  if (rate >= 60) return 'rgba(255,184,64,0.12)'
-  return 'rgba(239,83,80,0.12)'
-}
+const cardStyle: React.CSSProperties = { ...CARD_STYLE }
 
 // ─── 单词卡片 ──────────────────────────────────────────────────────────────
 
@@ -125,7 +105,7 @@ function ChapterSection({
   words,
   defaultExpanded,
 }: {
-  meta: (typeof chapterMeta)[number]
+  meta: (typeof CHAPTERS)[number]
   words: LearnedWord[]
   defaultExpanded: boolean
 }) {

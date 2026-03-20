@@ -36,22 +36,13 @@ import {
   type AdaptiveSignal,
 } from '@/data/questionGenerator'
 import type { DifficultyLevel } from '@/data/words/types'
+import { speakWord as _speakWord } from '@/lib/utils/tts'
+import { getRandomEncourage } from '@/lib/utils/encouragements'
+import { getChapterName } from '@/data/chapters'
 
-// ============================================================================
-// TTS
-// ============================================================================
-
+// ── TTS 封装：自动传入 gameState 的 soundEnabled ──
 function speakWord(word: string, gameState: GameState, sentence?: string) {
-  if (!gameState.settings.soundEnabled) return
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-
-  const text = sentence ? `${word}. ${sentence}` : word
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'en-US'
-  utter.rate = 0.85
-  utter.pitch = 1
-  window.speechSynthesis.speak(utter)
+  _speakWord(word, { enabled: gameState.settings.soundEnabled, sentence })
 }
 
 // ============================================================================
@@ -101,33 +92,7 @@ async function adjustDifficultyViaLLM(
 // Constants
 // ============================================================================
 
-const ENCOURAGE_CORRECT = [
-  '完美！',
-  '太棒了！',
-  '就是这样！',
-  '答对啦！',
-  '真厉害！',
-]
-
-const ENCOURAGE_WRONG = [
-  '没关系，继续加油！',
-  '差一点～再来！',
-  '记住了，下次一定会！',
-  '别灰心，你可以的！',
-]
-
-function getRandomEncourage(isCorrect: boolean): string {
-  const list = isCorrect ? ENCOURAGE_CORRECT : ENCOURAGE_WRONG
-  return list[Math.floor(Math.random() * list.length)]
-}
-
-const CHAPTER_NAME_MAP: Record<number, string> = {
-  1: '街角流浪',
-  2: '温暖新家',
-  3: '幼儿园',
-  4: '公园探险',
-  5: '厨房美食',
-}
+// 鼓励文案 & 章节名称使用公共模块 ↑
 
 const QUESTION_TYPE_HINT: Record<string, string> = {
   multiple_choice: '这张图对应哪个单词？',
@@ -592,7 +557,7 @@ function Game() {
 
   const chapterId = Number(chapterIdParam ?? gameState.currentChapter)
   const levelId = Number(levelIdParam ?? gameState.currentLevel)
-  const chapterName = CHAPTER_NAME_MAP[chapterId] ?? `第${chapterId}章`
+  const chapterName = getChapterName(chapterId)
   const currentDifficulty = gameState.adaptiveDifficulty.current
 
   // ── 动态生成题目（组件挂载时生成一次） ──
@@ -625,9 +590,36 @@ function Game() {
   const recentResults = useRef<boolean[]>([]) // 最近 3 题结果
   const sentenceLevelOverride = useRef<'basic' | 'advanced' | null>(null)
 
+  // ── LLM 难度变化提示（关卡开始时展示） ──
+  const [difficultyToast, setDifficultyToast] = useState<{
+    show: boolean
+    direction: 'up' | 'down' | 'same'
+    from: number
+    to: number
+  } | null>(null)
+
+  useEffect(() => {
+    const history = gameState.adaptiveDifficulty.levelHistory
+    if (history.length >= 2) {
+      const prev = history[history.length - 2]
+      const curr = history[history.length - 1]
+      if (prev !== curr) {
+        setDifficultyToast({
+          show: true,
+          direction: curr > prev ? 'up' : 'down',
+          from: prev,
+          to: curr,
+        })
+        const timer = setTimeout(() => setDifficultyToast(null), 4000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, []) // 仅挂载时检查一次
+
   const question = questions[currentIndex]
 
   // ── 难度指示器文字 ──
+  const DIFFICULTY_LABELS: Record<number, string> = { 1: '🐾 入门', 2: '🐾🐾 进阶', 3: '🐾🐾🐾 挑战', 4: '🐾🐾🐾🐾 大师' }
   const difficultyLabel = useMemo(() => {
     const labels: Record<number, string> = { 1: '🐾', 2: '🐾🐾', 3: '🐾🐾🐾', 4: '🐾🐾🐾🐾' }
     return labels[currentDifficulty] ?? '🐾'
@@ -1220,6 +1212,79 @@ function Game() {
           onCancel={() => setShowExitConfirm(false)}
         />
       )}
+
+      {/* LLM 难度调整提示 Toast */}
+      {difficultyToast?.show && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 80,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 200,
+            animation: 'diffToastIn 400ms ease-out, diffToastOut 400ms 3400ms ease-in forwards',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '12px 20px',
+              borderRadius: 16,
+              backgroundColor: difficultyToast.direction === 'up' ? '#E8F5E9' : '#FFF3E0',
+              border: `2px solid ${difficultyToast.direction === 'up' ? 'rgba(102,187,106,0.3)' : 'rgba(255,184,64,0.3)'}`,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ fontSize: 22 }}>
+              {difficultyToast.direction === 'up' ? '🚀' : '🌱'}
+            </span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: '#5D4037', marginBottom: 2 }}>
+                {difficultyToast.direction === 'up' ? '难度提升！' : '难度调整'}
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.6)' }}>
+                {difficultyToast.direction === 'up'
+                  ? `表现很棒！进入 ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`
+                  : `放慢节奏 → ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`}
+              </div>
+            </div>
+            <button
+              onClick={() => setDifficultyToast(null)}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: 'rgba(93,64,55,0.08)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 4,
+                flexShrink: 0,
+              }}
+            >
+              <Icon icon="lucide:x" style={{ width: 12, height: 12, color: 'rgba(93,64,55,0.4)' }} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toast 动画 */}
+      <style>{`
+        @keyframes diffToastIn {
+          0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+          100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes diffToastOut {
+          0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+      `}</style>
     </div>
   )
 }

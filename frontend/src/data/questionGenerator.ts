@@ -10,7 +10,7 @@
 
 import type { WordConfig, DifficultyLevel, SentencePair } from './words/types'
 import { getSentence, getDistractors } from './words/types'
-import { getChapterWords } from './words'
+import { getChapterWords, chapterWordsMap } from './words'
 import { getQuestionTypeDistribution } from './difficulty'
 import type { QuestionType } from './difficulty'
 
@@ -392,4 +392,47 @@ export function applyAdjustment(
     sentence: sentencePair.en,
     sentenceZh: sentencePair.zh,
   }
+}
+
+// ============================================================================
+// 复习模式：为弱词生成题目
+// ============================================================================
+
+export interface ReviewWordInput {
+  word: string
+  meaning: string
+  pos: string
+  rate: number
+  total: number
+  chapterId: number
+  config: WordConfig
+}
+
+/**
+ * 为弱词列表生成复习题目（最多 10 道）
+ * 统一替代 Practice.tsx 中的重复实现
+ */
+export function generateReviewQuestions(
+  weakWords: ReviewWordInput[],
+  difficulty: DifficultyLevel,
+): GeneratedQuestion[] {
+  if (weakWords.length === 0) return []
+
+  const selected = weakWords.slice(0, 10)
+  const count = selected.length
+
+  // 获取题型分配
+  const typeDistribution = getQuestionTypeDistribution(difficulty).slice(0, count)
+
+  // 收集所有可用词作为干扰项来源
+  const allWordConfigs: WordConfig[] = []
+  for (const words of Object.values(chapterWordsMap)) {
+    allWordConfigs.push(...words)
+  }
+
+  return selected.map((ww, i) => {
+    const qType = typeDistribution[i % typeDistribution.length]
+    const generator = GENERATORS[qType]
+    return generator(ww.config, difficulty, allWordConfigs)
+  })
 }
