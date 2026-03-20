@@ -8,6 +8,7 @@
  * <page-design>
  * ## Features & Interactions
  * - 猫咪信息卡（头像占位 + 名字 + 标签）
+ * - 英语水平卡片（当前难度展示 + 可展开4级选择器 + 每级配有详细说明）
  * - 学习统计 3 列 grid（已学单词 / 完成关卡 / 解锁家具）
  * - 冒险进度条（已完成关卡 / 20 总关卡）
  * - 已学单词回顾（2 列网格，显示正确率）
@@ -17,10 +18,11 @@
  * </page-design>
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import type { DifficultyLevel } from '@/store/gameStore'
 
 const PERSONALITY_LABEL: Record<string, string> = {
   homebody: '居家',
@@ -29,6 +31,48 @@ const PERSONALITY_LABEL: Record<string, string> = {
 }
 
 const TOTAL_LEVELS = 20
+
+const DIFFICULTY_CONFIG: Array<{
+  id: DifficultyLevel
+  emoji: string
+  title: string
+  subtitle: string
+  description: string
+  color: string
+}> = [
+  {
+    id: 1,
+    emoji: '🌱',
+    title: '纯新手',
+    subtitle: '点餐靠手指',
+    description: '以图片配对和字母游戏为主，例句简短好懂，干扰选项差异较大，轻松入门无压力',
+    color: '#66BB6A',
+  },
+  {
+    id: 2,
+    emoji: '🌿',
+    title: '略知一二',
+    subtitle: '开口还是怕',
+    description: '增加单词拼写题，例句稍复杂，干扰项来自同类别词汇，帮你打牢基础',
+    color: '#42A5F5',
+  },
+  {
+    id: 3,
+    emoji: '🌳',
+    title: '勉强应付',
+    subtitle: '旅游基本够用',
+    description: '填空和选择题比例增加，使用较长例句，干扰项拼写相近，考验细节辨别力',
+    color: '#FFA726',
+  },
+  {
+    id: 4,
+    emoji: '🌟',
+    title: '还不错哦',
+    subtitle: '想再提升',
+    description: '以填空和多选为主，例句含从句和复杂结构，干扰项语义相近，全面挑战词汇深度',
+    color: '#AB47BC',
+  },
+]
 
 // ─── 卡片容器样式 ────────────────────────────────────────────────────────────
 
@@ -44,8 +88,24 @@ const cardStyle: React.CSSProperties = {
 
 function Profile() {
   const navigate = useNavigate()
-  const { gameState } = useGameStore()
+  const { gameState, updateGameState } = useGameStore()
   const { cat } = gameState
+  const [showDifficultyPicker, setShowDifficultyPicker] = useState(false)
+
+  const currentDifficulty = DIFFICULTY_CONFIG.find((d) => d.id === gameState.difficulty) ?? DIFFICULTY_CONFIG[0]
+
+  const handleDifficultyChange = (level: DifficultyLevel) => {
+    updateGameState((prev) => ({
+      ...prev,
+      difficulty: level,
+      adaptiveDifficulty: {
+        ...prev.adaptiveDifficulty,
+        current: level,
+        base: level,
+      },
+    }))
+    setShowDifficultyPicker(false)
+  }
 
   const wordCount = Object.keys(gameState.wordHistory).length
   const levelCount = Object.keys(gameState.completedLevels).length
@@ -209,7 +269,148 @@ function Profile() {
           </div>
         </div>
 
-        {/* 2. 学习统计卡 */}
+        {/* 2. 英语水平卡片 */}
+        <div style={cardStyle}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: showDifficultyPicker ? 14 : 0,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>{currentDifficulty.emoji}</span>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 14 }}>英语水平</div>
+                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginTop: 1 }}>
+                  调整后下一关生效
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDifficultyPicker(!showDifficultyPicker)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 10,
+                border: `2px solid ${currentDifficulty.color}30`,
+                backgroundColor: `${currentDifficulty.color}12`,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 150ms ease',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 700, color: currentDifficulty.color }}>
+                {currentDifficulty.title}
+              </span>
+              <Icon
+                icon={showDifficultyPicker ? 'lucide:chevron-up' : 'lucide:chevron-down'}
+                style={{ width: 14, height: 14, color: currentDifficulty.color }}
+              />
+            </button>
+          </div>
+
+          {/* 难度选择展开区 */}
+          {showDifficultyPicker && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                animation: 'expandIn 200ms ease-out',
+              }}
+            >
+              {DIFFICULTY_CONFIG.map((option) => {
+                const isSelected = gameState.difficulty === option.id
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleDifficultyChange(option.id)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: 14,
+                      border: isSelected
+                        ? `2px solid ${option.color}`
+                        : '2px solid rgba(93,64,55,0.08)',
+                      backgroundColor: isSelected ? `${option.color}10` : '#FAFAF8',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      textAlign: 'left',
+                      transition: 'all 150ms ease',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* 选中高亮条 */}
+                    {isSelected && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 4,
+                          backgroundColor: option.color,
+                          borderRadius: '0 2px 2px 0',
+                        }}
+                      />
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <span style={{ fontSize: 18, lineHeight: 1 }}>{option.emoji}</span>
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: isSelected ? option.color : '#5D4037',
+                        }}
+                      >
+                        {option.title}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: 'rgba(93,64,55,0.4)',
+                        }}
+                      >
+                        {option.subtitle}
+                      </span>
+                      {isSelected && (
+                        <Icon
+                          icon="lucide:check-circle-2"
+                          style={{
+                            width: 18,
+                            height: 18,
+                            color: option.color,
+                            marginLeft: 'auto',
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        color: 'rgba(93,64,55,0.55)',
+                        paddingLeft: 28,
+                      }}
+                    >
+                      {option.description}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 3. 学习统计卡 */}
         <div style={cardStyle}>
           <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>📊 学习统计</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -238,7 +439,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* 3. 冒险进度 */}
+        {/* 4. 冒险进度 */}
         <div style={cardStyle}>
           <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>🗺️ 冒险进度</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#5D4037', marginBottom: 8 }}>
@@ -268,7 +469,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* 4. 已学单词回顾 */}
+        {/* 5. 已学单词回顾 */}
         <div style={cardStyle}>
           <div
             style={{
@@ -321,6 +522,13 @@ function Profile() {
           )}
         </div>
       </div>
+      {/* Expand animation */}
+      <style>{`
+        @keyframes expandIn {
+          from { opacity: 0; max-height: 0; }
+          to { opacity: 1; max-height: 600px; }
+        }
+      `}</style>
     </div>
   )
 }
