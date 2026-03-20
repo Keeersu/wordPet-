@@ -55,6 +55,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-xl);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .settings-item__icon {
@@ -84,12 +87,18 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  flex-shrink: 0;
+  max-width: 55%;
 }
 
 .settings-item__value {
   font-size: var(--text-base);
   font-weight: var(--font-medium);
   color: var(--color-primary);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── 分割线 ── */

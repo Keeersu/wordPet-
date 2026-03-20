@@ -208,15 +208,23 @@
 .page-header__title {
   font-weight: var(--font-black);
   font-size: var(--text-2xl);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .page-header__title--sm {
   font-size: var(--text-lg);
   letter-spacing: 0.5px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .page-header__spacer {
-  width: 68px;
+  width: 36px;
 }
 
 /* ── 开关按钮 (Toggle) ── */
@@ -415,6 +423,7 @@
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
   font-family: var(--font-main);
   animation: slideUp 300ms ease-out;
+  overflow: hidden;
 }
 
 .feedback-icon {

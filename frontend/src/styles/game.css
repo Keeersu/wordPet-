@@ -520,6 +520,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3xl);
+  overflow: hidden;
 }
 
 .game-feedback--correct {
@@ -818,6 +819,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .game-header__title {
@@ -830,6 +833,7 @@
   font-size: 11px;
   color: var(--color-text-tertiary);
   margin-top: 2px;
+  letter-spacing: -0.5px;
 }
 
 .game-header__tts-btn {
@@ -842,6 +846,7 @@
   justify-content: center;
   position: relative;
   transition: all 200ms ease;
+  flex-shrink: 0;
 }
 
 /* ── Main Content Area ── */

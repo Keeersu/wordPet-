@@ -116,14 +116,14 @@ function Settings() {
                 </div>
               </div>
               <div className="settings-item__right">
-                <span className="settings-item__value">
-                  {currentLevel?.emoji} {currentLevel?.title}
+                <span className="settings-item__value" title={`${currentLevel?.emoji} ${currentLevel?.title}`}>
+                  {currentLevel?.title}
                 </span>
                 <Icon
                   icon={showLevelPicker ? 'lucide:chevron-up' : 'lucide:chevron-down'}
                   width={18}
                   height={18}
-                  style={{ color: 'var(--color-text-disabled)' }}
+                  style={{ color: 'var(--color-text-disabled)', flexShrink: 0 }}
                 />
               </div>
             </button>
