@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 关卡结算页，进入时先全屏展示家具解锁动画，点击继续后展示正确率、单词回顾（含释义/例句/掌握度/发音），提供返回房间、再来一遍或进入下一关的入口。
- * Style referenceFiles:
+ * Style referenceFiles: src/styles/result.css, src/styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -114,68 +114,42 @@ function WordCard({ detail }: { detail: LevelWordDetail }) {
 
   return (
     <div
+      className="result-word-card"
       onClick={() => setExpanded(!expanded)}
       style={{
-        padding: '12px 14px',
-        borderRadius: 14,
         backgroundColor: config.bgColor,
         border: `1.5px solid ${config.borderColor}`,
-        cursor: 'pointer',
-        transition: 'all 200ms ease',
       }}
     >
       {/* ── 顶部行：单词 + 掌握标签 + 发音 ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="result-word-card__top">
         {/* 单词 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontWeight: 800, fontSize: 16, color: '#5D4037', fontFamily: "'Nunito', sans-serif" }}>
+        <div className="result-word-card__info">
+          <div className="result-word-card__word-row">
+            <span className="result-word-card__word">
               {detail.word}
             </span>
             {/* 掌握度标签 */}
             <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 3,
-                padding: '2px 7px',
-                borderRadius: 6,
-                fontSize: 10,
-                fontWeight: 700,
-                color: config.color,
-                backgroundColor: 'rgba(255,255,255,0.7)',
-                border: `1px solid ${config.borderColor}`,
-                lineHeight: 1.4,
-                flexShrink: 0,
-              }}
+              className={`mastery-tag mastery-tag--${mastery}`}
+              style={{ color: config.color, borderColor: config.borderColor }}
             >
               <Icon icon={config.icon} style={{ width: 11, height: 11 }} />
               {config.label}
             </span>
           </div>
           {/* 中文释义 */}
-          <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.6)', marginTop: 3, lineHeight: 1.3 }}>
+          <div className="result-word-card__meaning">
             {detail.meaning}
           </div>
         </div>
 
         {/* 发音按钮 */}
         <button
+          className="speak-btn"
           onClick={(e) => {
             e.stopPropagation()
             speakWord(detail.word, expanded ? detail.sentence : undefined)
-          }}
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,184,64,0.15)',
-            border: '1.5px solid rgba(255,184,64,0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
           }}
         >
           <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: '#FFB840' }} />
@@ -184,61 +158,40 @@ function WordCard({ detail }: { detail: LevelWordDetail }) {
         {/* 展开/收起指示 */}
         <Icon
           icon={expanded ? 'lucide:chevron-up' : 'lucide:chevron-down'}
-          style={{
-            width: 16,
-            height: 16,
-            color: 'rgba(93,64,55,0.3)',
-            flexShrink: 0,
-            transition: 'transform 200ms ease',
-          }}
+          className="result-word-card__chevron"
         />
       </div>
 
       {/* ── 展开详情 ── */}
       {expanded && (
         <div
-          style={{
-            marginTop: 10,
-            paddingTop: 10,
-            borderTop: `1px dashed ${config.borderColor}`,
-            animation: 'expandIn 200ms ease-out',
-          }}
+          className="result-word-card__detail"
+          style={{ borderTopColor: config.borderColor }}
         >
           {/* 例句 */}
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(93,64,55,0.45)', marginBottom: 3 }}>
+          <div className="result-word-card__sentence-box">
+            <div className="result-word-card__sentence-label">
               例句
             </div>
-            <div
-              style={{
-                fontSize: 13,
-                color: '#5D4037',
-                fontStyle: 'italic',
-                fontFamily: "'Nunito', sans-serif",
-                lineHeight: 1.5,
-                padding: '6px 10px',
-                borderRadius: 8,
-                backgroundColor: 'rgba(255,255,255,0.6)',
-              }}
-            >
+            <div className="result-word-card__sentence">
               &ldquo;{detail.sentence}&rdquo;
             </div>
           </div>
 
           {/* 答题统计 */}
-          <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div className="result-word-card__stats">
+            <div className="result-word-card__stat-item">
               <Icon icon="lucide:check" style={{ width: 13, height: 13, color: '#66BB6A' }} />
-              <span style={{ color: '#66BB6A', fontWeight: 700 }}>答对 {detail.stats.correct} 次</span>
+              <span className="result-word-card__stat-correct">答对 {detail.stats.correct} 次</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className="result-word-card__stat-item">
               <Icon icon="lucide:x" style={{ width: 13, height: 13, color: '#EF5350' }} />
-              <span style={{ color: '#EF5350', fontWeight: 700 }}>答错 {detail.stats.wrong} 次</span>
+              <span className="result-word-card__stat-wrong">答错 {detail.stats.wrong} 次</span>
             </div>
             {detail.stats.firstCorrect && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div className="result-word-card__stat-item">
                 <Icon icon="lucide:zap" style={{ width: 13, height: 13, color: '#FFB840' }} />
-                <span style={{ color: '#FFB840', fontWeight: 700 }}>一次通过</span>
+                <span className="result-word-card__stat-first">一次通过</span>
               </div>
             )}
           </div>
@@ -347,86 +300,45 @@ function Result() {
   // ── Detail 阶段（结算详情）──
   return (
     <div
-      style={{
-        minHeight: '100dvh',
-        backgroundColor: '#FFF8E7',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        opacity: detailVisible ? 1 : 0,
-        transition: 'opacity 400ms ease',
-      }}
+      className={`result-page ${detailVisible ? 'result-page--visible' : 'result-page--entering'}`}
     >
-      {/* ── 注入动画 ── */}
-      <style>{animationKeyframes}</style>
-
       {/* ── 顶部导航 ── */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '14px 16px',
-          background: 'rgba(255,248,231,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(93,64,55,0.08)',
-        }}
-      >
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>
+      <div className="result-header">
+        <div className="result-header__title">
           第 {levelId} 关完成！
         </div>
       </div>
 
       {/* ── 可滚动内容区 ── */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
+      <div className="result-content">
         {/* 1. 成绩卡 */}
-        <div
-          style={{
-            padding: '16px 16px 0',
-            animation: 'detailSlideUp 500ms ease-out forwards',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-              padding: '24px 16px',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: 48, fontWeight: 900, color: rateColor, lineHeight: 1 }}>
+        <div className="result-score-card result-anim-slide-1">
+          <div className="result-score-card__inner">
+            <div className="result-score__value" style={{ color: rateColor }}>
               {accuracyPct}%
             </div>
-            <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.55)', marginTop: 6 }}>正确率</div>
-            <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#5D4037' }}>
+            <div className="result-score__label">正确率</div>
+            <div className="result-score__encourage">
               {encourageText}
             </div>
 
             {/* 掌握度概览条 */}
             {levelWordDetails.length > 0 && (
-              <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div className="result-mastery-summary">
                 {masteryCount.mastered > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#66BB6A' }}>
+                  <span className="result-mastery-item result-mastery-item--mastered">
                     <Icon icon="lucide:circle-check" style={{ width: 13, height: 13 }} />
                     已掌握 {masteryCount.mastered}
                   </span>
                 )}
                 {masteryCount.weak > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#FFB840' }}>
+                  <span className="result-mastery-item result-mastery-item--weak">
                     <Icon icon="lucide:alert-circle" style={{ width: 13, height: 13 }} />
                     需复习 {masteryCount.weak}
                   </span>
                 )}
                 {masteryCount.failed > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#EF5350' }}>
+                  <span className="result-mastery-item result-mastery-item--failed">
                     <Icon icon="lucide:circle-x" style={{ width: 13, height: 13 }} />
                     待掌握 {masteryCount.failed}
                   </span>
@@ -438,50 +350,15 @@ function Result() {
 
         {/* 2. 已解锁家具卡片（缩小版，作为回顾） */}
         {furnitureUnlocked && (
-          <div
-            style={{
-              padding: '16px 16px 0',
-              animation: 'detailSlideUp 500ms 100ms ease-out both',
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: 'white',
-                borderRadius: 16,
-                border: '2px solid rgba(93,64,55,0.1)',
-                boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-                padding: '14px 16px',
-              }}
-            >
-              <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 10 }}>本关解锁</div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  backgroundColor: 'rgba(255,215,0,0.06)',
-                  border: '1.5px solid rgba(255,215,0,0.2)',
-                }}
-              >
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    backgroundColor: 'rgba(93,64,55,0.06)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
+          <div className="result-furniture result-anim-slide-2">
+            <div className="result-furniture__inner">
+              <div className="result-furniture__title">本关解锁</div>
+              <div className="result-furniture__display">
+                <div className="result-furniture__img-box">
                   <img
                     src={furnitureImage}
                     alt={furnitureName}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    className="result-furniture__img"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = 'none'
                       const parent = (e.target as HTMLImageElement).parentElement
@@ -496,10 +373,10 @@ function Result() {
                   />
                 </div>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: '#5D4037' }}>
+                  <div className="result-furniture__name">
                     {furnitureName}
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#66BB6A', marginTop: 2 }}>
+                  <div className="result-furniture__status">
                     已放入房间
                   </div>
                 </div>
@@ -509,39 +386,26 @@ function Result() {
         )}
 
         {/* 3. 本关单词回顾（增强版） */}
-        <div
-          style={{
-            padding: '16px 16px 0',
-            animation: 'detailSlideUp 500ms 200ms ease-out both',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ fontWeight: 900, fontSize: 14 }}>
+        <div className="result-words result-anim-slide-3">
+          <div className="result-words__inner">
+            <div className="result-words__header">
+              <div className="result-words__title">
                 本关单词
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.4)', fontWeight: 600 }}>
+              <div className="result-words__hint">
                 点击展开详情
               </div>
             </div>
 
             {sortedWords.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="result-words__list">
                 {sortedWords.map((detail) => (
                   <WordCard key={detail.word} detail={detail} />
                 ))}
               </div>
             ) : (
               /* 兜底：如果没有 route state（直接访问 URL），用 wordHistory 回退 */
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div className="result-words__grid">
                 {Object.entries(gameState.wordHistory)
                   .slice(-10)
                   .map(([word, wr]) => {
@@ -549,15 +413,10 @@ function Result() {
                     return (
                       <div
                         key={word}
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: 10,
-                          backgroundColor: hasWrong ? 'rgba(239,83,80,0.06)' : 'rgba(93,64,55,0.04)',
-                          border: `1.5px solid ${hasWrong ? 'rgba(239,83,80,0.35)' : 'rgba(93,64,55,0.1)'}`,
-                        }}
+                        className={`result-words__grid-item ${hasWrong ? 'result-words__grid-item--error' : ''}`}
                       >
-                        <div style={{ fontWeight: 800, fontSize: 14, color: '#5D4037' }}>{word}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.55)', marginTop: 2 }}>
+                        <div className="result-words__grid-word">{word}</div>
+                        <div className="result-words__grid-stats">
                           答对 {wr.correct} &nbsp; 答错 {wr.wrong}
                         </div>
                       </div>
@@ -570,84 +429,19 @@ function Result() {
       </div>
 
       {/* ── 底部固定按钮区（3 按钮） ── */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))',
-          background: 'linear-gradient(to top, rgba(255,248,231,1) 70%, rgba(255,248,231,0))',
-          zIndex: 40,
-          display: 'flex',
-          gap: 10,
-          animation: 'detailSlideUp 500ms 300ms ease-out both',
-        }}
-      >
+      <div className="result-actions result-anim-slide-4">
         {/* 返回首页 */}
         <button
+          className="btn-secondary icon-btn--lg result-actions__home"
           onClick={() => navigate('/')}
-          style={{
-            width: 46,
-            height: 46,
-            flexShrink: 0,
-            borderRadius: 14,
-            border: '2px solid rgba(93,64,55,0.15)',
-            backgroundColor: 'white',
-            color: '#5D4037',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 3px 0 0 rgba(93,64,55,0.08)',
-            transition: 'transform 80ms ease, box-shadow 80ms ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(93,64,55,0.08)'
-          }}
-          onPointerUp={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
-          }}
-          onPointerLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
-          }}
         >
           <Icon icon="lucide:home" style={{ width: 20, height: 20 }} />
         </button>
 
         {/* 再来一遍 */}
         <button
+          className="btn-secondary result-actions__replay"
           onClick={handleReplay}
-          style={{
-            flex: 1,
-            padding: '13px 4px',
-            borderRadius: 14,
-            border: '2px solid rgba(93,64,55,0.15)',
-            backgroundColor: 'white',
-            color: '#5D4037',
-            fontWeight: 800,
-            fontSize: 14,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 3px 0 0 rgba(93,64,55,0.08)',
-            transition: 'transform 80ms ease, box-shadow 80ms ease',
-          }}
-          onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(93,64,55,0.08)'
-          }}
-          onPointerUp={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
-          }}
-          onPointerLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
-          }}
         >
           再来一遍
         </button>
@@ -655,74 +449,16 @@ function Result() {
         {/* 下一关 */}
         {hasNextLevel ? (
           <button
+            className="btn-primary result-actions__next"
             onClick={handleNextLevel}
-            style={{
-              flex: 1,
-              padding: '13px 4px',
-              borderRadius: 14,
-              border: '2.5px solid #F5C87A',
-              backgroundColor: '#FFB840',
-              color: '#3D1F00',
-              fontWeight: 900,
-              fontSize: 14,
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              boxShadow: '0 3px 0 0 #A06800',
-              transition: 'transform 80ms ease, box-shadow 80ms ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 4,
-            }}
-            onPointerDown={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #A06800'
-            }}
-            onPointerUp={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-            }}
-            onPointerLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-            }}
           >
             下一关
             <Icon icon="lucide:arrow-right" style={{ width: 16, height: 16 }} />
           </button>
         ) : (
           <button
+            className="btn-success result-actions__next"
             onClick={() => navigate('/')}
-            style={{
-              flex: 1,
-              padding: '13px 4px',
-              borderRadius: 14,
-              border: '2.5px solid white',
-              backgroundColor: '#66BB6A',
-              color: 'white',
-              fontWeight: 900,
-              fontSize: 14,
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              boxShadow: '0 3px 0 0 #4A9050',
-              transition: 'transform 80ms ease, box-shadow 80ms ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 4,
-            }}
-            onPointerDown={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #4A9050'
-            }}
-            onPointerUp={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #4A9050'
-            }}
-            onPointerLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #4A9050'
-            }}
           >
             🎉 全部通关！
           </button>
@@ -731,18 +467,5 @@ function Result() {
     </div>
   )
 }
-
-// ─── 动画 ────────────────────────────────────────────────────────────────────
-
-const animationKeyframes = `
-@keyframes detailSlideUp {
-  0%   { opacity: 0; transform: translateY(24px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes expandIn {
-  0%   { opacity: 0; transform: translateY(-6px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-`
 
 export default Result

@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 展示所有关卡房间的主页，用户可在此选择房间开始冒险学习。
- * Style referenceFiles:
+ * Style referenceFiles: styles/home.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -107,101 +107,42 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
 
   return (
     <div
+      className={`home-room-card${isLocked ? ' home-room-card--locked' : ''}`}
       onClick={onClick}
       style={{
-        position: 'relative',
-        width: '311px',
-        height: '210px',
-        margin: '0 auto',
-        flexShrink: 0,
         filter: isCompleted ? 'saturate(0.7)' : isLocked ? 'grayscale(0.8)' : undefined,
         opacity: isLocked ? 0.7 : 1,
-        cursor: isLocked ? 'default' : 'pointer',
       }}
     >
       {/* 层1：房间背景色块，底部对齐 */}
       <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '311px',
-          height: '169px',
-          backgroundColor: room.themeColor,
-          borderRadius: '12px',
-        }}
+        className="home-room-card__bg"
+        style={{ backgroundColor: room.themeColor }}
       >
         {isLocked && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: '48px' }}>🔒</span>
+          <div className="home-room-card__lock">
+            <span>🔒</span>
           </div>
         )}
       </div>
 
       {/* 层2：边框占位，整体覆盖 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '311px',
-          height: '210px',
-          border: '2px solid rgba(255,255,255,0.9)',
-          borderRadius: '16px',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      />
+      <div className="home-room-card__border" />
 
       {/* 章节名称，在顶部区域内 */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '41px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 3,
-          fontSize: '12px',
-          color: '#5D4037',
-        }}
-      >
+      <div className="home-room-card__name">
         {room.nameCn} · {room.nameEn}
       </div>
 
       {/* 进度标签 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '12px',
-          left: '12px',
-          zIndex: 3,
-          background: 'white',
-          borderRadius: '8px',
-          padding: '4px 8px',
-          fontSize: '12px',
-          color: '#5D4037',
-        }}
-      >
+      <div className="home-room-card__progress">
         {room.progress}
       </div>
 
       {/* 状态标签 */}
       <div
-        style={{
-          position: 'absolute',
-          bottom: '12px',
-          right: '12px',
-          zIndex: 3,
-          background: statusBgColor[room.status],
-          borderRadius: '8px',
-          padding: '4px 12px',
-          fontSize: '12px',
-          color: 'white',
-        }}
+        className="home-room-card__status"
+        style={{ background: statusBgColor[room.status] }}
       >
         {statusLabel[room.status]}
       </div>
@@ -249,89 +190,37 @@ function Home() {
   }
 
   return (
-    <div
-      className="relative h-screen w-full flex flex-col overflow-hidden"
-      style={{ fontFamily: "'Nunito', 'PingFang SC', sans-serif", color: '#5D4037' }}
-    >
+    <div className="home-page">
       {/* 1. Full-screen fixed gradient background */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          background: 'linear-gradient(to bottom, #87CEEB, #D4EEC0)',
-        }}
-      />
+      <div className="home-bg" />
 
       {/* 2. Fixed top navigation bar */}
-      <div
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          paddingTop: 16,
-          background: 'transparent',
-        }}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="home-header">
+        <div className="home-header__inner">
           {/* Left: house icon + unlocked room count */}
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[12px]"
-            style={{
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            }}
-          >
-            <Icon icon="lucide:home" className="w-5 h-5" style={{ color: '#FFB840' }} />
-            <span className="font-bold text-[16px]">{unlockedRoomCount}</span>
+          <div className="home-header__room-count">
+            <Icon icon="lucide:home" className="home-header__room-count-icon" />
+            <span className="home-header__room-count-text">{unlockedRoomCount}</span>
           </div>
 
           {/* Right: settings gear */}
           <button
+            className="home-header__settings-btn"
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-[12px] active:translate-y-[2px] active:shadow-none transition-all"
-            style={{
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            }}
           >
-            <Icon icon="lucide:settings" className="w-6 h-6" style={{ color: '#5D4037' }} />
+            <Icon icon="lucide:settings" className="home-header__settings-icon" />
           </button>
         </div>
       </div>
 
       {/* 3. Scrollable room card list */}
-      <div
-        className="relative z-10 scrollbar-hidden"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-          paddingTop: '84px',
-          paddingBottom: '90px',
-          overflowY: 'auto',
-        }}
-      >
+      <div className="home-scroll">
         {rooms.map((room) => (
           <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
         ))}
 
         {/* 4. Bottom scene placeholder */}
-        <div
-          style={{
-            width: '100%',
-            height: '350px',
-            flexShrink: 0,
-            backgroundColor: '#C8E8C0',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(93,64,55,0.5)',
-            fontWeight: 700,
-            fontSize: '18px',
-          }}
-        >
+        <div className="home-scene-placeholder">
           🌿 底部场景图占位
         </div>
       </div>
@@ -341,26 +230,11 @@ function Home() {
 
       {/* 6. FAB — fixed bottom-right */}
       {/* 🖼️ ASSET | 快速开始按钮 | PNG @3x | /assets/ui/buttons/btn-quick-start.png */}
-      <button
-        onClick={handleFabClick}
-        className="flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
-        style={{
-          position: 'fixed',
-          zIndex: 40,
-          width: '64px',
-          height: '64px',
-          bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
-          right: '20px',
-          backgroundColor: '#FFB840',
-          border: '3px solid #F5C87A',
-          boxShadow: '0 4px 0 0 #A06800',
-          overflow: 'hidden',
-        }}
-      >
+      <button className="fab" onClick={handleFabClick}>
         <img
+          className="fab__img"
           src="/assets/ui/buttons/btn-quick-start.png"
           alt="Start"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
           onError={(e) => {
             ;(e.target as HTMLImageElement).style.display = 'none'
           }}
@@ -369,231 +243,91 @@ function Home() {
 
       {/* 7. Settings Modal */}
       {showSettings && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setShowSettings(false)}
-        >
+        <div className="overlay" onClick={() => setShowSettings(false)}>
           <div
-            style={{
-              width: 'calc(100% - 48px)',
-              maxWidth: 360,
-              position: 'relative',
-              borderRadius: 20,
-              overflow: 'hidden',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-              color: '#5D4037',
-            }}
+            className="home-settings-popup"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 🖼️ ASSET | 设置弹窗背景 | PNG @3x | /assets/ui/settings-bg.png */}
             <img
+              className="home-settings-popup__bg-img"
               src="/assets/ui/settings-bg.png"
               alt=""
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                zIndex: 0,
-              }}
               onError={(e) => {
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <div style={{ position: 'absolute', inset: 0, backgroundColor: '#FFE8A0', zIndex: -1 }} />
+            <div className="home-settings-popup__fallback-bg" />
 
-            <div style={{ position: 'relative', zIndex: 1 }}>
-            {/* 橙色横幅标题 */}
-            <div
-              style={{
-                backgroundColor: '#FFB840',
-                padding: 14,
-                textAlign: 'center',
-                fontSize: 18,
-                fontWeight: 900,
-                color: 'white',
-              }}
-            >
-              ⚙️ 设置
-            </div>
-
-            {/* 弹窗主体 */}
-            <div
-              style={{
-                backgroundColor: 'transparent',
-                padding: '20px 24px 24px',
-              }}
-            >
-              {/* 音乐 / 音效 / 朗读 三列 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                {/* 音乐 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音乐</div>
-                  <button
-                    onClick={() =>
-                      updateGameState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, musicEnabled: !prev.settings.musicEnabled },
-                      }))
-                    }
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: 12,
-                      border: 'none',
-                      backgroundColor: gameState.settings.musicEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
-                      boxShadow: gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)',
-                      color: gameState.settings.musicEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 14,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'transform 80ms ease, box-shadow 80ms ease',
-                    }}
-                    onPointerDown={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 1px 0 0 #4A9050'
-                        : '0 1px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerUp={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                  >
-                    🎵 {gameState.settings.musicEnabled ? '开' : '关'}
-                  </button>
-                </div>
-
-                {/* 音效 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音效</div>
-                  <button
-                    onClick={() =>
-                      updateGameState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, soundEnabled: !prev.settings.soundEnabled },
-                      }))
-                    }
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: 12,
-                      border: 'none',
-                      backgroundColor: gameState.settings.soundEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
-                      boxShadow: gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)',
-                      color: gameState.settings.soundEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 14,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'transform 80ms ease, box-shadow 80ms ease',
-                    }}
-                    onPointerDown={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 1px 0 0 #4A9050'
-                        : '0 1px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerUp={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                  >
-                    🔊 {gameState.settings.soundEnabled ? '开' : '关'}
-                  </button>
-                </div>
-
-                {/* 朗读 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>朗读</div>
-                  <button
-                    onClick={() =>
-                      updateGameState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, ttsEnabled: !prev.settings.ttsEnabled },
-                      }))
-                    }
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: 12,
-                      border: 'none',
-                      backgroundColor: gameState.settings.ttsEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
-                      boxShadow: gameState.settings.ttsEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)',
-                      color: gameState.settings.ttsEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 14,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'transform 80ms ease, box-shadow 80ms ease',
-                    }}
-                    onPointerDown={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
-                        ? '0 1px 0 0 #4A9050'
-                        : '0 1px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerUp={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                  >
-                    🗣️ {gameState.settings.ttsEnabled ? '开' : '关'}
-                  </button>
-                </div>
+            <div className="home-settings-popup__content">
+              {/* 橙色横幅标题 */}
+              <div className="home-settings-popup__banner">
+                ⚙️ 设置
               </div>
 
-              {/* 分割线 */}
-              <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.1)', margin: '16px 0' }} />
+              {/* 弹窗主体 */}
+              <div className="home-settings-popup__body">
+                {/* 音乐 / 音效 / 朗读 三列 */}
+                <div className="home-settings-popup__grid">
+                  {/* 音乐 */}
+                  <div>
+                    <div className="home-settings-popup__grid-label">音乐</div>
+                    <button
+                      className={`settings-toggle-btn ${gameState.settings.musicEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
+                      onClick={() =>
+                        updateGameState((prev) => ({
+                          ...prev,
+                          settings: { ...prev.settings, musicEnabled: !prev.settings.musicEnabled },
+                        }))
+                      }
+                    >
+                      🎵 {gameState.settings.musicEnabled ? '开' : '关'}
+                    </button>
+                  </div>
 
-              <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.5)', textAlign: 'center' }}>
-                👩‍💻 猫卷装修队
+                  {/* 音效 */}
+                  <div>
+                    <div className="home-settings-popup__grid-label">音效</div>
+                    <button
+                      className={`settings-toggle-btn ${gameState.settings.soundEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
+                      onClick={() =>
+                        updateGameState((prev) => ({
+                          ...prev,
+                          settings: { ...prev.settings, soundEnabled: !prev.settings.soundEnabled },
+                        }))
+                      }
+                    >
+                      🔊 {gameState.settings.soundEnabled ? '开' : '关'}
+                    </button>
+                  </div>
+
+                  {/* 朗读 */}
+                  <div>
+                    <div className="home-settings-popup__grid-label">朗读</div>
+                    <button
+                      className={`settings-toggle-btn ${gameState.settings.ttsEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
+                      onClick={() =>
+                        updateGameState((prev) => ({
+                          ...prev,
+                          settings: { ...prev.settings, ttsEnabled: !prev.settings.ttsEnabled },
+                        }))
+                      }
+                    >
+                      🗣️ {gameState.settings.ttsEnabled ? '开' : '关'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 分割线 */}
+                <div className="home-settings-popup__divider" />
+
+                <div className="home-settings-popup__team">
+                  👩‍💻 猫卷装修队
+                </div>
+                <div className="home-settings-popup__version">
+                  VERSION: 1.3.0
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.3)', textAlign: 'center', marginTop: 6 }}>
-                VERSION: 1.3.0
-              </div>
-            </div>
             </div>
           </div>
         </div>

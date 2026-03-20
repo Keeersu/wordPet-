@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 错题 / 弱词复习中心 — 汇总所有正确率低于 70% 的单词，支持一键全局复习或按章节复习，直接在页面内完成答题练习。
- * Style referenceFiles:
+ * Style referenceFiles: styles/practice.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -30,14 +30,7 @@ import { generateReviewQuestions, type ReviewWordInput } from '@/data/questionGe
 import type { GeneratedQuestion } from '@/data/questionGenerator'
 import { speakWord as _speakWord } from '@/lib/utils/tts'
 import { rateColor, rateBgColor as rateBg } from '@/lib/utils/colors'
-import { CARD_STYLE } from '@/lib/utils/styles'
 import { CHAPTERS, CHAPTER_MAP } from '@/data/chapters'
-
-// ─── 样式常量（在公共 CARD_STYLE 基础上增加 padding） ─────────────────
-const cardStyle: React.CSSProperties = {
-  ...CARD_STYLE,
-  padding: '14px 16px',
-}
 
 // ─── 工具函数（shuffle 仅用于 startReview 的 weakWords 乱序） ────────
 function shuffle<T>(arr: T[]): T[] {
@@ -135,7 +128,7 @@ function Practice() {
         chapterId: cid,
         name: chMeta
           ? { emoji: chMeta.emoji, en: chMeta.nameEn, zh: chMeta.nameCn }
-          : { emoji: '📖', en: `Chapter ${cid}`, zh: `第${cid}章` },
+          : { emoji: '\u{1F4D6}', en: `Chapter ${cid}`, zh: `\u7B2C${cid}\u7AE0` },
         words,
         avgRate: avg,
       })
@@ -309,37 +302,45 @@ function Practice() {
     const isChoiceType = currentQ.type === 'multiple_choice' || currentQ.type === 'fill_blank' || currentQ.type === 'picture_matching'
 
     return (
-      <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: '#F5E6C8', fontFamily: "'Nunito', 'PingFang SC', sans-serif", color: '#5D4037' }}>
+      <div className="practice-page">
         {/* Quiz Header */}
-        <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,230,200,0.85)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
-          <button onClick={() => setPhase('browse')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10, border: '2px solid rgba(93,64,55,0.12)', backgroundColor: 'white', boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)', cursor: 'pointer', color: '#5D4037', fontWeight: 700, fontSize: 14, fontFamily: 'inherit' }}>
-            <Icon icon="lucide:x" style={{ width: 16, height: 16 }} />
+        <div className="practice-quiz-header">
+          <button onClick={() => setPhase('browse')} className="practice-quiz-header__back back-btn">
+            <Icon icon="lucide:x" width={16} height={16} />
             退出
           </button>
-          <div style={{ fontWeight: 900, fontSize: 14 }}>
+          <div className="practice-quiz-header__count">
             第 {currentIdx + 1} 题 · 共 {questions.length} 题
           </div>
-          <div style={{ width: 68 }} />
+          <div className="page-header__spacer" />
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 4, backgroundColor: 'rgba(93,64,55,0.1)', margin: '0 16px' }}>
-          <div style={{ height: '100%', borderRadius: 2, backgroundColor: '#FFB840', width: `${((currentIdx + (isCorrect !== null ? 1 : 0)) / questions.length) * 100}%`, transition: 'width 0.3s ease' }} />
+        <div className="progress-bar progress-bar--sm" style={{ margin: '0 16px' }}>
+          <div
+            className="progress-bar__fill progress-bar__fill--primary"
+            style={{ width: `${((currentIdx + (isCorrect !== null ? 1 : 0)) / questions.length) * 100}%` }}
+          />
         </div>
 
         {/* Question content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 160 }}>
+        <div className="practice-quiz-body">
           {/* Word image */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 120, height: 120, borderRadius: 16, overflow: 'hidden', margin: '0 auto', border: '3px solid white', boxShadow: '0 4px 0 0 rgba(93,64,55,0.1)', backgroundColor: 'white' }}>
-              <img src={currentQ.image} alt={currentQ.word} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          <div className="practice-quiz-prompt">
+            <div className="practice-quiz-image__frame">
+              <img
+                src={currentQ.image}
+                alt={currentQ.word}
+                className="practice-quiz-image__img"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
             </div>
           </div>
 
           {/* Question card */}
-          <div style={{ ...cardStyle, padding: '16px 18px' }}>
+          <div className="card card--padded">
             {/* 题型标签 */}
-            <div style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 8, backgroundColor: 'rgba(255,184,64,0.15)', color: '#A06800', fontSize: 11, fontWeight: 800, marginBottom: 10 }}>
+            <div className="practice-quiz-tag">
               {currentQ.type === 'multiple_choice' && '看图选词'}
               {currentQ.type === 'fill_blank' && '填空题'}
               {currentQ.type === 'letter_match' && '字母消消乐'}
@@ -348,29 +349,28 @@ function Practice() {
             </div>
 
             {/* 含义/提示 */}
-            <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>
+            <div className="practice-quiz-prompt__word">
               {currentQ.type === 'picture_matching' ? `选择 "${currentQ.word}" 的中文意思` : currentQ.meaning}
             </div>
 
             {currentQ.pos && (
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 10 }}>{currentQ.pos}</div>
+              <div className="practice-quiz-prompt__phonetic">{currentQ.pos}</div>
             )}
 
             {/* 例句 */}
             {currentQ.sentence && (
-              <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.6)', lineHeight: 1.6, padding: '8px 12px', borderRadius: 10, backgroundColor: 'rgba(93,64,55,0.04)', marginBottom: 12 }}>
-                <div>{currentQ.sentence}</div>
-                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.4)', marginTop: 4 }}>{currentQ.sentenceZh}</div>
+              <div className="practice-quiz-sentence">
+                <div className="practice-quiz-sentence__en">{currentQ.sentence}</div>
+                <div className="practice-quiz-sentence__zh">{currentQ.sentenceZh}</div>
               </div>
             )}
 
             {/* 选择题 options */}
             {isChoiceType && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="practice-quiz-options">
                 {currentQ.options.map((opt, i) => {
                   let bg = 'white'
                   let borderColor = 'rgba(93,64,55,0.12)'
-                  let shadow = '0 2px 0 0 rgba(93,64,55,0.1)'
 
                   if (isCorrect !== null) {
                     if (opt === currentQ.correctAnswer) {
@@ -387,20 +387,11 @@ function Practice() {
                       key={`${opt}-${i}`}
                       onClick={() => handleSelectAnswer(opt)}
                       disabled={isCorrect !== null}
+                      className="practice-quiz-option"
                       style={{
-                        padding: '12px 16px',
-                        borderRadius: 12,
                         border: `2px solid ${borderColor}`,
                         backgroundColor: bg,
-                        boxShadow: shadow,
-                        cursor: isCorrect !== null ? 'default' : 'pointer',
-                        textAlign: 'left',
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: '#5D4037',
-                        fontFamily: 'inherit',
                         opacity: isCorrect !== null && opt !== currentQ.correctAnswer && opt !== selectedAnswer ? 0.4 : 1,
-                        transition: 'all 0.15s ease',
                       }}
                     >
                       {opt}
@@ -414,23 +405,14 @@ function Practice() {
             {isLetterType && (
               <div>
                 {/* 已填字母槽 */}
-                <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 16 }}>
+                <div className="practice-quiz-letter-slots">
                   {letterSlots.map((letter, i) => (
                     <div
                       key={i}
+                      className="practice-quiz-letter-slot"
                       style={{
-                        width: 36,
-                        height: 42,
-                        borderRadius: 8,
-                        border: `2px solid ${isCorrect === true ? '#66BB6A' : isCorrect === false ? '#EF5350' : letter ? '#FFB840' : 'rgba(93,64,55,0.15)'}`,
+                        borderColor: isCorrect === true ? '#66BB6A' : isCorrect === false ? '#EF5350' : letter ? '#FFB840' : 'rgba(93,64,55,0.15)',
                         backgroundColor: isCorrect === true ? 'rgba(102,187,106,0.1)' : isCorrect === false ? 'rgba(239,83,80,0.1)' : letter ? 'rgba(255,184,64,0.1)' : 'rgba(93,64,55,0.03)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 18,
-                        fontWeight: 900,
-                        color: '#5D4037',
-                        transition: 'all 0.15s ease',
                       }}
                     >
                       {letter || ''}
@@ -439,25 +421,18 @@ function Practice() {
                 </div>
 
                 {/* 可选字母 */}
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div className="practice-quiz-letter-pool">
                   {availableLetters.map((item, i) => (
                     <button
                       key={`${item.letter}-${item.idx}-${i}`}
                       onClick={() => !item.used && handleLetterClick(i)}
                       disabled={item.used || isCorrect !== null}
+                      className={`practice-quiz-letter-btn ${item.used ? 'practice-quiz-letter-btn--used' : ''}`}
                       style={{
-                        width: 40,
-                        height: 44,
-                        borderRadius: 10,
-                        border: '2px solid rgba(93,64,55,0.12)',
                         backgroundColor: item.used ? 'rgba(93,64,55,0.06)' : 'white',
+                        color: item.used ? 'rgba(93,64,55,0.2)' : '#5D4037',
                         boxShadow: item.used ? 'none' : '0 3px 0 0 rgba(93,64,55,0.1)',
                         cursor: item.used || isCorrect !== null ? 'default' : 'pointer',
-                        fontSize: 17,
-                        fontWeight: 800,
-                        color: item.used ? 'rgba(93,64,55,0.2)' : '#5D4037',
-                        fontFamily: 'inherit',
-                        transition: 'all 0.1s ease',
                       }}
                     >
                       {item.letter}
@@ -467,22 +442,12 @@ function Practice() {
 
                 {/* 撤销按钮 */}
                 {!isCorrect && letterSlots.some((s) => s !== null) && (
-                  <div style={{ textAlign: 'center', marginTop: 12 }}>
+                  <div className="practice-quiz-undo">
                     <button
                       onClick={handleUndoLetter}
-                      style={{
-                        padding: '6px 16px',
-                        borderRadius: 8,
-                        border: '1.5px solid rgba(93,64,55,0.15)',
-                        backgroundColor: 'white',
-                        cursor: 'pointer',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: 'rgba(93,64,55,0.5)',
-                        fontFamily: 'inherit',
-                      }}
+                      className="practice-quiz-undo-btn"
                     >
-                      <Icon icon="lucide:undo-2" style={{ width: 12, height: 12, marginRight: 4, verticalAlign: -1 }} />
+                      <Icon icon="lucide:undo-2" width={12} height={12} style={{ marginRight: 4, verticalAlign: -1 }} />
                       撤销
                     </button>
                   </div>
@@ -495,47 +460,27 @@ function Practice() {
         {/* 底部反馈条 */}
         {isCorrect !== null && (
           <div
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: '16px 20px calc(20px + env(safe-area-inset-bottom, 0px))',
-              backgroundColor: isCorrect ? '#E8F5E9' : '#FFEBEE',
-              borderTop: `3px solid ${isCorrect ? '#66BB6A' : '#EF5350'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              zIndex: 100,
-            }}
+            className={`practice-quiz-feedback ${isCorrect ? 'practice-quiz-feedback--correct' : 'practice-quiz-feedback--wrong'}`}
           >
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: isCorrect ? '#2E7D32' : '#C62828', marginBottom: 2 }}>
-                {isCorrect ? '✅ 答对了！' : '❌ 再想想'}
+            <div className="practice-quiz-feedback__header">
+              <div className={`practice-quiz-feedback__icon ${isCorrect ? 'practice-quiz-feedback__icon--correct' : 'practice-quiz-feedback__icon--wrong'}`}>
+                <Icon icon={isCorrect ? 'lucide:check' : 'lucide:x'} width={18} height={18} />
               </div>
-              {!isCorrect && (
-                <div style={{ fontSize: 13, color: '#C62828' }}>
-                  正确答案：<strong>{currentQ.correctAnswer}</strong>
-                </div>
-              )}
+              <div className={`practice-quiz-feedback__title ${isCorrect ? 'practice-quiz-feedback__title--correct' : 'practice-quiz-feedback__title--wrong'}`}>
+                {isCorrect ? '答对了！' : '再想想'}
+              </div>
             </div>
+            {!isCorrect && (
+              <div className="practice-quiz-feedback__detail">
+                正确答案：<strong>{currentQ.correctAnswer}</strong>
+              </div>
+            )}
             <button
               onClick={nextQuestion}
-              style={{
-                padding: '10px 24px',
-                borderRadius: 12,
-                border: 'none',
-                backgroundColor: isCorrect ? '#66BB6A' : '#EF5350',
-                boxShadow: `0 3px 0 0 ${isCorrect ? '#388E3C' : '#B71C1C'}`,
-                color: 'white',
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
+              className={`practice-quiz-feedback__btn ${isCorrect ? 'practice-quiz-feedback__btn--correct' : 'practice-quiz-feedback__btn--wrong'}`}
             >
               {currentIdx + 1 >= questions.length ? '查看结果' : '下一题'}
-              <Icon icon="lucide:arrow-right" style={{ width: 14, height: 14, marginLeft: 6, verticalAlign: -2 }} />
+              <Icon icon="lucide:arrow-right" width={14} height={14} style={{ marginLeft: 6, verticalAlign: -2 }} />
             </button>
           </div>
         )}
@@ -546,40 +491,40 @@ function Practice() {
   // ── 结果界面 ──
   const renderResult = () => {
     const rate = sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0
-    const emoji = rate >= 80 ? '🎉' : rate >= 60 ? '💪' : '📚'
+    const emoji = rate >= 80 ? '\u{1F389}' : rate >= 60 ? '\u{1F4AA}' : '\u{1F4DA}'
     const message = rate >= 80 ? '太棒了！进步很大！' : rate >= 60 ? '继续加油！快要掌握了' : '别灰心，多练几次就好！'
 
     return (
-      <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: '#FFF8E7', fontFamily: "'Nunito', 'PingFang SC', sans-serif", color: '#5D4037' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 20 }}>
-          <div style={{ fontSize: 64, lineHeight: 1 }}>{emoji}</div>
-          <div style={{ fontSize: 22, fontWeight: 900 }}>复习完成！</div>
-          <div style={{ fontSize: 14, color: 'rgba(93,64,55,0.55)' }}>{message}</div>
+      <div className="practice-page">
+        <div className="practice-result">
+          <div className="practice-result__emoji">{emoji}</div>
+          <div className="practice-result__title">复习完成！</div>
+          <div className="practice-result__subtitle">{message}</div>
 
           {/* 成绩卡 */}
-          <div style={{ ...cardStyle, width: '100%', maxWidth: 280, textAlign: 'center', padding: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 32, fontWeight: 900, color: '#FFB840', lineHeight: 1 }}>{sessionCorrect}/{sessionTotal}</div>
-                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginTop: 4 }}>答对</div>
+          <div className="card card--padded practice-result__score-card">
+            <div className="practice-result__score-grid">
+              <div className="practice-result__score-item">
+                <div className="practice-result__score-value" style={{ color: '#FFB840' }}>{sessionCorrect}/{sessionTotal}</div>
+                <div className="practice-result__score-label">答对</div>
               </div>
-              <div>
-                <div style={{ fontSize: 32, fontWeight: 900, color: rateColor(rate), lineHeight: 1 }}>{rate}%</div>
-                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginTop: 4 }}>正确率</div>
+              <div className="practice-result__score-item">
+                <div className="practice-result__score-value" style={{ color: rateColor(rate) }}>{rate}%</div>
+                <div className="practice-result__score-label">正确率</div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <div className="practice-result__actions">
             <button
               onClick={() => setPhase('browse')}
-              style={{ padding: '12px 24px', borderRadius: 12, border: '2px solid rgba(93,64,55,0.12)', backgroundColor: 'white', boxShadow: '0 3px 0 0 rgba(93,64,55,0.1)', color: '#5D4037', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}
+              className="practice-result__btn practice-result__btn--return"
             >
               返回
             </button>
             <button
               onClick={() => startReview(weakWords)}
-              style={{ padding: '12px 24px', borderRadius: 12, border: '2px solid #F5C87A', backgroundColor: '#FFB840', boxShadow: '0 3px 0 0 #A06800', color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}
+              className="practice-result__btn practice-result__btn--retry"
             >
               再来一轮
             </button>
@@ -595,77 +540,49 @@ function Practice() {
 
   // ── 浏览模式（默认） ──
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: '#FFF8E7', fontFamily: "'Nunito', 'PingFang SC', sans-serif", color: '#5D4037' }}>
+    <div className="practice-page">
       {/* Header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,248,231,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(93,64,55,0.08)' }}>
-        <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10, border: '2px solid rgba(93,64,55,0.12)', backgroundColor: 'white', boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)', cursor: 'pointer', color: '#5D4037', fontWeight: 700, fontSize: 14, fontFamily: 'inherit' }}>
-          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+      <div className="page-header">
+        <button onClick={() => navigate(-1)} className="back-btn">
+          <Icon icon="lucide:arrow-left" width={16} height={16} />
           返回
         </button>
-        <div style={{ fontWeight: 900, fontSize: 18 }}>复习中心</div>
-        <div style={{ width: 68 }} />
+        <div className="page-header__title">复习中心</div>
+        <div className="page-header__spacer" />
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 120 }}>
+      <div className="practice-browse-scroll">
 
         {/* 摘要卡 */}
-        <div style={{ ...cardStyle, background: weakWords.length > 0 ? 'linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', border: `2px solid ${weakWords.length > 0 ? 'rgba(239,83,80,0.15)' : 'rgba(102,187,106,0.2)'}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
-              {weakWords.length > 0 ? '📝' : '🏆'}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 900, fontSize: 15, marginBottom: 4 }}>
-                {weakWords.length > 0 ? '待复习单词' : '全部掌握！'}
-              </div>
-              {weakWords.length > 0 ? (
-                <div style={{ display: 'flex', gap: 16 }}>
-                  <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.6)' }}>
-                    <span style={{ fontWeight: 900, fontSize: 20, color: '#EF5350' }}>{weakWords.length}</span>
-                    <span style={{ marginLeft: 4 }}>个</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.6)' }}>
-                    平均正确率
-                    <span style={{ fontWeight: 900, fontSize: 16, color: rateColor(totalAvgRate), marginLeft: 4 }}>{totalAvgRate}%</span>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.55)' }}>
-                  {Object.keys(gameState.wordHistory).length === 0 ? '还没有学习记录，快去冒险吧！' : '所有学过的单词正确率都 ≥ 70% ✨'}
-                </div>
-              )}
-            </div>
+        <div className={`practice-summary ${weakWords.length > 0 ? 'practice-summary--has-weak' : 'practice-summary--all-good'}`}>
+          <div className="practice-summary__icon">
+            {weakWords.length > 0 ? '\u{1F4DD}' : '\u{1F3C6}'}
           </div>
+          <div className="practice-summary__count">
+            {weakWords.length > 0 ? weakWords.length : '\u2728'}
+          </div>
+          <div className="practice-summary__label">
+            {weakWords.length > 0 ? '待复习单词' : '全部掌握！'}
+          </div>
+          {weakWords.length > 0 ? (
+            <div className="practice-summary__rate">
+              平均正确率
+              <span style={{ color: rateColor(totalAvgRate), fontWeight: 900 }}>{totalAvgRate}%</span>
+            </div>
+          ) : (
+            <div className="practice-summary__label">
+              {Object.keys(gameState.wordHistory).length === 0 ? '\u8FD8\u6CA1\u6709\u5B66\u4E60\u8BB0\u5F55\uFF0C\u5FEB\u53BB\u5192\u9669\u5427\uFF01' : '\u6240\u6709\u5B66\u8FC7\u7684\u5355\u8BCD\u6B63\u786E\u7387\u90FD \u2265 70% \u2728'}
+            </div>
+          )}
 
           {/* 开始复习主按钮 */}
           {weakWords.length > 0 && (
             <button
               onClick={() => startReview(weakWords)}
-              style={{
-                width: '100%',
-                marginTop: 14,
-                padding: '14px 0',
-                borderRadius: 14,
-                border: 'none',
-                backgroundColor: '#EF5350',
-                boxShadow: '0 4px 0 0 #B71C1C',
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 900,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                transition: 'transform 80ms ease, box-shadow 80ms ease',
-              }}
-              onPointerDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 #B71C1C' }}
-              onPointerUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #B71C1C' }}
-              onPointerLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #B71C1C' }}
+              className="practice-start-btn btn-danger"
             >
-              <Icon icon="lucide:swords" style={{ width: 18, height: 18 }} />
+              <Icon icon="lucide:swords" width={18} height={18} style={{ marginRight: 8, verticalAlign: -3 }} />
               开始复习（全部 {weakWords.length} 词）
             </button>
           )}
@@ -674,26 +591,9 @@ function Practice() {
           {weakWords.length === 0 && Object.keys(gameState.wordHistory).length === 0 && (
             <button
               onClick={() => navigate(`/chapter/${gameState.currentChapter}/level/${gameState.currentLevel}`)}
-              style={{
-                width: '100%',
-                marginTop: 14,
-                padding: '14px 0',
-                borderRadius: 14,
-                border: 'none',
-                backgroundColor: '#FFB840',
-                boxShadow: '0 4px 0 0 #A06800',
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 900,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}
+              className="practice-adventure-btn btn-primary"
             >
-              <Icon icon="lucide:play" style={{ width: 18, height: 18 }} />
+              <Icon icon="lucide:play" width={18} height={18} style={{ marginRight: 8, verticalAlign: -3 }} />
               去冒险
             </button>
           )}
@@ -701,106 +601,64 @@ function Practice() {
 
         {/* 按章节分组的弱词列表 */}
         {chapterGroups.map((group) => (
-          <div key={group.chapterId} style={cardStyle}>
+          <div key={group.chapterId} className="practice-chapter">
             {/* 章节头 */}
             <button
               onClick={() => toggleChapter(group.chapterId)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 0,
-                border: 'none',
-                backgroundColor: 'transparent',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                color: '#5D4037',
-              }}
+              className="practice-chapter__header"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 22 }}>{group.name.emoji}</span>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: 900, fontSize: 14 }}>{group.name.zh}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)' }}>{group.name.en}</div>
-                </div>
+              <div className="practice-chapter__title">
+                <span>{group.name.emoji}</span>{' '}
+                {group.name.zh}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: rateColor(group.avgRate), backgroundColor: rateBg(group.avgRate), padding: '2px 10px', borderRadius: 12 }}>
+              <div className="practice-chapter__info">
+                <span className="practice-word-item__rate" style={{ color: rateColor(group.avgRate), backgroundColor: rateBg(group.avgRate) }}>
                   {group.words.length} 词
                 </span>
-                <Icon icon={expandedChapters.has(group.chapterId) ? 'lucide:chevron-up' : 'lucide:chevron-down'} style={{ width: 16, height: 16, color: 'rgba(93,64,55,0.3)' }} />
+                <div className={`practice-chapter__arrow ${expandedChapters.has(group.chapterId) ? 'practice-chapter__arrow--open' : ''}`}>
+                  <Icon icon="lucide:chevron-down" width={16} height={16} />
+                </div>
               </div>
             </button>
 
             {/* 展开内容 */}
             {expandedChapters.has(group.chapterId) && (
-              <div style={{ marginTop: 12 }}>
+              <div className="practice-chapter__list">
                 {/* 章节复习按钮 */}
                 <button
                   onClick={() => startReview(group.words)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 0',
-                    borderRadius: 10,
-                    border: '2px dashed rgba(239,83,80,0.25)',
-                    backgroundColor: 'rgba(239,83,80,0.04)',
-                    color: '#EF5350',
-                    fontSize: 13,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    marginBottom: 10,
-                  }}
+                  className="practice-chapter__review-btn"
                 >
-                  <Icon icon="lucide:repeat" style={{ width: 14, height: 14 }} />
+                  <Icon icon="lucide:repeat" width={14} height={14} style={{ marginRight: 6, verticalAlign: -2 }} />
                   复习本章 {group.words.length} 词
                 </button>
 
                 {/* 单词列表 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {group.words.map((w) => (
-                    <div
-                      key={w.word}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 12px',
-                        borderRadius: 10,
-                        backgroundColor: 'rgba(93,64,55,0.03)',
-                        border: '1.5px solid rgba(93,64,55,0.08)',
-                      }}
+                {group.words.map((w) => (
+                  <div key={w.word} className="practice-word-item">
+                    <button
+                      onClick={() => speakWord(w.word, gameState.settings.ttsEnabled)}
+                      className="practice-word-item__speak"
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <button
-                          onClick={() => speakWord(w.word, gameState.settings.ttsEnabled)}
-                          style={{ width: 28, height: 28, borderRadius: 8, border: 'none', backgroundColor: 'rgba(93,64,55,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Icon icon="lucide:volume-2" style={{ width: 14, height: 14, color: 'rgba(93,64,55,0.4)' }} />
-                        </button>
-                        <div>
-                          <div style={{ fontWeight: 800, fontSize: 14 }}>{w.word}</div>
-                          <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.5)' }}>
-                            <span style={{ marginRight: 6 }}>{w.pos}</span>{w.meaning}
-                          </div>
-                        </div>
+                      <Icon icon="lucide:volume-2" width={14} height={14} />
+                    </button>
+                    <div className="practice-word-item__content">
+                      <div className="practice-word-item__word">
+                        {w.word}
+                        <span className="practice-word-item__pos">{w.pos}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(w.rate), backgroundColor: rateBg(w.rate), padding: '2px 8px', borderRadius: 12 }}>
-                          {w.rate}%
-                        </span>
-                        <span style={{ fontSize: 10, color: 'rgba(93,64,55,0.35)' }}>
-                          {w.total}次
-                        </span>
-                      </div>
+                      <div className="practice-word-item__meaning">{w.meaning}</div>
                     </div>
-                  ))}
-                </div>
+                    <div className="practice-word-item__info">
+                      <span className="practice-word-item__rate" style={{ color: rateColor(w.rate), backgroundColor: rateBg(w.rate) }}>
+                        {w.rate}%
+                      </span>
+                      <span className="practice-word-item__count">
+                        {w.total}次
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -808,10 +666,10 @@ function Practice() {
 
         {/* 空状态提示 */}
         {weakWords.length === 0 && Object.keys(gameState.wordHistory).length > 0 && (
-          <div style={{ ...cardStyle, textAlign: 'center', padding: '24px 16px' }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>🌟</div>
-            <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 6 }}>太厉害了！</div>
-            <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.5)', lineHeight: 1.6 }}>
+          <div className="card card--padded practice-empty">
+            <div className="practice-empty__icon">{'\u{1F31F}'}</div>
+            <div className="practice-empty__text">太厉害了！</div>
+            <div className="practice-empty__text">
               你学过的所有单词正确率都达到了 70% 以上<br />
               继续冒险，解锁更多单词吧！
             </div>

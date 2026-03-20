@@ -1,0 +1,877 @@
+/* ============================================================================
+ * Practice (Review Center) Page
+ * Browse / Quiz / Result three-mode layout
+ * All values use CSS variables from tokens.css
+ * ============================================================================ */
+
+/* ── Page container ── */
+.practice-page {
+  font-family: var(--font-main);
+  color: var(--color-text);
+  background-color: var(--color-bg-warm);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+ * Browse Mode
+ * ============================================================================ */
+
+/* ── Summary card ── */
+.practice-summary {
+  margin: var(--space-3xl);
+  padding: var(--space-5xl) var(--space-4xl);
+  border-radius: var(--radius-3xl);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.practice-summary--has-weak {
+  background: linear-gradient(135deg, #FFF3DC 0%, #FFE4B5 50%, #FFDBA0 100%);
+  border: 2px solid var(--color-primary-border);
+  box-shadow: var(--shadow-card);
+}
+
+.practice-summary--all-good {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%);
+  border: 2px solid var(--color-success-border);
+  box-shadow: var(--shadow-card);
+}
+
+.practice-summary__icon {
+  font-size: var(--text-8xl);
+  line-height: 1;
+  margin-bottom: var(--space-xl);
+}
+
+.practice-summary__count {
+  font-size: var(--text-6xl);
+  font-weight: var(--font-black);
+  color: var(--color-text-dark);
+  margin-bottom: var(--space-xs);
+}
+
+.practice-summary__label {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.practice-summary__rate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-xl);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-secondary);
+}
+
+/* ── Start review button ── */
+.practice-start-btn {
+  display: block;
+  width: calc(100% - var(--space-3xl) * 2);
+  margin: 0 var(--space-3xl) var(--space-3xl);
+  padding: var(--space-2xl) var(--space-3xl);
+  border-radius: var(--radius-2xl);
+  border: 2.5px solid var(--color-primary-border);
+  background-color: var(--color-primary);
+  box-shadow: var(--shadow-button-primary);
+  color: var(--color-text-dark);
+  font-family: var(--font-main);
+  font-size: var(--text-lg);
+  font-weight: var(--font-black);
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.practice-start-btn:active {
+  box-shadow: 0 0px 0 0 var(--color-primary-dark);
+  transform: translateY(3px);
+}
+
+/* ── Adventure / random review button ── */
+.practice-adventure-btn {
+  display: block;
+  width: calc(100% - var(--space-3xl) * 2);
+  margin: 0 var(--space-3xl) var(--space-4xl);
+  padding: var(--space-xl) var(--space-3xl);
+  border-radius: var(--radius-2xl);
+  border: 2px solid var(--color-border-strong);
+  background-color: var(--color-bg-card);
+  box-shadow: 0 3px 0 0 rgba(93, 64, 55, 0.08);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.practice-adventure-btn:active {
+  box-shadow: 0 1px 0 0 rgba(93, 64, 55, 0.08);
+  transform: translateY(2px);
+}
+
+/* ============================================================================
+ * Chapter Group (collapsible sections)
+ * ============================================================================ */
+
+.practice-chapter {
+  margin: 0 var(--space-3xl) var(--space-xl);
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-3xl);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.practice-chapter__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2xl) var(--space-3xl);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-normal);
+}
+
+.practice-chapter__header:active {
+  background-color: var(--color-bg-muted);
+}
+
+.practice-chapter__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  flex: 1;
+  min-width: 0;
+}
+
+.practice-chapter__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.practice-chapter__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-text-hint);
+  transition: transform var(--transition-slower);
+}
+
+.practice-chapter__arrow--open {
+  transform: rotate(180deg);
+}
+
+.practice-chapter__review-btn {
+  padding: var(--space-xs) var(--space-xl);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-primary-border);
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary-dark);
+  font-family: var(--font-main);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--transition-normal);
+}
+
+.practice-chapter__review-btn:active {
+  background-color: var(--color-primary-light);
+}
+
+.practice-chapter__body {
+  overflow: hidden;
+  transition: max-height var(--transition-slower);
+}
+
+.practice-chapter__body--collapsed {
+  max-height: 0;
+}
+
+.practice-chapter__list {
+  padding: 0 var(--space-3xl) var(--space-xl);
+}
+
+/* ============================================================================
+ * Word Item (inside chapter list)
+ * ============================================================================ */
+
+.practice-word-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl) 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.practice-word-item:last-child {
+  border-bottom: none;
+}
+
+.practice-word-item__speak {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--color-primary-bg);
+  border: 1.5px solid rgba(255, 184, 64, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--transition-normal);
+}
+
+.practice-word-item__speak:active {
+  background-color: var(--color-primary-light);
+}
+
+.practice-word-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.practice-word-item__word {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-dark);
+  line-height: 1.3;
+}
+
+.practice-word-item__pos {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-hint);
+  margin-left: var(--space-sm);
+  font-style: italic;
+}
+
+.practice-word-item__meaning {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-word-item__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+}
+
+.practice-word-item__count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.practice-word-item__rate {
+  padding: 2px var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  white-space: nowrap;
+}
+
+.practice-word-item__rate--success {
+  color: var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
+.practice-word-item__rate--warning {
+  color: var(--color-primary);
+  background-color: var(--color-warning-bg);
+}
+
+.practice-word-item__rate--error {
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
+/* ============================================================================
+ * Browse empty state
+ * ============================================================================ */
+
+.practice-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-7xl) var(--space-3xl);
+  text-align: center;
+}
+
+.practice-empty__icon {
+  font-size: var(--text-8xl);
+  line-height: 1;
+  margin-bottom: var(--space-3xl);
+}
+
+.practice-empty__text {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+ * Quiz Mode
+ * Reuses game-like patterns; quiz-specific overrides live here.
+ * Generic quiz option buttons use .btn-option from components.css.
+ * ============================================================================ */
+
+.practice-quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xl) var(--space-3xl);
+  background-color: var(--color-bg-game);
+}
+
+.practice-quiz-header__back {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-border-medium);
+  background-color: var(--color-bg-card);
+  box-shadow: var(--shadow-nav);
+  cursor: pointer;
+  color: var(--color-text);
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  font-family: var(--font-main);
+}
+
+.practice-quiz-header__progress {
+  flex: 1;
+  margin: 0 var(--space-3xl);
+}
+
+.practice-quiz-header__count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.practice-quiz-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4xl) var(--space-3xl);
+  background-color: var(--color-bg-game);
+}
+
+.practice-quiz-prompt {
+  text-align: center;
+  margin-bottom: var(--space-5xl);
+}
+
+.practice-quiz-prompt__label {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.practice-quiz-prompt__word {
+  font-size: var(--text-7xl);
+  font-weight: var(--font-black);
+  color: var(--color-text-dark);
+  line-height: 1.2;
+}
+
+.practice-quiz-prompt__phonetic {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-sm);
+}
+
+.practice-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.practice-quiz-feedback {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 51;
+  background-color: var(--color-bg-card);
+  border-top-left-radius: var(--space-5xl);
+  border-top-right-radius: var(--space-5xl);
+  padding: var(--space-5xl) var(--space-4xl);
+  padding-bottom: calc(var(--space-5xl) + var(--safe-bottom, 34px));
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-main);
+  animation: slideUp 300ms ease-out;
+}
+
+.practice-quiz-feedback--correct {
+  border-top: 3px solid var(--color-success);
+}
+
+.practice-quiz-feedback--wrong {
+  border-top: 3px solid var(--color-error);
+}
+
+.practice-quiz-feedback__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.practice-quiz-feedback__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.practice-quiz-feedback__icon--correct {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.practice-quiz-feedback__icon--wrong {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.practice-quiz-feedback__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-black);
+}
+
+.practice-quiz-feedback__title--correct {
+  color: var(--color-success-dark);
+}
+
+.practice-quiz-feedback__title--wrong {
+  color: var(--color-error-dark);
+}
+
+.practice-quiz-feedback__detail {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-4xl);
+}
+
+.practice-quiz-feedback__btn {
+  width: 100%;
+  padding: var(--space-2xl);
+  border-radius: var(--radius-2xl);
+  border: none;
+  font-family: var(--font-main);
+  font-size: var(--text-lg);
+  font-weight: var(--font-black);
+  color: white;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.practice-quiz-feedback__btn--correct {
+  background-color: var(--color-success);
+  box-shadow: 0 3px 0 0 var(--color-success-dark);
+}
+
+.practice-quiz-feedback__btn--correct:active {
+  box-shadow: 0 0px 0 0 var(--color-success-dark);
+  transform: translateY(3px);
+}
+
+.practice-quiz-feedback__btn--wrong {
+  background-color: var(--color-error);
+  box-shadow: 0 3px 0 0 var(--color-error-darker);
+}
+
+.practice-quiz-feedback__btn--wrong:active {
+  box-shadow: 0 0px 0 0 var(--color-error-darker);
+  transform: translateY(3px);
+}
+
+/* ============================================================================
+ * Result Mode
+ * ============================================================================ */
+
+.practice-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-7xl) var(--space-3xl);
+  text-align: center;
+  background-color: var(--color-bg-warm);
+}
+
+.practice-result__emoji {
+  font-size: var(--text-8xl);
+  line-height: 1;
+  margin-bottom: var(--space-5xl);
+}
+
+.practice-result__title {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-black);
+  color: var(--color-text-dark);
+  margin-bottom: var(--space-md);
+}
+
+.practice-result__score {
+  font-size: var(--text-8xl);
+  font-weight: var(--font-black);
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: var(--space-md);
+}
+
+.practice-result__score--perfect {
+  color: var(--color-success);
+}
+
+.practice-result__score--poor {
+  color: var(--color-error);
+}
+
+.practice-result__rate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-3xl);
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  margin-bottom: var(--space-7xl);
+}
+
+.practice-result__rate--success {
+  color: var(--color-success-dark);
+  background-color: var(--color-success-bg);
+  border: 1.5px solid var(--color-success-border);
+}
+
+.practice-result__rate--warning {
+  color: var(--color-primary-dark);
+  background-color: var(--color-warning-bg);
+  border: 1.5px solid var(--color-warning-border);
+}
+
+.practice-result__rate--error {
+  color: var(--color-error-dark);
+  background-color: var(--color-error-bg);
+  border: 1.5px solid var(--color-error-border);
+}
+
+.practice-result__subtitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4xl);
+  line-height: 1.5;
+}
+
+.practice-result__actions {
+  display: flex;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: 320px;
+}
+
+.practice-result__btn {
+  flex: 1;
+  padding: var(--space-2xl) var(--space-3xl);
+  border-radius: var(--radius-2xl);
+  font-family: var(--font-main);
+  font-size: var(--text-lg);
+  font-weight: var(--font-black);
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.practice-result__btn:active {
+  transform: translateY(3px);
+}
+
+.practice-result__btn--return {
+  background-color: var(--color-bg-card);
+  border: 2px solid var(--color-border-strong);
+  box-shadow: 0 3px 0 0 rgba(93, 64, 55, 0.08);
+  color: var(--color-text);
+}
+
+.practice-result__btn--return:active {
+  box-shadow: 0 1px 0 0 rgba(93, 64, 55, 0.08);
+}
+
+.practice-result__btn--retry {
+  background-color: var(--color-primary);
+  border: 2.5px solid var(--color-primary-border);
+  box-shadow: var(--shadow-button-primary);
+  color: var(--color-text-dark);
+}
+
+.practice-result__btn--retry:active {
+  box-shadow: 0 0px 0 0 var(--color-primary-dark);
+}
+
+/* ============================================================================
+ * Animations
+ * ============================================================================ */
+
+@keyframes practiceCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-3xl));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes practiceResultIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.practice-summary {
+  animation: practiceCardIn var(--transition-slower) ease-out;
+}
+
+.practice-chapter {
+  animation: practiceCardIn var(--transition-slower) ease-out;
+}
+
+.practice-result {
+  animation: practiceResultIn var(--transition-slowest) var(--ease-bounce);
+}
+
+/* ── Staggered entry for chapter groups ── */
+.practice-chapter:nth-child(1) { animation-delay: 0ms; }
+.practice-chapter:nth-child(2) { animation-delay: 60ms; }
+.practice-chapter:nth-child(3) { animation-delay: 120ms; }
+.practice-chapter:nth-child(4) { animation-delay: 180ms; }
+.practice-chapter:nth-child(5) { animation-delay: 240ms; }
+.practice-chapter:nth-child(6) { animation-delay: 300ms; }
+
+/* ── Scrollable word list area ── */
+.practice-browse-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: calc(var(--space-xl) + var(--safe-bottom));
+  scrollbar-width: none;
+}
+
+.practice-browse-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================================
+ * Quiz Mode — additional classes
+ * ============================================================================ */
+
+/* ── Quiz tag label ── */
+.practice-quiz-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 184, 64, 0.15);
+  color: var(--color-primary-dark);
+  font-size: var(--text-xs);
+  font-weight: var(--font-extrabold);
+  margin-bottom: var(--space-lg);
+}
+
+/* ── Quiz sentence block ── */
+.practice-quiz-sentence {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-lg);
+  background-color: rgba(93, 64, 55, 0.04);
+  margin-bottom: var(--space-xl);
+}
+
+.practice-quiz-sentence__en {
+  color: rgba(93, 64, 55, 0.6);
+}
+
+.practice-quiz-sentence__zh {
+  font-size: var(--text-xs);
+  color: rgba(93, 64, 55, 0.4);
+  margin-top: var(--space-xs);
+}
+
+/* ── Quiz word image ── */
+.practice-quiz-image__frame {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  margin: 0 auto;
+  border: 3px solid white;
+  box-shadow: 0 4px 0 0 rgba(93, 64, 55, 0.1);
+  background-color: white;
+}
+
+.practice-quiz-image__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Quiz option button ── */
+.practice-quiz-option {
+  padding: 12px 16px;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 2px 0 0 rgba(93, 64, 55, 0.1);
+  text-align: left;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.practice-quiz-option:disabled {
+  cursor: default;
+}
+
+/* ── Quiz letter slots ── */
+.practice-quiz-letter-slots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: var(--space-3xl);
+}
+
+.practice-quiz-letter-slot {
+  width: 36px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(93, 64, 55, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-black);
+  color: var(--color-text);
+  transition: all 0.15s ease;
+}
+
+/* ── Quiz letter pool ── */
+.practice-quiz-letter-pool {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.practice-quiz-letter-btn {
+  width: 40px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(93, 64, 55, 0.12);
+  font-size: 17px;
+  font-weight: var(--font-extrabold);
+  font-family: var(--font-main);
+  transition: all 0.1s ease;
+}
+
+.practice-quiz-letter-btn--used {
+  opacity: 1;
+}
+
+/* ── Quiz undo ── */
+.practice-quiz-undo {
+  text-align: center;
+  margin-top: var(--space-xl);
+}
+
+.practice-quiz-undo-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(93, 64, 55, 0.15);
+  background-color: white;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: rgba(93, 64, 55, 0.5);
+  font-family: var(--font-main);
+}
+
+/* ============================================================================
+ * Result Mode — score card grid
+ * ============================================================================ */
+
+.practice-result__score-card {
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+  padding: var(--space-4xl);
+}
+
+.practice-result__score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+}
+
+.practice-result__score-item {
+  text-align: center;
+}
+
+.practice-result__score-value {
+  font-size: var(--text-6xl);
+  font-weight: var(--font-black);
+  line-height: 1;
+}
+
+.practice-result__score-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}

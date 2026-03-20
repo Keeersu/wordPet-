@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 应用设置页面，包含英语水平调整、音乐/音效开关、账户管理。
- * Style referenceFiles:
+ * Style referenceFiles: styles/settings.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -86,187 +86,74 @@ function Settings() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        backgroundColor: '#FFF8E7',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-      }}
-    >
+    <div className="settings-page">
       {/* Header */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 16px 12px',
-          background: 'rgba(255,248,231,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(93,64,55,0.08)',
-        }}
-      >
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            cursor: 'pointer',
-            color: '#5D4037',
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: 'inherit',
-          }}
-        >
-          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+      <div className="page-header page-header--padded">
+        <button onClick={() => navigate(-1)} className="back-btn">
+          <Icon icon="lucide:arrow-left" width={16} height={16} />
           返回
         </button>
-
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>设置</div>
-
-        <div style={{ width: 68 }} />
+        <div className="page-header__title--sm">设置</div>
+        <div className="page-header__spacer" />
       </div>
 
       {/* Content */}
-      <div style={{ padding: '20px 16px' }}>
+      <div className="settings-content">
         {/* 学习设置 */}
-        <div style={{ marginBottom: 28 }}>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: 'rgba(93,64,55,0.45)',
-              margin: '0 0 10px 4px',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            学习设置
-          </p>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.06)',
-              overflow: 'hidden',
-            }}
-          >
+        <div className="settings-section">
+          <p className="settings-section__label">学习设置</p>
+          <div className="settings-section__card">
             {/* 英语水平 */}
             <button
               onClick={() => setShowLevelPicker(!showLevelPicker)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-                border: 'none',
-                backgroundColor: 'transparent',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                color: '#5D4037',
-              }}
+              className="settings-item"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: '#FFF8E7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                  }}
-                >
-                  📚
-                </div>
+              <div className="settings-item__left">
+                <div className="settings-item__icon">📚</div>
                 <div style={{ textAlign: 'left' }}>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>英语水平</p>
-                  <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
-                    调整后下一关生效
-                  </p>
+                  <p className="settings-item__title">英语水平</p>
+                  <p className="settings-item__subtitle">调整后下一关生效</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#FFB840' }}>
+              <div className="settings-item__right">
+                <span className="settings-item__value">
                   {currentLevel?.emoji} {currentLevel?.title}
                 </span>
                 <Icon
                   icon={showLevelPicker ? 'lucide:chevron-up' : 'lucide:chevron-down'}
-                  style={{ width: 18, height: 18, color: 'rgba(93,64,55,0.3)' }}
+                  width={18}
+                  height={18}
+                  style={{ color: 'var(--color-text-disabled)' }}
                 />
               </div>
             </button>
 
             {/* 难度选择展开区 */}
             {showLevelPicker && (
-              <div
-                style={{
-                  borderTop: '1px solid rgba(93,64,55,0.06)',
-                  padding: '12px 16px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  animation: 'expandIn 200ms ease-out',
-                }}
-              >
+              <div className="settings-level-picker">
                 {LEVEL_OPTIONS.map((option) => {
                   const isSelected = gameState.difficulty === option.id
                   return (
                     <button
                       key={option.id}
                       onClick={() => handleLevelChange(option.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '12px 14px',
-                        borderRadius: 12,
-                        border: isSelected ? '2px solid #FFB840' : '2px solid rgba(93,64,55,0.08)',
-                        backgroundColor: isSelected ? '#FFF3DC' : '#FAFAF8',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        width: '100%',
-                        transition: 'all 150ms ease',
-                      }}
+                      className={`settings-level-option ${isSelected ? 'settings-level-option--selected' : 'settings-level-option--unselected'}`}
                     >
-                      <span style={{ fontSize: 16, lineHeight: 1 }}>{option.emoji}</span>
+                      <span className="settings-level-option__emoji">{option.emoji}</span>
                       <span style={{ flex: 1, textAlign: 'left' }}>
-                        <span
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: isSelected ? '#5D4037' : 'rgba(93,64,55,0.7)',
-                          }}
-                        >
+                        <span className={`settings-level-option__title ${isSelected ? 'settings-level-option__title--selected' : 'settings-level-option__title--unselected'}`}>
                           {option.title}
                         </span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: 'rgba(93,64,55,0.4)',
-                            marginLeft: 8,
-                          }}
-                        >
+                        <span className="settings-level-option__subtitle">
                           {option.subtitle}
                         </span>
                       </span>
                       {isSelected && (
                         <Icon
                           icon="lucide:check"
-                          style={{ width: 18, height: 18, color: '#FFB840', flexShrink: 0 }}
+                          width={18}
+                          height={18}
+                          style={{ color: 'var(--color-primary)', flexShrink: 0 }}
                         />
                       )}
                     </button>
@@ -278,203 +165,58 @@ function Settings() {
         </div>
 
         {/* 音频设置 */}
-        <div style={{ marginBottom: 28 }}>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: 'rgba(93,64,55,0.45)',
-              margin: '0 0 10px 4px',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            音频设置
-          </p>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.06)',
-              overflow: 'hidden',
-            }}
-          >
+        <div className="settings-section">
+          <p className="settings-section__label">音频设置</p>
+          <div className="settings-section__card">
             {/* 背景音乐 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: '#FFF8E7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                  }}
-                >
-                  🎵
-                </div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>背景音乐</p>
+            <div className="settings-item">
+              <div className="settings-item__left">
+                <div className="settings-item__icon">🎵</div>
+                <p className="settings-item__title">背景音乐</p>
               </div>
               <button
                 onClick={handleToggleMusic}
-                style={{
-                  width: 52,
-                  height: 30,
-                  borderRadius: 15,
-                  border: 'none',
-                  backgroundColor: gameState.settings.musicEnabled ? '#FFB840' : 'rgba(93,64,55,0.15)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'background-color 200ms ease',
-                }}
+                className={`toggle ${gameState.settings.musicEnabled ? 'toggle--on' : 'toggle--off'}`}
               >
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                    position: 'absolute',
-                    top: 3,
-                    left: gameState.settings.musicEnabled ? 25 : 3,
-                    transition: 'left 200ms ease',
-                  }}
-                />
+                <div className="toggle__thumb" />
               </button>
             </div>
 
-            <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.06)', margin: '0 16px' }} />
+            <div className="settings-divider" />
 
             {/* 音效 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: '#FFF8E7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                  }}
-                >
-                  🔊
-                </div>
+            <div className="settings-item">
+              <div className="settings-item__left">
+                <div className="settings-item__icon">🔊</div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>音效</p>
-                  <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
-                    答题音效反馈
-                  </p>
+                  <p className="settings-item__title">音效</p>
+                  <p className="settings-item__subtitle">答题音效反馈</p>
                 </div>
               </div>
               <button
                 onClick={handleToggleSound}
-                style={{
-                  width: 52,
-                  height: 30,
-                  borderRadius: 15,
-                  border: 'none',
-                  backgroundColor: gameState.settings.soundEnabled ? '#FFB840' : 'rgba(93,64,55,0.15)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'background-color 200ms ease',
-                }}
+                className={`toggle ${gameState.settings.soundEnabled ? 'toggle--on' : 'toggle--off'}`}
               >
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                    position: 'absolute',
-                    top: 3,
-                    left: gameState.settings.soundEnabled ? 25 : 3,
-                    transition: 'left 200ms ease',
-                  }}
-                />
+                <div className="toggle__thumb" />
               </button>
             </div>
 
-            <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.06)', margin: '0 16px' }} />
+            <div className="settings-divider" />
 
             {/* 朗读 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: '#FFF8E7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                  }}
-                >
-                  🗣️
-                </div>
+            <div className="settings-item">
+              <div className="settings-item__left">
+                <div className="settings-item__icon">🗣️</div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>朗读</p>
-                  <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
-                    TTS 单词朗读
-                  </p>
+                  <p className="settings-item__title">朗读</p>
+                  <p className="settings-item__subtitle">TTS 单词朗读</p>
                 </div>
               </div>
               <button
                 onClick={handleToggleTts}
-                style={{
-                  width: 52,
-                  height: 30,
-                  borderRadius: 15,
-                  border: 'none',
-                  backgroundColor: gameState.settings.ttsEnabled ? '#FFB840' : 'rgba(93,64,55,0.15)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'background-color 200ms ease',
-                }}
+                className={`toggle ${gameState.settings.ttsEnabled ? 'toggle--on' : 'toggle--off'}`}
               >
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                    position: 'absolute',
-                    top: 3,
-                    left: gameState.settings.ttsEnabled ? 25 : 3,
-                    transition: 'left 200ms ease',
-                  }}
-                />
+                <div className="toggle__thumb" />
               </button>
             </div>
           </div>
@@ -482,60 +224,16 @@ function Settings() {
 
         {/* 关于 */}
         <div>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: 'rgba(93,64,55,0.45)',
-              margin: '0 0 10px 4px',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            关于
-          </p>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.06)',
-              padding: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                backgroundColor: '#FFF8E7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 20,
-              }}
-            >
-              🐱
-            </div>
+          <p className="settings-section__label">关于</p>
+          <div className="settings-about">
+            <div className="settings-item__icon">🐱</div>
             <div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>WordPet v1.3</p>
-              <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
-                Learn, play, purr. 🐾
-              </p>
+              <p className="settings-about__title">WordPet v1.3</p>
+              <p className="settings-about__subtitle">Learn, play, purr. 🐾</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Expand animation */}
-      <style>{`
-        @keyframes expandIn {
-          from { opacity: 0; max-height: 0; }
-          to { opacity: 1; max-height: 500px; }
-        }
-      `}</style>
     </div>
   )
 }

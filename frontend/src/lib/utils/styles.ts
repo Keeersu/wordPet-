@@ -1,11 +1,15 @@
 /**
- * 公共样式常量
- * 消除 Practice / Collection 等页面中重复的卡片样式定义
+ * @deprecated 已迁移至 CSS 设计令牌系统
+ *
+ * CARD_STYLE  -> .card (src/styles/components.css)
+ * FONT_FAMILY -> --font-main (src/styles/tokens.css)
+ *
+ * 此文件保留以防遗漏引用，后续可安全删除。
  */
 
 import type React from 'react'
 
-/** 通用白色卡片样式（圆角 16 + 细边框 + 浅投影） */
+/** @deprecated 使用 className="card" 代替 */
 export const CARD_STYLE: React.CSSProperties = {
   backgroundColor: 'white',
   borderRadius: 16,
@@ -13,5 +17,5 @@ export const CARD_STYLE: React.CSSProperties = {
   boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
 }
 
-/** 通用字体栈 */
+/** @deprecated 使用 CSS var(--font-main) 代替 */
 export const FONT_FAMILY = "'Nunito', 'PingFang SC', sans-serif"

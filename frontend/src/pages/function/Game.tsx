@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 英语单词答题页面，动态生成题目（根据难度等级调整题型比例、例句难度、干扰项策略），支持多种题型（看图选词、填空、字母消消乐、拼写、图片配对），含自适应难度、TTS 和反馈机制。
- * Style referenceFiles:
+ * Style referenceFiles: styles/game.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -117,80 +117,26 @@ function ConfirmDialog({
   onCancel: () => void
 }) {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0,0,0,0.4)',
-      }}
-    >
-      <div
-        style={{
-          width: '280px',
-          backgroundColor: 'white',
-          borderRadius: '20px',
-          padding: '28px 24px 20px',
-          textAlign: 'center',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        }}
-      >
-        <p
-          style={{
-            fontSize: '17px',
-            fontWeight: 700,
-            color: '#5D4037',
-            margin: '0 0 8px',
-          }}
-        >
+    <div className="overlay">
+      <div className="modal">
+        <p className="modal__title">
           确认退出？
         </p>
-        <p
-          style={{
-            fontSize: '14px',
-            color: 'rgba(93,64,55,0.6)',
-            margin: '0 0 24px',
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="modal__message">
           退出后本关进度将丢失
         </p>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="modal__actions">
           <button
             onClick={onCancel}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              border: '2px solid rgba(93,64,55,0.15)',
-              backgroundColor: 'white',
-              fontSize: '15px',
-              fontWeight: 700,
-              color: '#5D4037',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-            }}
+            className="btn-secondary"
+            style={{ flex: 1 }}
           >
             继续答题
           </button>
           <button
             onClick={onConfirm}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              border: 'none',
-              backgroundColor: '#EF5350',
-              fontSize: '15px',
-              fontWeight: 700,
-              color: 'white',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-            }}
+            className="btn-danger"
+            style={{ flex: 1 }}
           >
             退出
           </button>
@@ -218,139 +164,57 @@ function FeedbackSheet({
   const headerText = isWrongSecond ? '正确答案是——' : encourageText
 
   return (
-    <>
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 51,
-          backgroundColor: 'white',
-          borderTopLeftRadius: '24px',
-          borderTopRightRadius: '24px',
-          padding: '24px 20px',
-          paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 34px))',
-          boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-          animation: 'slideUp 300ms ease-out',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: isWrongSecond ? '16px' : '0' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: isCorrect ? '#66BB6A' : '#EF5350',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Icon
-              icon={isCorrect ? 'lucide:check' : 'lucide:x'}
-              style={{ width: '18px', height: '18px', color: 'white' }}
-            />
-          </div>
-          <span style={{ fontSize: '17px', fontWeight: 700, color: '#5D4037' }}>
-            {headerText}
-          </span>
+    <div className="feedback-sheet">
+      <div className="game-feedback__header" style={{ marginBottom: isWrongSecond ? '16px' : '0' }}>
+        <div className={`feedback-icon ${isCorrect ? 'feedback-icon--correct' : 'feedback-icon--wrong'}`}>
+          <Icon
+            icon={isCorrect ? 'lucide:check' : 'lucide:x'}
+            style={{ width: '18px', height: '18px', color: 'white' }}
+          />
         </div>
-
-        {isWrongSecond && (
-          <div
-            style={{
-              backgroundColor: '#F5F5F5',
-              borderRadius: '14px',
-              padding: '16px',
-              marginBottom: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14px', color: 'rgba(93,64,55,0.6)' }}>
-                正确答案：
-              </span>
-              <span
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 800,
-                  color: '#66BB6A',
-                  fontFamily: "'Nunito', sans-serif",
-                }}
-              >
-                {question.correctAnswer}
-              </span>
-              {onSpeak && (
-                <button
-                  onClick={onSpeak}
-                  style={{
-                    marginLeft: 'auto',
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255,184,64,0.15)',
-                    border: '1.5px solid #FFB840',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    fontSize: 20,
-                    lineHeight: 1,
-                  }}
-                >
-                  🔊
-                </button>
-              )}
-            </div>
-            <p style={{ fontSize: '14px', color: '#5D4037', margin: '0 0 4px', fontWeight: 600 }}>
-              {question.meaning}
-            </p>
-            <p
-              style={{
-                fontSize: '13px',
-                color: 'rgba(93,64,55,0.6)',
-                margin: 0,
-                fontStyle: 'italic',
-                fontFamily: "'Nunito', sans-serif",
-              }}
-            >
-              &ldquo;{question.sentence}&rdquo;
-            </p>
-          </div>
-        )}
-
-        {isWrongSecond && (
-          <button
-            onClick={onNext}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: '14px',
-              border: 'none',
-              backgroundColor: '#FFB840',
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#3D1F00',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-              boxShadow: '0 3px 0 0 #D99A20',
-            }}
-          >
-            下一题 →
-          </button>
-        )}
+        <span className="game-feedback__header-text">
+          {headerText}
+        </span>
       </div>
 
-      <style>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-      `}</style>
-    </>
+      {isWrongSecond && (
+        <div className="game-feedback__answer-card">
+          <div className="game-feedback__header" style={{ marginBottom: '8px' }}>
+            <span className="game-feedback__answer-label">
+              正确答案：
+            </span>
+            <span className="game-feedback__answer-word">
+              {question.correctAnswer}
+            </span>
+            {onSpeak && (
+              <button
+                onClick={onSpeak}
+                className="speak-btn speak-btn--lg"
+                style={{ marginLeft: 'auto' }}
+              >
+                🔊
+              </button>
+            )}
+          </div>
+          <p className="game-feedback__meaning">
+            {question.meaning}
+          </p>
+          <p className="game-feedback__sentence">
+            &ldquo;{question.sentence}&rdquo;
+          </p>
+        </div>
+      )}
+
+      {isWrongSecond && (
+        <button
+          onClick={onNext}
+          className="btn-primary"
+          style={{ width: '100%', padding: '14px', fontSize: '16px' }}
+        >
+          下一题 →
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -418,30 +282,17 @@ function LetterPuzzle({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+    <div className="game-letter-layout">
       {/* 配图 */}
       {image && (
-        <div
-          style={{
-            width: 100,
-            height: 100,
-            borderRadius: 12,
-            backgroundColor: 'rgba(255,184,64,0.15)',
-            border: '2px solid rgba(255,184,64,0.3)',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-          }}
-        >
+        <div className="game-letter-image">
           <img
             src={image}
             alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+            className="game-letter-image__img"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-          <span style={{ position: 'relative', zIndex: 1, fontSize: 36, color: 'rgba(93,64,55,0.25)' }}>
+          <span className="game-letter-image__letter">
             {correctWord.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -449,39 +300,24 @@ function LetterPuzzle({
 
       {/* 含义提示 */}
       {showMeaning && (
-        <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#FFB840' }}>
+        <p className="game-letter-meaning">
           {showMeaning}
         </p>
       )}
 
       {/* 已选区域（目标位） */}
-      <div style={{ display: 'flex', gap: 6, minHeight: 48 }}>
+      <div className="game-letter-slots">
         {correctWord.split('').map((_, idx) => {
           const letter = selected[idx] !== undefined ? letters[selected[idx]] : ''
+          const slotClass = isWrong && currentWord.length === correctWord.length
+            ? 'letter-slot letter-slot--wrong'
+            : letter
+              ? 'letter-slot letter-slot--filled'
+              : 'letter-slot letter-slot--empty'
           return (
             <div
               key={idx}
-              style={{
-                width: 40,
-                height: 48,
-                borderRadius: 10,
-                border: isWrong && currentWord.length === correctWord.length
-                  ? '2px solid #EF5350'
-                  : letter
-                    ? '2px solid #FFB840'
-                    : '2px dashed rgba(93,64,55,0.2)',
-                backgroundColor: isWrong && currentWord.length === correctWord.length
-                  ? '#FFEBEE'
-                  : letter ? '#FFF8E7' : 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 20,
-                fontWeight: 800,
-                color: '#5D4037',
-                fontFamily: "'Nunito', sans-serif",
-                transition: 'all 150ms ease',
-              }}
+              className={slotClass}
             >
               {letter}
             </div>
@@ -492,18 +328,7 @@ function LetterPuzzle({
         {selected.length > 0 && !disabled && (
           <button
             onClick={handleUndo}
-            style={{
-              width: 40,
-              height: 48,
-              borderRadius: 10,
-              border: '2px solid rgba(93,64,55,0.15)',
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              marginLeft: 4,
-            }}
+            className="game-undo-btn"
           >
             <Icon icon="lucide:undo-2" style={{ width: 18, height: 18, color: '#8D6E63' }} />
           </button>
@@ -511,7 +336,7 @@ function LetterPuzzle({
       </div>
 
       {/* 可选字母区 */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="game-letter-pool">
         {availableLetters.map((letter, idx) => {
           const isUsed = selected.includes(idx)
           return (
@@ -519,20 +344,7 @@ function LetterPuzzle({
               key={`${letter}-${idx}`}
               onClick={() => handleLetterClick(idx)}
               disabled={disabled || isUsed}
-              style={{
-                width: 44,
-                height: 52,
-                borderRadius: 12,
-                border: 'none',
-                backgroundColor: isUsed ? 'rgba(93,64,55,0.08)' : '#FFF8E7',
-                color: isUsed ? 'transparent' : '#5D4037',
-                fontSize: 20,
-                fontWeight: 800,
-                fontFamily: "'Nunito', sans-serif",
-                cursor: isUsed ? 'default' : 'pointer',
-                boxShadow: isUsed ? 'none' : '0 3px 0 0 #E8D5B0',
-                transition: 'all 150ms ease',
-              }}
+              className={`letter-btn ${isUsed ? 'letter-btn--used' : 'letter-btn--available'}`}
             >
               {letter}
             </button>
@@ -656,57 +468,19 @@ function Game() {
   }, [currentDifficulty])
 
   // ── 选项样式 ──
-  const getOptionStyle = useCallback(
+  const getOptionClass = useCallback(
     (option: string) => {
-      if (!question) return {}
+      if (!question) return 'btn-option btn-option--idle'
 
-      const baseStyle = {
-        width: '100%',
-        padding: '14px 16px',
-        borderRadius: '14px',
-        border: 'none',
-        fontSize: '16px',
-        fontWeight: 700 as const,
-        textAlign: 'center' as const,
-        cursor: 'pointer',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        transition: 'background-color 100ms ease, color 100ms ease, box-shadow 100ms ease',
-      }
+      if (answerState === 'idle') return 'btn-option btn-option--idle'
 
-      if (answerState === 'idle') {
-        return {
-          ...baseStyle,
-          backgroundColor: '#FFF8E7',
-          color: '#5D4037',
-          boxShadow: '0 3px 0 0 #E8D5B0',
-        }
-      }
+      if (option === question.correctAnswer && (answerState === 'correct' || answerState === 'wrong_second'))
+        return 'btn-option btn-option--correct'
 
-      if (option === question.correctAnswer && (answerState === 'correct' || answerState === 'wrong_second')) {
-        return {
-          ...baseStyle,
-          backgroundColor: '#66BB6A',
-          color: 'white',
-          boxShadow: '0 3px 0 0 #4CAF50',
-        }
-      }
+      if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second'))
+        return `btn-option ${answerState === 'wrong_second' ? 'btn-option--wrong-reveal' : 'btn-option--wrong'}`
 
-      if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second')) {
-        return {
-          ...baseStyle,
-          backgroundColor: answerState === 'wrong_second' ? '#FFEBEE' : '#EF5350',
-          color: answerState === 'wrong_second' ? '#C62828' : 'white',
-          boxShadow: answerState === 'wrong_second' ? '0 3px 0 0 #F8BBD0' : '0 3px 0 0 #D32F2F',
-        }
-      }
-
-      return {
-        ...baseStyle,
-        backgroundColor: '#FFF8E7',
-        color: '#5D4037',
-        boxShadow: '0 3px 0 0 #E8D5B0',
-        opacity: answerState === 'wrong_second' ? 0.4 : 0.5,
-      }
+      return `btn-option btn-option--idle ${answerState === 'wrong_second' ? 'btn-option--dimmed' : 'btn-option--semi-dimmed'}`
     },
     [answerState, selectedOption, question],
   )
@@ -931,17 +705,8 @@ function Game() {
   // ── Loading / 无题目时 ──
   if (!question || questions.length === 0) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#F5E6C8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        }}
-      >
-        <p style={{ color: '#5D4037', fontSize: 16, fontWeight: 700 }}>正在准备题目...</p>
+      <div className="game-loading">
+        <p className="game-loading__text">正在准备题目...</p>
       </div>
     )
   }
@@ -959,78 +724,25 @@ function Game() {
   const showImage = question.type === 'multiple_choice' || question.type === 'letter_match'
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        minHeight: '100vh',
-        backgroundColor: '#F5E6C8',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-      }}
-    >
+    <div className="game-page">
       {/* Bottom white gradient overlay */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '40vh',
-          background: 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
+      <div className="game-gradient" />
 
       {/* Top navigation bar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          paddingTop: '16px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-          }}
-        >
+      <div className="game-header">
+        <div className="game-header__inner">
           <button
             onClick={() => setShowExitConfirm(true)}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
+            className="game-header__exit-btn icon-btn--md"
           >
             <Icon icon="lucide:arrow-left" style={{ width: '20px', height: '20px', color: '#5D4037' }} />
           </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span
-              style={{
-                fontSize: '16px',
-                fontWeight: 700,
-                color: '#5D4037',
-              }}
-            >
+          <div className="game-header__info">
+            <span className="game-header__title">
               第 {levelId} 关 · {chapterName}
             </span>
-            <span style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)', marginTop: 2 }}>
+            <span className="game-header__difficulty">
               {difficultyLabel}
             </span>
           </div>
@@ -1053,19 +765,11 @@ function Game() {
                     return next
                   })
                 }}
+                className="game-header__tts-btn"
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
                   backgroundColor: active ? 'rgba(255,184,64,0.15)' : 'white',
                   border: active ? '2px solid rgba(255,184,64,0.4)' : '2px solid rgba(93,64,55,0.1)',
-                  boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   cursor: ttsOn ? 'pointer' : 'not-allowed',
-                  position: 'relative',
-                  transition: 'all 200ms ease',
                   opacity: ttsOn ? 1 : 0.5,
                 }}
               >
@@ -1084,43 +788,19 @@ function Game() {
       </div>
 
       {/* Main content */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingTop: '80px',
-        }}
-      >
+      <div className="game-content">
         {/* 配图区 */}
         {showImage && (
-          <div
-            style={{
-              width: 160,
-              height: 160,
-              borderRadius: 16,
-              backgroundColor: 'rgba(255,184,64,0.2)',
-              border: '3px solid #F5C87A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              position: 'relative',
-              marginBottom: -80,
-              zIndex: 2,
-            }}
-          >
+          <div className="game-word-image">
             <img
               src={question.image}
               alt={question.word}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+              className="game-word-image__img"
               onError={(e) => {
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <span style={{ position: 'relative', zIndex: 1, fontSize: 48, color: 'rgba(93,64,55,0.3)' }}>
+            <span className="game-word-image__letter">
               {question.word.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -1128,65 +808,31 @@ function Game() {
 
         {/* White question card */}
         <div
+          className="game-question-card"
           style={{
-            position: 'relative',
-            zIndex: 1,
-            width: 'calc(100% - 32px)',
-            backgroundColor: 'white',
-            borderRadius: '20px',
             paddingTop: showImage ? '80px' : '24px',
-            paddingBottom: '24px',
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
             marginTop: showImage ? 0 : 24,
           }}
         >
           {/* Progress text */}
-          <p
-            style={{
-              textAlign: 'center',
-              fontSize: '13px',
-              color: 'rgba(93,64,55,0.5)',
-              margin: 0,
-            }}
-          >
+          <p className="game-progress-text">
             第 {currentIndex + 1} 题 · 共 {TOTAL_QUESTIONS} 题
           </p>
 
           {/* ── Type-dependent hint area ── */}
           {question.type === 'picture_matching' && (
-            <p
-              style={{
-                textAlign: 'center',
-                fontSize: 28,
-                fontWeight: 900,
-                color: '#FFB840',
-                margin: '12px 0 0',
-                lineHeight: 1.3,
-                fontFamily: "'Nunito', sans-serif",
-              }}
-            >
+            <p className="game-picture-word">
               {question.word}
             </p>
           )}
 
           {question.type === 'fill_blank' && (
-            <p
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: '#5D4037',
-                margin: '12px 0 0',
-                lineHeight: 1.6,
-                fontFamily: "'Nunito', sans-serif",
-              }}
-            >
+            <p className="game-fill-sentence">
               {question.sentence.split('___').map((part, i, arr) => (
                 <span key={i}>
                   {part}
                   {i < arr.length - 1 && (
-                    <span style={{ color: '#FFB840', fontWeight: 900 }}>___</span>
+                    <span className="game-fill-blank-marker">___</span>
                   )}
                 </span>
               ))}
@@ -1194,33 +840,19 @@ function Game() {
           )}
 
           {/* Question hint */}
-          <p
-            style={{
-              textAlign: 'center',
-              fontSize: '17px',
-              fontWeight: 700,
-              color: '#5D4037',
-              margin: '12px 0 16px',
-            }}
-          >
+          <p className="game-question-hint">
             {QUESTION_TYPE_HINT[question.type] ?? '选出正确答案'}
           </p>
 
           {/* ── 选项类题型 ── */}
           {isChoiceType && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
+            <div className="game-options">
               {question.options.map((option) => (
                 <button
                   key={option}
                   onClick={() => handleOptionClick(option)}
                   disabled={optionsDisabled}
-                  style={getOptionStyle(option)}
+                  className={getOptionClass(option)}
                 >
                   {option}
                 </button>
@@ -1243,7 +875,7 @@ function Game() {
         </div>
 
         {/* Bottom spacer */}
-        <div style={{ height: '100px', flexShrink: 0 }} />
+        <div className="game-spacer" />
       </div>
 
       {/* Feedback sheet */}
@@ -1272,37 +904,26 @@ function Game() {
       {/* LLM 难度调整提示 Toast */}
       {difficultyToast?.show && (
         <div
+          className="game-difficulty-toast"
           style={{
-            position: 'fixed',
-            top: 80,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 200,
             animation: 'diffToastIn 400ms ease-out, diffToastOut 400ms 3400ms ease-in forwards',
           }}
         >
           <div
+            className="game-difficulty-toast__card"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '12px 20px',
-              borderRadius: 16,
               backgroundColor: difficultyToast.direction === 'up' ? '#E8F5E9' : '#FFF3E0',
               border: `2px solid ${difficultyToast.direction === 'up' ? 'rgba(102,187,106,0.3)' : 'rgba(255,184,64,0.3)'}`,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-              whiteSpace: 'nowrap',
             }}
           >
-            <span style={{ fontSize: 22 }}>
+            <span className="game-difficulty-toast__emoji">
               {difficultyToast.direction === 'up' ? '🚀' : '🌱'}
             </span>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: '#5D4037', marginBottom: 2 }}>
+              <div className="game-difficulty-toast__title">
                 {difficultyToast.direction === 'up' ? '难度提升！' : '难度调整'}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.6)' }}>
+              <div className="game-difficulty-toast__subtitle">
                 {difficultyToast.direction === 'up'
                   ? `表现很棒！进入 ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`
                   : `放慢节奏 → ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`}
@@ -1310,37 +931,13 @@ function Game() {
             </div>
             <button
               onClick={() => setDifficultyToast(null)}
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: 'rgba(93,64,55,0.08)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: 4,
-                flexShrink: 0,
-              }}
+              className="game-difficulty-toast__close"
             >
               <Icon icon="lucide:x" style={{ width: 12, height: 12, color: 'rgba(93,64,55,0.4)' }} />
             </button>
           </div>
         </div>
       )}
-
-      {/* Toast 动画 */}
-      <style>{`
-        @keyframes diffToastIn {
-          0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-          100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        @keyframes diffToastOut {
-          0% { opacity: 1; transform: translateX(-50%) translateY(0); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-        }
-      `}</style>
     </div>
   )
 }

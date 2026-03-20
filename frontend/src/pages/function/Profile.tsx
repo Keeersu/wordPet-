@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 学习中心 — 今日学习摘要、核心统计、冒险进度、薄弱单词快速复习入口。
- * Style referenceFiles:
+ * Style referenceFiles: styles/profile.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -22,30 +22,9 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import { rateColor, rateBgColor as rateBg } from '@/lib/utils/colors'
 
 const TOTAL_LEVELS = 20
-
-// ─── 卡片容器样式 ────────────────────────────────────────────────────────────
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: 'white',
-  borderRadius: 16,
-  border: '2px solid rgba(93,64,55,0.1)',
-  boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-  padding: '14px 16px',
-}
-
-function rateColor(rate: number): string {
-  if (rate >= 80) return '#66BB6A'
-  if (rate >= 60) return '#FFB840'
-  return '#EF5350'
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 80) return 'rgba(102,187,106,0.12)'
-  if (rate >= 60) return 'rgba(255,184,64,0.12)'
-  return 'rgba(239,83,80,0.12)'
-}
 
 // ─── 主页面 ──────────────────────────────────────────────────────────────────
 
@@ -96,131 +75,45 @@ function Profile() {
   const activeLevelId = gameState.currentLevel
 
   return (
-    <div
-      style={{
-        height: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#FFF8E7',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-      }}
-    >
+    <div className="profile-page">
       {/* ── Header ── */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px',
-          background: 'rgba(255,255,255,0.8)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(93,64,55,0.08)',
-        }}
-      >
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            cursor: 'pointer',
-            color: '#5D4037',
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: 'inherit',
-          }}
-        >
+      <div className="page-header profile-header">
+        <button className="back-btn" onClick={() => navigate(-1)}>
           <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
           返回
         </button>
-        <div style={{ fontWeight: 900, fontSize: 18 }}>学习中心</div>
-        <button
-          onClick={() => navigate('/settings')}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
+        <div className="page-header__title">学习中心</div>
+        <button className="icon-btn icon-btn--sm" onClick={() => navigate('/settings')}>
           <Icon icon="lucide:settings" style={{ width: 18, height: 18, color: '#5D4037' }} />
         </button>
       </div>
 
       {/* ── 可滚动内容区 ── */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          paddingBottom: 120,
-        }}
-      >
+      <div className="profile-content">
         {/* 1. 今日学习概览 */}
-        <div
-          style={{
-            ...cardStyle,
-            background: 'linear-gradient(135deg, #FFF3DC 0%, #FFEDC2 100%)',
-            border: '2px solid rgba(255,184,64,0.2)',
-          }}
-        >
-          <div style={{ fontWeight: 900, fontSize: 15, marginBottom: 12 }}>
+        <div className="card card--padded profile-today">
+          <div className="profile-today__title">
             ☀️ 今日学习
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '12px 0',
-                borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.7)',
-              }}
-            >
-              <div style={{ fontSize: 28, fontWeight: 900, color: '#FFB840', lineHeight: 1 }}>
+          <div className="profile-today__grid">
+            <div className="profile-today__stat">
+              <div className="profile-today__value profile-today__value--primary">
                 {todayStats.words}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.55)', marginTop: 4 }}>
+              <div className="profile-today__label">
                 今日学习（个）
               </div>
             </div>
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '12px 0',
-                borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.7)',
-              }}
-            >
+            <div className="profile-today__stat">
               <div
+                className="profile-today__value"
                 style={{
-                  fontSize: 28,
-                  fontWeight: 900,
                   color: todayStats.rate >= 80 ? '#66BB6A' : todayStats.rate >= 60 ? '#FFB840' : '#EF5350',
-                  lineHeight: 1,
                 }}
               >
                 {todayStats.words > 0 ? `${todayStats.rate}%` : '--'}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.55)', marginTop: 4 }}>
+              <div className="profile-today__label">
                 今日正确率
               </div>
             </div>
@@ -228,27 +121,19 @@ function Profile() {
         </div>
 
         {/* 2. 核心统计卡 */}
-        <div style={cardStyle}>
-          <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>📊 学习统计</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <div className="card card--padded">
+          <div className="profile-stats__title">📊 学习统计</div>
+          <div className="profile-stats__grid">
             {[
               { value: wordCount, label: '已学单词', unit: '个' },
               { value: levelCount, label: '完成关卡', unit: '关' },
               { value: furnitureCount, label: '解锁家具', unit: '件' },
             ].map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  textAlign: 'center',
-                  padding: '10px 0',
-                  borderRadius: 12,
-                  backgroundColor: 'rgba(93,64,55,0.04)',
-                }}
-              >
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#FFB840', lineHeight: 1 }}>
+              <div key={item.label} className="profile-stats__item">
+                <div className="profile-stats__value">
                   {item.value}
                 </div>
-                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.55)', marginTop: 4 }}>
+                <div className="profile-stats__label">
                   {item.label}（{item.unit}）
                 </div>
               </div>
@@ -257,80 +142,29 @@ function Profile() {
         </div>
 
         {/* 3. 冒险进度 + 继续冒险 */}
-        <div style={cardStyle}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 12,
-            }}
-          >
-            <div style={{ fontWeight: 900, fontSize: 14 }}>🗺️ 冒险进度</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#5D4037' }}>
+        <div className="card card--padded">
+          <div className="profile-progress__header">
+            <div className="profile-progress__title">🗺️ 冒险进度</div>
+            <div className="profile-progress__chapter">
               第 {activeChapterId} 章 · 第 {activeLevelId} 关
             </div>
           </div>
-          <div
-            style={{
-              width: '100%',
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: 'rgba(93,64,55,0.1)',
-              overflow: 'hidden',
-              marginBottom: 8,
-            }}
-          >
+          <div className="profile-progress__bar">
             <div
+              className="profile-progress__fill"
               style={{
                 width: `${progressPct}%`,
-                height: '100%',
-                borderRadius: 4,
                 backgroundColor: progressPct >= 100 ? '#66BB6A' : '#FFB840',
-                transition: 'width 0.3s ease',
               }}
             />
           </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)' }}>
+          <div className="profile-progress__footer">
+            <div className="profile-progress__count">
               {levelCount} / {TOTAL_LEVELS} 关
             </div>
             <button
+              className="btn btn-primary profile-progress__btn"
               onClick={() => navigate(`/chapter/${activeChapterId}/level/${activeLevelId}`)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                borderRadius: 10,
-                border: 'none',
-                backgroundColor: '#FFB840',
-                boxShadow: '0 3px 0 0 #A06800',
-                color: 'white',
-                fontSize: 13,
-                fontWeight: 800,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                transition: 'transform 80ms ease, box-shadow 80ms ease',
-              }}
-              onPointerDown={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
-                ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 #A06800'
-              }}
-              onPointerUp={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-              }}
-              onPointerLeave={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
-              }}
             >
               <Icon icon="lucide:play" style={{ width: 14, height: 14 }} />
               继续冒险
@@ -339,32 +173,11 @@ function Profile() {
         </div>
 
         {/* 4. 薄弱单词提醒 */}
-        <div style={cardStyle}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 12,
-            }}
-          >
-            <div style={{ fontWeight: 900, fontSize: 14 }}>⚡ 薄弱单词</div>
+        <div className="card card--padded">
+          <div className="profile-weak__header">
+            <div className="profile-weak__title">⚡ 薄弱单词</div>
             {weakWords.length > 0 && (
-              <button
-                onClick={() => navigate('/collection')}
-                style={{
-                  fontSize: 12,
-                  color: '#FFB840',
-                  fontWeight: 700,
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                }}
-              >
+              <button className="profile-weak__link" onClick={() => navigate('/collection')}>
                 查看图鉴
                 <Icon icon="lucide:chevron-right" style={{ width: 14, height: 14 }} />
               </button>
@@ -372,45 +185,21 @@ function Profile() {
           </div>
 
           {weakWords.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '16px 0',
-                fontSize: 13,
-                color: 'rgba(93,64,55,0.45)',
-              }}
-            >
+            <div className="profile-weak__empty">
               {wordCount === 0 ? '还没有学习记录，快去冒险吧！🐾' : '太棒了！暂无薄弱单词 ✨'}
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.45)', marginBottom: 10 }}>
+              <div className="profile-weak__hint">
                 正确率低于 70% 的单词，多练习几遍吧
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div className="profile-weak__grid">
                 {weakWords.map(({ word, rate }) => (
-                  <div
-                    key={word}
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      backgroundColor: 'rgba(93,64,55,0.04)',
-                      border: '1.5px solid rgba(93,64,55,0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span style={{ fontWeight: 800, fontSize: 13, color: '#5D4037' }}>{word}</span>
+                  <div key={word} className="profile-weak__item">
+                    <span className="profile-weak__word">{word}</span>
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: rateColor(rate),
-                        backgroundColor: rateBg(rate),
-                        padding: '2px 8px',
-                        borderRadius: 12,
-                      }}
+                      className="rate-badge"
+                      style={{ color: rateColor(rate), backgroundColor: rateBg(rate) }}
                     >
                       {rate}%
                     </span>

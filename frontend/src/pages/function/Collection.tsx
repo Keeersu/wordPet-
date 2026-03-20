@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 单词图鉴画廊，按章节/房间分类展示用户已学过的单词卡片，含正确率、词性、释义。
- * Style referenceFiles:
+ * Style referenceFiles: styles/collection.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -27,7 +27,6 @@ import { chapterWordsMap } from '@/data/words'
 import type { WordConfig } from '@/data/words'
 import { CHAPTERS } from '@/data/chapters'
 import { rateColor, rateBgColor as rateBg } from '@/lib/utils/colors'
-import { CARD_STYLE } from '@/lib/utils/styles'
 
 /** 使用公共章节元数据 */
 const chapterMeta = CHAPTERS
@@ -41,54 +40,27 @@ interface LearnedWord {
   rate: number
 }
 
-// ─── 样式（使用公共 CARD_STYLE） ────────────────────────────────────────
-
-const cardStyle: React.CSSProperties = { ...CARD_STYLE }
-
 // ─── 单词卡片 ──────────────────────────────────────────────────────────────
 
 function WordCard({ w }: { w: LearnedWord }) {
   return (
-    <div
-      style={{
-        padding: '10px 12px',
-        borderRadius: 12,
-        backgroundColor: 'rgba(93,64,55,0.03)',
-        border: '1.5px solid rgba(93,64,55,0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-      }}
-    >
+    <div className="collection-word">
       {/* 左侧：单词 + 释义 */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontWeight: 800, fontSize: 15, color: '#5D4037' }}>{w.word}</span>
-          <span style={{ fontSize: 11, color: 'rgba(93,64,55,0.4)', fontWeight: 600 }}>{w.pos}</span>
+      <div className="collection-word__text">
+        <div className="collection-word__name-row">
+          <span className="collection-word__name">{w.word}</span>
+          <span className="collection-word__pos">{w.pos}</span>
         </div>
-        <div
-          style={{
-            fontSize: 12,
-            color: 'rgba(93,64,55,0.55)',
-            marginTop: 2,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
+        <div className="collection-word__meaning">
           {w.meaning}
         </div>
       </div>
 
       {/* 右侧：正确率 */}
       <div
+        className="collection-word__rate"
         style={{
-          flexShrink: 0,
-          padding: '4px 10px',
-          borderRadius: 20,
           backgroundColor: rateBg(w.rate),
-          fontSize: 13,
-          fontWeight: 800,
           color: rateColor(w.rate),
         }}
       >
@@ -113,77 +85,43 @@ function ChapterSection({
   const totalInChapter = (chapterWordsMap[meta.id] ?? []).length
 
   return (
-    <div style={cardStyle}>
+    <div className="card collection-chapter">
       {/* 章节标题行 */}
       <button
         onClick={() => setExpanded(!expanded)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 16px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          color: '#5D4037',
-        }}
+        className="collection-chapter__header"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="collection-chapter__left">
           <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              backgroundColor: meta.themeColor,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 18,
-            }}
+            className="collection-chapter__icon"
+            style={{ backgroundColor: meta.themeColor }}
           >
             {meta.emoji}
           </div>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 800, fontSize: 14 }}>{meta.nameCn}</div>
-            <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)', marginTop: 1 }}>
+          <div className="collection-chapter__name">
+            <div className="collection-chapter__name-cn">{meta.nameCn}</div>
+            <div className="collection-chapter__name-en">
               {meta.nameEn}
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(93,64,55,0.5)' }}>
+        <div className="collection-chapter__right">
+          <span className="collection-chapter__count">
             {words.length}/{totalInChapter}
           </span>
           <Icon
             icon={expanded ? 'lucide:chevron-up' : 'lucide:chevron-down'}
-            style={{ width: 18, height: 18, color: 'rgba(93,64,55,0.3)' }}
+            className="collection-chapter__expand-icon"
           />
         </div>
       </button>
 
       {/* 展开的单词列表 */}
       {expanded && (
-        <div
-          style={{
-            borderTop: '1px solid rgba(93,64,55,0.06)',
-            padding: '12px 14px 14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
+        <div className="collection-chapter__body">
           {words.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '16px 0',
-                fontSize: 13,
-                color: 'rgba(93,64,55,0.4)',
-              }}
-            >
+            <div className="collection-chapter__empty">
               还没有学习这个章节的单词哦 ~
             </div>
           ) : (
@@ -240,99 +178,39 @@ function Collection() {
   const progressPct = totalWords > 0 ? Math.round((totalLearned / totalWords) * 100) : 0
 
   return (
-    <div
-      style={{
-        height: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#FFF8E7',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-      }}
-    >
+    <div className="collection-page">
       {/* Header */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 16px 12px',
-          background: 'rgba(255,248,231,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(93,64,55,0.08)',
-        }}
-      >
+      <div className="page-header page-header--padded">
         <button
           onClick={() => navigate(-1)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            cursor: 'pointer',
-            color: '#5D4037',
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: 'inherit',
-          }}
+          className="back-btn"
         >
           <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
           返回
         </button>
 
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>单词图鉴</div>
+        <div className="page-header__title page-header__title--sm">单词图鉴</div>
 
-        <div style={{ width: 68 }} />
+        <div className="page-header__spacer" />
       </div>
 
       {/* 可滚动内容区 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-          paddingBottom: 120,
-        }}
-      >
+      <div className="collection-content">
         {/* 收集进度概览 */}
-        <div style={{ ...cardStyle, padding: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontWeight: 900, fontSize: 15 }}>📖 收集进度</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#FFB840' }}>
+        <div className="card card--padded collection-progress">
+          <div className="collection-progress__header">
+            <div className="collection-progress__title">📖 收集进度</div>
+            <div className="collection-progress__count">
               {totalLearned} / {totalWords} 个
             </div>
           </div>
-          <div
-            style={{
-              width: '100%',
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: 'rgba(93,64,55,0.08)',
-              overflow: 'hidden',
-            }}
-          >
+          <div className="collection-progress__bar">
             <div
-              style={{
-                width: `${progressPct}%`,
-                height: '100%',
-                borderRadius: 5,
-                backgroundColor: totalLearned === totalWords ? '#66BB6A' : '#FFB840',
-                transition: 'width 0.4s ease',
-              }}
+              className={`collection-progress__fill ${totalLearned === totalWords ? 'collection-progress__fill--complete' : 'collection-progress__fill--partial'}`}
+              style={{ width: `${progressPct}%` }}
             />
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.4)', marginTop: 6, textAlign: 'right' }}>
+          <div className="collection-progress__percent">
             {progressPct}% 已收集
           </div>
         </div>
@@ -349,16 +227,10 @@ function Collection() {
 
         {/* 全空状态 */}
         {totalLearned === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '32px 20px',
-              color: 'rgba(93,64,55,0.45)',
-            }}
-          >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📚</div>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>还没有收集到任何单词</div>
-            <div style={{ fontSize: 13 }}>快去冒险学习新单词吧！</div>
+          <div className="collection-empty">
+            <div className="collection-empty__emoji">📚</div>
+            <div className="collection-empty__title">还没有收集到任何单词</div>
+            <div className="collection-empty__text">快去冒险学习新单词吧！</div>
           </div>
         )}
       </div>
