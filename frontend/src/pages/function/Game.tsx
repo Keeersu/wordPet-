@@ -209,10 +209,9 @@ function FeedbackSheet({
         <button
           onClick={onNext}
           className="btn-primary"
-          style={{ width: '100%', padding: '14px 16px', fontSize: '16px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+          style={{ width: '100%', padding: '14px 16px', fontSize: '16px' }}
         >
-          <span>下一题</span>
-          <span style={{ fontSize: '14px' }}>→</span>
+          下一题
         </button>
       )}
     </div>

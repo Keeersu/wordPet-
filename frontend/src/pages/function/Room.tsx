@@ -217,7 +217,7 @@ function LevelRow({
           {isCompleted
             ? `正确率 ${Math.round(accuracy! * 100)}%`
             : status === 'current'
-              ? '点击开始挑战 →'
+              ? '点击开始挑战'
               : '完成前几关后解锁'}
         </div>
       </div>

@@ -71,7 +71,7 @@ function OnboardingLevel() {
           onClick={handleStart}
           className="mt-8 h-[52px] w-full rounded-[26px] bg-[#FFB840] text-[17px] font-bold text-[#3D1F00] shadow-[0_4px_0_0_#A06800] active:translate-y-[2px] active:shadow-[0_2px_0_0_#A06800]"
         >
-          开始我的冒险 →
+          开始我的冒险
         </button>
       </div>
     </div>
