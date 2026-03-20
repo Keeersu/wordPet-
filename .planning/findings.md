@@ -1,0 +1,141 @@
+# WordPet - 研究发现与技术决策
+
+## 项目架构分析
+
+### 实际技术架构（Paraflow）
+- **前端**：React 19 + Vite + Tailwind CSS + Jotai + React Router
+- **后端**：Hono + Drizzle ORM + PostgreSQL + Cloudflare Workers
+- **测试**：Vitest + PGLite（内存数据库）
+- **包管理**：pnpm monorepo（frontend / backend / bdd-test）
+
+### PRD 期望架构（TECH_SPEC.md）
+- **前端**：React 18 + Vite + 独立CSS文件 + React Context + HashRouter
+- **后端**：无后端，纯前端 localStorage
+- **禁止**：Redux、MobX、Styled-components、Tailwind、UI 组件库
+
+### 关键差异
+| 项目 | PRD 期望 | 实际 Paraflow | 影响 |
+|------|---------|---------------|------|
+| 路由 | HashRouter | BrowserRouter | 部署兼容性不同 |
+| 状态 | Context + localStorage | Jotai + Store 模式 | 需要适配 |
+| 样式 | 独立 CSS + CSS 变量 | Tailwind | 样式组织方式不同 |
+| 数据 | localStorage | PostgreSQL + localStorage 混用 | 需决策 |
+
+### 建议决策
+鉴于项目已在 Paraflow 上运行，建议：
+1. **继续使用 Paraflow 架构**，不回退到 PRD 的技术选型
+2. **gameState 仍用 localStorage**（符合 PRD 的纯前端存储需求）
+3. **样式可以混用 Tailwind + 独立 CSS**（核心视觉组件用独立 CSS 方便设计师调参）
+4. **后端暂不使用**（MVP 阶段不需要数据库）
+
+## 已完成页面的实现质量
+
+### Home.tsx（~585行）
+- 完整的房间卡片列表
+- 进度状态展示
+- 底部导航栏
+
+### Game.tsx（~1035行）
+- 最复杂的页面，包含多种题型
+- 答题交互、反馈弹窗
+- 自适应难度逻辑
+
+### Result.tsx（~359行）
+- 答题统计展示
+- 家具解锁逻辑
+- **问题**：当前是普通列表展示，需要改造为炫酷的动画展示
+
+### Room.tsx（~703行）
+- 房间全景渲染
+- 家具/猫咪展示
+- 关卡进度
+
+## 关键文件位置
+- **PRD 文档**：`/workspace/snu18js3xdld/WordPet_PRD_v1.3_delivery.md`
+- **技术规范**：`/workspace/snu18js3xdld/TECH_SPEC.md`
+- **前端页面**：`/workspace/snu18js3xdld/frontend/src/pages/function/`
+- **路由配置**：`/workspace/snu18js3xdld/frontend/src/routes.ts`
+- **路径管理**：`/workspace/snu18js3xdld/frontend/src/pageLinks.ts`
+- **状态管理**：`/workspace/snu18js3xdld/frontend/src/store/gameStore.ts`
+- **状态 Context**：`/workspace/snu18js3xdld/frontend/src/store/GameContext.tsx`
+- **Canvas 设计**：`/workspace/snu18js3xdld/canvas/`
+
+## 难度等级系统分析（详细）
+
+### 当前完成度评估：~45%
+
+| 模块 | 完成度 | 详情 |
+|------|--------|------|
+| 基础设施 | 80% | OnboardingLevel UI ✅、gameStore 数据结构 ✅、GameContext ✅ |
+| 核心难度逻辑 | 30% | AI 自适应仅关卡结束后 ⚠️、题型比例 ❌、双例句 ❌、干扰项策略 ❌ |
+| 数据层 | 20% | 词汇配置文件 ❌、难度配置文件 ❌、题型比例配置表 ❌ |
+| 高级功能 | 10% | 题内实时微调 ❌、Profile 难度调整 ❌、数据迁移 ❌ |
+
+### 核心缺失功能
+
+1. **题目数据硬编码**：Game.tsx 中 QUESTIONS 数组是固定的 10 道题，不随难度变化
+2. **题型比例无差异化**：PRD 要求纯新手以图片配对为主、高级以填空填字为主，当前未实现
+3. **无词汇配置文件**：`frontend/src/data/words/` 目录不存在
+4. **例句只有一套**：Question interface 只有一个 `sentence` 字段，PRD 要求 basic/advanced 两套
+5. **干扰项随机生成**：未按难度策略区分（差异大/同类别/拼写相近/语义相近）
+
+### PRD 中的三维差异化设计（方案 C）
+
+**维度 1 - 题型比例**（每关 10 题）：
+| 题型 | Lv1 纯新手 | Lv2 略知一二 | Lv3 勉强应付 | Lv4 还不错 |
+|------|-----------|------------|------------|----------|
+| 图片配对 | 3 | 2 | 1 | 1 |
+| 字母消消乐 | 3 | 2 | 2 | 1 |
+| 单词拼写 | 2 | 2 | 2 | 2 |
+| 填空题 | 1 | 2 | 3 | 3 |
+| 填字游戏 | 1 | 2 | 2 | 3 |
+
+**维度 2 - 例句难度**：
+- Lv1-2 使用 basic 例句（简短，常见句型）
+- Lv3-4 使用 advanced 例句（长句，从句结构）
+
+**维度 3 - 干扰项策略**：
+- Lv1：差异大（sofa vs tree）→ 容易排除
+- Lv2：同类别（sofa vs chair vs desk）→ 需要基本辨识
+- Lv3：拼写相近（sofa vs sofe vs sopa）→ 需要精确拼写
+- Lv4：语义相近（sofa vs couch vs bench）→ 需要语义理解
+
+### 实现方案建议
+
+1. 创建独立的 `data/words/chapterN.ts` 词汇文件，每个单词包含 WordConfig 结构
+2. 创建 `data/difficulty/` 配置文件，存放题型比例和干扰项策略
+3. 在 Game.tsx 中新建 `generateQuestions()` 函数替代硬编码数组
+4. AI 自适应保留现有的关卡结束后调用，新增题内微调（每 3 题）
+
+---
+
+## v2 需求变更分析
+
+### 拼图合成 → 直接解锁家具
+- **原方案**：每关解锁 1 片拼图碎片，4 片集齐后合成 1 件家具
+- **新方案**：每关直接解锁 1 件家具，无拼图碎片概念
+- **影响**：Result.tsx 中的碎片栏、合成按钮、合成动画都不需要了
+- **新需求**：家具解锁的展示效果要更炫酷，弥补去掉拼图合成的获得感缺失
+
+### 结算页改造方案
+**当前 Result.tsx 的问题**：
+- 成绩卡 → 家具解锁卡 → 单词回顾，普通的纵向列表
+- 家具解锁只是一个小的卡片展示，缺乏震撼感
+
+**改造方案**：
+1. 进入结算页时，先全屏展示「家具解锁动画」
+2. 动画效果：
+   - 深色遮罩背景 + 星光粒子
+   - 家具图从中央弹性放大出场（scale 0→1.15→1）
+   - 金色光晕扩散效果
+   - 家具名称 + "新家具已解锁！" 文字淡入
+   - 猫咪 emoji 或小图在一旁欢呼
+3. 点击「太棒了！」按钮后过渡到结算详情（正确率、单词回顾）
+4. 最后是「返回房间」和「下一关」按钮
+
+### 家具解锁动画 CSS 技术方案
+- 使用纯 CSS @keyframes + transform 实现
+- 粒子效果用多个 pseudo-elements + CSS animation
+- 光晕用 radial-gradient + animation
+- 弹性缩放用 cubic-bezier(.34,1.56,.64,1) 弹簧曲线
+- 无需引入第三方动画库（如 framer-motion）

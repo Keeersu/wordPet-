@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../frontend/src/*"],
+      "@frontend/*": ["../frontend/src/*"],
+      "@backend/*": ["../backend/src/*"],
+      "@bdd-test/*": ["./src/*"],
+    },
+    "types": ["vite/client", "@types/node", "vitest/globals", "@cloudflare/workers-types"],
+    "noEmit": true,
+    "incremental": true
+  },
+  "include": ["src/**/*", "tests/**/*", "../backend/src/hbs.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
