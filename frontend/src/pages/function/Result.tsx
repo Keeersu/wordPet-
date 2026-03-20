@@ -323,17 +323,7 @@ function Result() {
         ? '不错哦！再接再厉'
         : '没关系，下次一定！'
 
-  const isLastLevel = levelId >= 4
-
-  const handleBack = () => navigate(`/rooms/${chapterId}`)
   const handleReplay = () => navigate(`/chapter/${chapterId}/level/${levelId}`)
-  const handleNext = () => {
-    if (isLastLevel) {
-      navigate('/')
-    } else {
-      navigate(`/chapter/${chapterId}/level/${levelId + 1}`)
-    }
-  }
 
   // ── Reveal 阶段 ──
   if (stage === 'reveal') {
@@ -375,56 +365,17 @@ function Result() {
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
+          justifyContent: 'center',
+          padding: '14px 16px',
           background: 'rgba(255,248,231,0.85)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(93,64,55,0.08)',
-          gap: 10,
         }}
       >
-        <button
-          onClick={handleReplay}
-          style={{
-            padding: '6px 14px',
-            borderRadius: 10,
-            border: '2px solid rgba(255,184,64,0.35)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(255,184,64,0.15)',
-            cursor: 'pointer',
-            color: '#FFB840',
-            fontWeight: 700,
-            fontSize: 13,
-            fontFamily: 'inherit',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          再来一遍
-        </button>
-
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5, textAlign: 'center' }}>
+        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>
           第 {levelId} 关完成！
         </div>
-
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            padding: '6px 14px',
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            cursor: 'pointer',
-            color: '#5D4037',
-            fontWeight: 700,
-            fontSize: 13,
-            fontFamily: 'inherit',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          返回首页
-        </button>
       </div>
 
       {/* ── 可滚动内容区 ── */}
@@ -613,7 +564,7 @@ function Result() {
         </div>
       </div>
 
-      {/* ── 底部固定按钮区（3 按钮） ── */}
+      {/* ── 底部固定按钮区（2 按钮） ── */}
       <div
         style={{
           position: 'fixed',
@@ -628,9 +579,9 @@ function Result() {
           animation: 'detailSlideUp 500ms 300ms ease-out both',
         }}
       >
-        {/* 返回房间 */}
+        {/* 再来一遍 */}
         <button
-          onClick={handleBack}
+          onClick={handleReplay}
           style={{
             flex: 1,
             padding: '13px 4px',
@@ -658,47 +609,14 @@ function Result() {
             ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
           }}
         >
-          回房间
-        </button>
-
-        {/* 再来一遍 */}
-        <button
-          onClick={handleReplay}
-          style={{
-            flex: 1,
-            padding: '13px 4px',
-            borderRadius: 14,
-            border: '2px solid #FFB840',
-            backgroundColor: 'white',
-            color: '#FFB840',
-            fontWeight: 800,
-            fontSize: 14,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 3px 0 0 rgba(255,184,64,0.2)',
-            transition: 'transform 80ms ease, box-shadow 80ms ease',
-          }}
-          onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(255,184,64,0.2)'
-          }}
-          onPointerUp={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(255,184,64,0.2)'
-          }}
-          onPointerLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(255,184,64,0.2)'
-          }}
-        >
           再来一遍
         </button>
 
-        {/* 下一关 / 返回首页 */}
+        {/* 返回首页 */}
         <button
-          onClick={handleNext}
+          onClick={() => navigate('/')}
           style={{
-            flex: 1.2,
+            flex: 1,
             padding: '13px 4px',
             borderRadius: 14,
             border: '2.5px solid white',
@@ -724,7 +642,7 @@ function Result() {
             ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
           }}
         >
-          {isLastLevel ? '返回首页' : '下一关 →'}
+          返回首页
         </button>
       </div>
     </div>
