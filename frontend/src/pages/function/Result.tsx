@@ -101,7 +101,7 @@ function getMasteryConfig(level: MasteryLevel) {
       }
     case 'failed':
       return {
-        label: '未掌握',
+        label: '待掌握',
         color: '#EF5350',
         bgColor: 'rgba(239,83,80,0.06)',
         borderColor: 'rgba(239,83,80,0.35)',
@@ -449,7 +449,7 @@ function Result() {
                 {masteryCount.failed > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#EF5350' }}>
                     <Icon icon="lucide:circle-x" style={{ width: 13, height: 13 }} />
-                    未掌握 {masteryCount.failed}
+                    待掌握 {masteryCount.failed}
                   </span>
                 )}
               </div>
@@ -635,8 +635,7 @@ function Result() {
             ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
           }}
         >
-          <Icon icon="lucide:home" style={{ width: 14, height: 14, verticalAlign: -2, marginRight: 4 }} />
-          房间
+          回房间
         </button>
 
         {/* 再来一遍 */}
@@ -669,7 +668,6 @@ function Result() {
             ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(255,184,64,0.2)'
           }}
         >
-          <Icon icon="lucide:rotate-ccw" style={{ width: 14, height: 14, verticalAlign: -2, marginRight: 4 }} />
           再来一遍
         </button>
 
