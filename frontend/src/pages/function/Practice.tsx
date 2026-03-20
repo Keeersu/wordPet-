@@ -447,7 +447,6 @@ function Practice() {
                       onClick={handleUndoLetter}
                       className="practice-quiz-undo-btn"
                     >
-                      <Icon icon="lucide:undo-2" width={12} height={12} style={{ marginRight: 4, verticalAlign: -1 }} />
                       撤销
                     </button>
                   </div>
@@ -480,7 +479,6 @@ function Practice() {
               className={`practice-quiz-feedback__btn ${isCorrect ? 'practice-quiz-feedback__btn--correct' : 'practice-quiz-feedback__btn--wrong'}`}
             >
               {currentIdx + 1 >= questions.length ? '查看结果' : '下一题'}
-              <Icon icon="lucide:arrow-right" width={14} height={14} style={{ marginLeft: 6, verticalAlign: -2 }} />
             </button>
           </div>
         )}
@@ -582,7 +580,6 @@ function Practice() {
               onClick={() => startReview(weakWords)}
               className="practice-start-btn"
             >
-              <Icon icon="lucide:swords" width={18} height={18} style={{ marginRight: 8, verticalAlign: -3 }} />
               开始复习（全部 {weakWords.length} 词）
             </button>
           )}
@@ -593,7 +590,6 @@ function Practice() {
               onClick={() => navigate(`/chapter/${gameState.currentChapter}/level/${gameState.currentLevel}`)}
               className="practice-adventure-btn btn-primary"
             >
-              <Icon icon="lucide:play" width={18} height={18} style={{ marginRight: 8, verticalAlign: -3 }} />
               去冒险
             </button>
           )}
@@ -629,7 +625,6 @@ function Practice() {
                   onClick={() => startReview(group.words)}
                   className="practice-chapter__review-btn"
                 >
-                  <Icon icon="lucide:repeat" width={14} height={14} style={{ marginRight: 6, verticalAlign: -2 }} />
                   复习本章 {group.words.length} 词
                 </button>
 
