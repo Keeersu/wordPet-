@@ -3,7 +3,6 @@ import { StrictMode } from "react"
 import { type createStore, Provider } from "jotai"
 import { createRoutes } from "./routes"
 import { GameProvider } from "./store/GameContext"
-import { AuthProvider } from "./store/AuthContext"
 
 /**
  * AuthRequiredError (401) is an expected flow-control signal (redirect to login),
@@ -40,11 +39,9 @@ export function createApp(store: Store) {
     return (
       <StrictMode>
         <Provider store={store}>
-          <AuthProvider>
-            <GameProvider>
-              <RouterProvider router={router} onError={onRouterError} />
-            </GameProvider>
-          </AuthProvider>
+          <GameProvider>
+            <RouterProvider router={router} onError={onRouterError} />
+          </GameProvider>
         </Provider>
       </StrictMode>
     )

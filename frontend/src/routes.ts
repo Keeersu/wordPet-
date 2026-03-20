@@ -21,7 +21,7 @@ import Room from './pages/function/Room'
 import Onboarding from './pages/function/Onboarding'
 import OnboardingLevel from './pages/function/OnboardingLevel'
 import Splash from './pages/function/Splash'
-import Login from './pages/function/Login'
+// Login page removed — app uses auto-login (browser prototype mode)
 
 
 type Store = ReturnType<typeof createStore>
@@ -52,7 +52,7 @@ function createBusinessRoutes(store: Store): RouteObject[] {
     { path: pageLinks.Game(), element: createElement(Game) },
     { path: pageLinks.Result(), element: createElement(Result) },
     { path: pageLinks.Room(), element: createElement(Room) },
-    { path: pageLinks.Login(), element: createElement(Login) },
+    // Login route removed — auto-login mode
   ]
 }
 
