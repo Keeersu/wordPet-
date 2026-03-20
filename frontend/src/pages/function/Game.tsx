@@ -984,7 +984,6 @@ function Game() {
           right: 0,
           zIndex: 50,
           paddingTop: '16px',
-          background: '#F5E6C8',
         }}
       >
         <div
