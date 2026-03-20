@@ -8,7 +8,6 @@
  * <page-design>
  * ## Features & Interactions
  * - 猫咪信息卡（头像占位 + 名字 + 标签）
- * - 英语水平卡片（只展示当前难度 + 跳转设置页修改）
  * - 学习统计 3 列 grid（已学单词 / 完成关卡 / 解锁家具）
  * - 冒险进度条（已完成关卡 / 20 总关卡）
  * - 已学单词回顾（2 列网格，显示正确率）
@@ -31,13 +30,6 @@ const PERSONALITY_LABEL: Record<string, string> = {
 
 const TOTAL_LEVELS = 20
 
-const DIFFICULTY_DISPLAY: Record<number, { emoji: string; title: string; color: string }> = {
-  1: { emoji: '🌱', title: '纯新手', color: '#66BB6A' },
-  2: { emoji: '🌿', title: '略知一二', color: '#42A5F5' },
-  3: { emoji: '🌳', title: '勉强应付', color: '#FFA726' },
-  4: { emoji: '🌟', title: '还不错哦', color: '#AB47BC' },
-}
-
 // ─── 卡片容器样式 ────────────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
@@ -54,8 +46,6 @@ function Profile() {
   const navigate = useNavigate()
   const { gameState } = useGameStore()
   const { cat } = gameState
-
-  const currentDifficulty = DIFFICULTY_DISPLAY[gameState.difficulty] ?? DIFFICULTY_DISPLAY[1]
 
   const wordCount = Object.keys(gameState.wordHistory).length
   const levelCount = Object.keys(gameState.completedLevels).length
@@ -219,50 +209,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* 2. 英语水平卡片（只读展示 + 跳转设置页修改） */}
-        <div
-          style={{ ...cardStyle, cursor: 'pointer' }}
-          onClick={() => navigate('/settings')}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20 }}>{currentDifficulty.emoji}</span>
-              <div>
-                <div style={{ fontWeight: 900, fontSize: 14 }}>英语水平</div>
-                <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginTop: 1 }}>
-                  前往设置修改
-                </div>
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 12px',
-                borderRadius: 10,
-                border: `2px solid ${currentDifficulty.color}30`,
-                backgroundColor: `${currentDifficulty.color}12`,
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 700, color: currentDifficulty.color }}>
-                {currentDifficulty.title}
-              </span>
-              <Icon
-                icon="lucide:chevron-right"
-                style={{ width: 14, height: 14, color: currentDifficulty.color }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 3. 学习统计卡 */}
+        {/* 2. 学习统计卡 */}
         <div style={cardStyle}>
           <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>📊 学习统计</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -291,7 +238,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* 4. 冒险进度 */}
+        {/* 3. 冒险进度 */}
         <div style={cardStyle}>
           <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>🗺️ 冒险进度</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#5D4037', marginBottom: 8 }}>
@@ -321,7 +268,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* 5. 已学单词回顾 */}
+        {/* 4. 已学单词回顾 */}
         <div style={cardStyle}>
           <div
             style={{
