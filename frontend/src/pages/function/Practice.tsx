@@ -216,8 +216,8 @@ function Practice() {
     // 更新 wordHistory
     recordWordResult(currentQ.word, correct)
 
-    speakWord(currentQ.word, gameState.settings.soundEnabled)
-  }, [isCorrect, currentQ, recordWordResult, gameState.settings.soundEnabled])
+    speakWord(currentQ.word, gameState.settings.ttsEnabled)
+  }, [isCorrect, currentQ, recordWordResult, gameState.settings.ttsEnabled])
 
   // 处理字母点击（letter_match / word_spelling）
   const handleLetterClick = useCallback((letterIdx: number) => {
@@ -247,13 +247,13 @@ function Practice() {
           setSessionTotal((p) => p + 1)
           if (correct) setSessionCorrect((p) => p + 1)
           recordWordResult(currentQ.word, correct)
-          speakWord(currentQ.word, gameState.settings.soundEnabled)
+          speakWord(currentQ.word, gameState.settings.ttsEnabled)
         }, 200)
       }
 
       return next
     })
-  }, [isCorrect, currentQ, availableLetters, recordWordResult, gameState.settings.soundEnabled])
+  }, [isCorrect, currentQ, availableLetters, recordWordResult, gameState.settings.ttsEnabled])
 
   // 撤销最后一个字母
   const handleUndoLetter = useCallback(() => {
@@ -778,7 +778,7 @@ function Practice() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <button
-                          onClick={() => speakWord(w.word, gameState.settings.soundEnabled)}
+                          onClick={() => speakWord(w.word, gameState.settings.ttsEnabled)}
                           style={{ width: 28, height: 28, borderRadius: 8, border: 'none', backgroundColor: 'rgba(93,64,55,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <Icon icon="lucide:volume-2" style={{ width: 14, height: 14, color: 'rgba(93,64,55,0.4)' }} />

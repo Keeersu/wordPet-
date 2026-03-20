@@ -75,6 +75,16 @@ function Settings() {
     }))
   }
 
+  const handleToggleTts = () => {
+    updateGameState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        ttsEnabled: !prev.settings.ttsEnabled,
+      },
+    }))
+  }
+
   return (
     <div
       style={{
@@ -371,9 +381,9 @@ function Settings() {
                   🔊
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>音效 & 朗读</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>音效</p>
                   <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
-                    包含 TTS 单词朗读
+                    答题音效反馈
                   </p>
                 </div>
               </div>
@@ -400,6 +410,68 @@ function Settings() {
                     position: 'absolute',
                     top: 3,
                     left: gameState.settings.soundEnabled ? 25 : 3,
+                    transition: 'left 200ms ease',
+                  }}
+                />
+              </button>
+            </div>
+
+            <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.06)', margin: '0 16px' }} />
+
+            {/* 朗读 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    backgroundColor: '#FFF8E7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 20,
+                  }}
+                >
+                  🗣️
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>朗读</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(93,64,55,0.5)' }}>
+                    TTS 单词朗读
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleToggleTts}
+                style={{
+                  width: 52,
+                  height: 30,
+                  borderRadius: 15,
+                  border: 'none',
+                  backgroundColor: gameState.settings.ttsEnabled ? '#FFB840' : 'rgba(93,64,55,0.15)',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'background-color 200ms ease',
+                }}
+              >
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    backgroundColor: 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                    position: 'absolute',
+                    top: 3,
+                    left: gameState.settings.ttsEnabled ? 25 : 3,
                     transition: 'left 200ms ease',
                   }}
                 />

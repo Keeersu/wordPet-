@@ -31,6 +31,7 @@ export interface WordHistoryRecord {
 export interface GameSettings {
   musicEnabled: boolean
   soundEnabled: boolean
+  ttsEnabled: boolean
 }
 
 export interface GameState {
@@ -87,6 +88,7 @@ export function createDefaultState(): GameState {
     settings: {
       musicEnabled: true,
       soundEnabled: true,
+      ttsEnabled: true,
     },
   }
 }
@@ -123,6 +125,11 @@ export function getGameState(): GameState {
         parsed.currentChapter = maxChapter
         parsed.currentLevel = maxLevel + 1
       }
+    }
+
+    // 迁移：旧版本可能缺少 ttsEnabled，默认为 true
+    if (parsed.settings && parsed.settings.ttsEnabled === undefined) {
+      parsed.settings.ttsEnabled = true
     }
 
     return parsed

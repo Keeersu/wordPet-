@@ -40,9 +40,9 @@ import { speakWord as _speakWord } from '@/lib/utils/tts'
 import { getRandomEncourage } from '@/lib/utils/encouragements'
 import { getChapterName } from '@/data/chapters'
 
-// ── TTS 封装：自动传入 gameState 的 soundEnabled ──
+// ── TTS 封装：使用 ttsEnabled 控制朗读 ──
 function speakWord(word: string, gameState: GameState, sentence?: string) {
-  _speakWord(word, { enabled: gameState.settings.soundEnabled, sentence })
+  _speakWord(word, { enabled: gameState.settings.ttsEnabled, sentence })
 }
 
 // ============================================================================
@@ -586,6 +586,9 @@ function Game() {
   const [correctCount, setCorrectCount] = useState(0)
   const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number; firstCorrect: boolean }>>({})
 
+  // ── 自动朗读开关（答题页内，默认开启） ──
+  const [autoRead, setAutoRead] = useState(true)
+
   // ── 题内实时微调追踪 ──
   const recentResults = useRef<boolean[]>([]) // 最近 3 题结果
   const sentenceLevelOverride = useRef<'basic' | 'advanced' | null>(null)
@@ -617,6 +620,16 @@ function Game() {
   }, []) // 仅挂载时检查一次
 
   const question = questions[currentIndex]
+
+  // ── 自动朗读：每道新题出现时自动朗读单词 ──
+  useEffect(() => {
+    if (question && autoRead && answerState === 'idle' && gameState.settings.ttsEnabled) {
+      const timer = setTimeout(() => {
+        _speakWord(question.word, { enabled: true })
+      }, 300) // 延迟 300ms 让卡片动画完成
+      return () => clearTimeout(timer)
+    }
+  }, [currentIndex, question?.word, autoRead, gameState.settings.ttsEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 难度指示器文字 ──
   const DIFFICULTY_LABELS: Record<number, string> = { 1: '🐾 入门', 2: '🐾🐾 进阶', 3: '🐾🐾🐾 挑战', 4: '🐾🐾🐾🐾 大师' }
@@ -1001,7 +1014,33 @@ function Game() {
             </span>
           </div>
 
-          <div style={{ width: '40px', height: '40px' }} />
+          {/* 自动朗读开关 */}
+          <button
+            onClick={() => setAutoRead((prev) => !prev)}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              backgroundColor: autoRead ? 'rgba(255,184,64,0.15)' : 'white',
+              border: autoRead ? '2px solid rgba(255,184,64,0.4)' : '2px solid rgba(93,64,55,0.1)',
+              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'all 200ms ease',
+            }}
+          >
+            <Icon
+              icon={autoRead ? 'lucide:volume-2' : 'lucide:volume-x'}
+              style={{
+                width: '20px',
+                height: '20px',
+                color: autoRead ? '#FFB840' : 'rgba(93,64,55,0.35)',
+              }}
+            />
+          </button>
         </div>
       </div>
 
@@ -1064,28 +1103,6 @@ function Game() {
             marginTop: showImage ? 0 : 24,
           }}
         >
-          {/* TTS speaker button */}
-          <button
-            onClick={() => speakWord(question.word, gameState)}
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255,184,64,0.12)',
-              border: '1.5px solid rgba(255,184,64,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              zIndex: 3,
-            }}
-          >
-            <Icon icon="lucide:volume-2" style={{ width: 16, height: 16, color: '#FFB840' }} />
-          </button>
-
           {/* Progress text */}
           <p
             style={{

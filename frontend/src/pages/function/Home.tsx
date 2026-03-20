@@ -434,8 +434,8 @@ function Home() {
                 padding: '20px 24px 24px',
               }}
             >
-              {/* 音乐 / 音效 两列 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {/* 音乐 / 音效 / 朗读 三列 */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 {/* 音乐 */}
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音乐</div>
@@ -456,7 +456,7 @@ function Home() {
                         ? '0 4px 0 0 #4A9050'
                         : '0 4px 0 0 rgba(93,64,55,0.08)',
                       color: gameState.settings.musicEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: 900,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
@@ -505,7 +505,7 @@ function Home() {
                         ? '0 4px 0 0 #4A9050'
                         : '0 4px 0 0 rgba(93,64,55,0.08)',
                       color: gameState.settings.soundEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: 900,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
@@ -531,6 +531,55 @@ function Home() {
                     }}
                   >
                     🔊 {gameState.settings.soundEnabled ? '开' : '关'}
+                  </button>
+                </div>
+
+                {/* 朗读 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>朗读</div>
+                  <button
+                    onClick={() =>
+                      updateGameState((prev) => ({
+                        ...prev,
+                        settings: { ...prev.settings, ttsEnabled: !prev.settings.ttsEnabled },
+                      }))
+                    }
+                    style={{
+                      width: '100%',
+                      height: 52,
+                      borderRadius: 12,
+                      border: 'none',
+                      backgroundColor: gameState.settings.ttsEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
+                      boxShadow: gameState.settings.ttsEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)',
+                      color: gameState.settings.ttsEnabled ? 'white' : 'rgba(93,64,55,0.4)',
+                      fontSize: 14,
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'transform 80ms ease, box-shadow 80ms ease',
+                    }}
+                    onPointerDown={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
+                        ? '0 1px 0 0 #4A9050'
+                        : '0 1px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerUp={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                    onPointerLeave={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.ttsEnabled
+                        ? '0 4px 0 0 #4A9050'
+                        : '0 4px 0 0 rgba(93,64,55,0.08)'
+                    }}
+                  >
+                    🗣️ {gameState.settings.ttsEnabled ? '开' : '关'}
                   </button>
                 </div>
               </div>
