@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 启动页，显示 Logo + 产品名 + 加载动画，2 秒后自动跳转。
- * Style referenceFiles:
+ * Style referenceFiles: styles/splash.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -33,90 +33,30 @@ function Splash() {
   }, [gameState.onboardingDone, navigate])
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: '#FFB840',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        opacity: fading ? 0 : 1,
-        transition: 'opacity 300ms ease',
-        zIndex: 200,
-      }}
-    >
+    <div className={`splash-page ${fading ? 'splash-page--fading' : ''}`}>
       {/* Logo */}
-      <div
-        style={{
-          width: 120,
-          height: 120,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
+      <div className="splash-logo">
         {/* 🖼️ ASSET | App Logo | PNG @3x | /assets/ui/logo.png */}
         <img
           src="/assets/ui/logo.png"
           alt="WordPet"
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          className="splash-logo__img"
           onError={(e) => {
             ;(e.target as HTMLImageElement).style.display = 'none'
           }}
         />
-        <span style={{ position: 'absolute', fontSize: 80, lineHeight: 1 }}>🐱</span>
+        <span className="splash-logo__emoji">🐱</span>
       </div>
 
-      <div
-        style={{
-          fontSize: 36,
-          fontWeight: 900,
-          color: 'white',
-          letterSpacing: 2,
-          marginTop: 16,
-        }}
-      >
-        WordPet
-      </div>
-
-      <div
-        style={{
-          fontSize: 16,
-          color: 'rgba(255,255,255,0.8)',
-          marginTop: 8,
-          fontStyle: 'italic',
-        }}
-      >
-        Learn, play, purr.
-      </div>
+      <div className="splash-title">WordPet</div>
+      <div className="splash-slogan">Learn, play, purr.</div>
 
       {/* Loading dots */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 40 }}>
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              opacity: 0.6,
-              animation: `splashBounce 600ms ${i * 150}ms ease-in-out infinite`,
-            }}
-          />
-        ))}
+      <div className="splash-dots">
+        <div className="splash-dot" />
+        <div className="splash-dot" />
+        <div className="splash-dot" />
       </div>
-
-      <style>{`
-        @keyframes splashBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-      `}</style>
     </div>
   )
 }

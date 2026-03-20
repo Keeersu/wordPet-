@@ -1,0 +1,84 @@
+/* ============================================================================
+ * 启动页 (Splash) 样式
+ * Logo + 产品名 + 加载动画，2s 淡出跳转
+ * ============================================================================ */
+
+/* ── 页面容器 ── */
+.splash-page {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-main);
+  z-index: 200;
+  transition: opacity 300ms ease;
+}
+
+.splash-page--fading {
+  opacity: 0;
+}
+
+/* ── Logo 区 ── */
+.splash-logo {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.splash-logo__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.splash-logo__emoji {
+  position: absolute;
+  font-size: 80px;
+  line-height: 1;
+}
+
+/* ── 文字区 ── */
+.splash-title {
+  font-size: 36px;
+  font-weight: var(--font-black);
+  color: white;
+  letter-spacing: 2px;
+  margin-top: var(--space-3xl);
+}
+
+.splash-slogan {
+  font-size: var(--text-lg);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: var(--space-md);
+  font-style: italic;
+}
+
+/* ── 加载圆点 ── */
+.splash-dots {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-7xl);
+}
+
+.splash-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: white;
+  opacity: 0.6;
+}
+
+.splash-dot:nth-child(1) { animation: splashBounce 600ms 0ms ease-in-out infinite; }
+.splash-dot:nth-child(2) { animation: splashBounce 600ms 150ms ease-in-out infinite; }
+.splash-dot:nth-child(3) { animation: splashBounce 600ms 300ms ease-in-out infinite; }
+
+@keyframes splashBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}

@@ -17,6 +17,9 @@
 @import "./result.css";
 @import "./profile.css";
 @import "./settings.css";
+@import "./room.css";
+@import "./login.css";
+@import "./splash.css";
 
 /* Tailwind (保留用于基础 reset 和少量 utility) */
 @import "tailwindcss";

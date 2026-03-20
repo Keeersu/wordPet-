@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 房间详情页，展示章节房间全景、家具收集进度、关卡列表，用户点击「Let's purr!」开始/继续学习。
- * Style referenceFiles:
+ * Style referenceFiles: styles/room.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -133,74 +133,35 @@ function getLevelKey(chapterId: number, levelId: number) {
 
 function RoomBackground({ chapter, furnitureUnlocked }: { chapter: ChapterMeta; furnitureUnlocked: boolean }) {
   return (
-    <div
-      style={{
-        width: '100%',
-        aspectRatio: '375 / 202',
-        backgroundColor: chapter.bgColor,
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className="room-bg" style={{ backgroundColor: chapter.bgColor }}>
       {/* 🖼️ ASSET | 房间背景图 | JPG @3x | /assets/rooms/ch{id}/bg.jpg */}
       <img
         src={`/assets/rooms/ch${chapter.id}/bg.jpg`}
         alt={chapter.nameCn}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        className="room-bg__img"
         onError={(e) => {
-          // 图片未上传时隐藏，显示占位
           ;(e.target as HTMLImageElement).style.display = 'none'
         }}
       />
 
       {/* 占位文字（图片未上传时显示） */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 8,
-          color: 'rgba(93,64,55,0.4)',
-          fontWeight: 700,
-          fontSize: 14,
-          zIndex: 0,
-        }}
-      >
-        <span style={{ fontSize: 48 }}>🏠</span>
+      <div className="room-bg__placeholder">
+        <span className="room-bg__placeholder-icon">🏠</span>
         <span>房间背景图占位</span>
       </div>
 
       {/* 已解锁家具（完整图叠加） */}
       {furnitureUnlocked && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '12%',
-            right: '12%',
-            zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            animation: 'furnitureDrop 600ms cubic-bezier(0.34,1.56,0.64,1) forwards',
-          }}
-        >
-          {/* 🖼️ ASSET | 完整家具图 | PNG @3x | /assets/rooms/ch{id}/furniture/lv1/full.png */}
+        <div className="room-bg__furniture">
           <img
             src={`/assets/rooms/ch${chapter.id}/furniture/lv1/full.png`}
             alt={chapter.furnitureName}
-            style={{ width: 80, height: 80, objectFit: 'contain' }}
+            className="room-bg__furniture-img"
             onError={(e) => {
-              // 图片未上传时显示 emoji 占位
               ;(e.target as HTMLImageElement).style.display = 'none'
               const parent = (e.target as HTMLImageElement).parentElement
               if (parent) {
-                parent.innerHTML = `<span style="font-size:52px">${chapter.furnitureEmoji}</span>`
+                parent.innerHTML = `<span class="room-bg__furniture-emoji">${chapter.furnitureEmoji}</span>`
               }
             }}
           />
@@ -208,17 +169,7 @@ function RoomBackground({ chapter, furnitureUnlocked }: { chapter: ChapterMeta; 
       )}
 
       {/* 猫咪（占位） */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '8%',
-          left: '10%',
-          zIndex: 3,
-          fontSize: 40,
-        }}
-      >
-        🐱
-      </div>
+      <div className="room-bg__cat">🐱</div>
     </div>
   )
 }
@@ -246,98 +197,39 @@ function LevelRow({
 }) {
   const isLocked = status === 'locked'
   const isCompleted = status === 'completed'
-  const isCurrent = status === 'current'
 
-  const bgColor = isCompleted ? '#F0FBF0' : isCurrent ? '#FFFBF0' : '#F5F0EA'
-  const borderColor = isCompleted ? '#66BB6A' : isCurrent ? '#FFB840' : 'rgba(93,64,55,0.12)'
-  const shadowColor = isCompleted ? '#4A9050' : isCurrent ? '#A06800' : 'rgba(93,64,55,0.1)'
+  const statusClass = isCompleted ? 'room-level--completed' : status === 'current' ? 'room-level--current' : 'room-level--locked'
 
   return (
     <div
       onClick={isLocked ? undefined : onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '12px 14px',
-        borderRadius: 12,
-        border: `2px solid ${borderColor}`,
-        backgroundColor: bgColor,
-        boxShadow: `0 3px 0 0 ${shadowColor}`,
-        cursor: isLocked ? 'default' : 'pointer',
-        opacity: isLocked ? 0.5 : 1,
-        transition: 'transform 80ms ease, box-shadow 80ms ease',
-        userSelect: 'none',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-      onPointerDown={(e) => {
-        if (!isLocked) {
-          ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(2px)'
-          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 1px 0 0 ${shadowColor}`
-        }
-      }}
-      onPointerUp={(e) => {
-        ;(e.currentTarget as HTMLDivElement).style.transform = ''
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 3px 0 0 ${shadowColor}`
-      }}
-      onPointerLeave={(e) => {
-        ;(e.currentTarget as HTMLDivElement).style.transform = ''
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 3px 0 0 ${shadowColor}`
-      }}
+      className={`room-level ${statusClass}`}
     >
       {/* 关卡序号圆 */}
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: '50%',
-          backgroundColor: isCompleted ? '#66BB6A' : isCurrent ? '#FFB840' : 'rgba(93,64,55,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          fontSize: isCompleted ? 16 : 14,
-          fontWeight: 900,
-          color: isCompleted || isCurrent ? 'white' : 'rgba(93,64,55,0.4)',
-        }}
-      >
+      <div className="room-level__num">
         {isCompleted ? '✓' : isLocked ? '🔒' : levelId}
       </div>
 
       {/* 关卡信息 */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 900, color: '#5D4037' }}>
-          第 {levelId} 关
-        </div>
-        <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.55)', marginTop: 2 }}>
+      <div className="room-level__info">
+        <div className="room-level__title">第 {levelId} 关</div>
+        <div className="room-level__desc">
           {isCompleted
             ? `正确率 ${Math.round(accuracy! * 100)}%`
-            : isCurrent
+            : status === 'current'
               ? '点击开始挑战 →'
               : '完成前几关后解锁'}
         </div>
       </div>
 
       {/* 右侧：家具 */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        {/* 🖼️ ASSET | 家具图 | /assets/rooms/ch{id}/furniture/lv{levelId}/full.png */}
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 8,
-            backgroundColor: 'rgba(93,64,55,0.06)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
+      <div className="room-level__furniture">
+        <div className="room-level__furniture-box">
           {furnitureUnlocked ? (
             <img
               src={`/assets/rooms/ch${chapterId}/furniture/lv${levelId}/full.png`}
               alt={furnitureName}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              className="room-level__furniture-img"
               onError={(e) => {
                 ;(e.target as HTMLImageElement).style.display = 'none'
                 const parent = (e.target as HTMLImageElement).parentElement
@@ -351,25 +243,14 @@ function LevelRow({
               }}
             />
           ) : (
-            <span style={{ fontSize: 22, opacity: 0.4 }}>❓</span>
+            <span className="room-level__furniture-placeholder">❓</span>
           )}
         </div>
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: furnitureUnlocked ? '#5D4037' : 'rgba(93,64,55,0.4)',
-            textAlign: 'center',
-            maxWidth: 56,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <div className={`room-level__furniture-name ${furnitureUnlocked ? 'room-level__furniture-name--unlocked' : 'room-level__furniture-name--locked'}`}>
           {furnitureName}
         </div>
         {furnitureUnlocked && (
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#66BB6A', lineHeight: 1, marginTop: -2 }}>✓</span>
+          <span className="room-level__furniture-check">✓</span>
         )}
       </div>
     </div>
@@ -384,11 +265,8 @@ function Room() {
   const { gameState } = useGameStore()
 
   const chapterId = Number(chapterIdParam ?? 1)
-
-  // 找到当前章节元数据
   const chapter = chapterMeta.find((c) => c.id === chapterId) ?? chapterMeta[0]
 
-  // 计算各关卡状态
   const levelStatuses = useMemo(() => {
     return [1, 2, 3, 4].map((levelId) => {
       const key = getLevelKey(chapterId, levelId)
@@ -396,13 +274,9 @@ function Room() {
       if (record) {
         return { levelId, status: 'completed' as LevelStatus, accuracy: record.accuracy }
       }
-      // 第一关或前一关已完成才能解锁
       const prevKey = getLevelKey(chapterId, levelId - 1)
       const prevCompleted = levelId === 1 || !!gameState.completedLevels[prevKey]
-
-      // 当前章节解锁了才能进入
       const chapterUnlocked = chapterId <= gameState.currentChapter
-
       if (!chapterUnlocked) return { levelId, status: 'locked' as LevelStatus }
       if (!prevCompleted) return { levelId, status: 'locked' as LevelStatus }
       return { levelId, status: 'current' as LevelStatus }
@@ -413,8 +287,6 @@ function Room() {
   const chapterFurnitures = chapterFurnitureMap[chapterId] ?? chapterFurnitureMap[1]
   const furnitureId = `furniture_ch${chapterId}`
   const furnitureUnlocked = gameState.unlockedFurniture.includes(furnitureId) || completedCount >= 4
-
-  // 「Let's purr!」按钮目标关卡：第一个未完成的关卡
   const nextLevelId = levelStatuses.find((l) => l.status === 'current')?.levelId ?? null
   const allCompleted = completedCount >= 4
 
@@ -429,121 +301,42 @@ function Room() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        backgroundColor: '#FFF8E7',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-      }}
-    >
-      {/* ── CSS 动画 ── */}
-      <style>{`
-        @keyframes furnitureDrop {
-          from { opacity: 0; transform: translateY(-30px) scale(0.85); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
-
+    <div className="room-page">
       {/* ── 顶部导航 ── */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 50,
-        }}
-      >
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 10,
-            border: '2px solid rgba(93,64,55,0.12)',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            cursor: 'pointer',
-            color: '#5D4037',
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: 'inherit',
-          }}
-        >
+      <div className="room-back-wrap">
+        <button onClick={() => navigate('/')} className="back-btn">
           <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
           返回
         </button>
       </div>
 
       {/* ── 可滚动内容区 ── */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          paddingBottom: 100,
-        }}
-      >
-        {/* 1. 房间全景图 */}
+      <div className="room-scroll">
         <RoomBackground chapter={chapter} furnitureUnlocked={furnitureUnlocked} />
 
-        {/* 2. 信息卡 */}
-        <div style={{ padding: '16px 16px 0' }}>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-              padding: '14px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <span style={{ fontSize: 32 }}>🐱</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 900, fontSize: 16 }}>
+        {/* 信息卡 */}
+        <div className="room-section">
+          <div className="room-info-card">
+            <span className="room-info-card__avatar">🐱</span>
+            <div className="room-info-card__text">
+              <div className="room-info-card__name">
                 {gameState.cat.name} · {chapter.nameCn}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.55)', marginTop: 2 }}>
+              <div className="room-info-card__sub">
                 {chapter.nameEn} · {completedCount}/4 关已完成
               </div>
             </div>
-            <div
-              style={{
-                backgroundColor: completedCount >= 4 ? '#66BB6A' : '#FFB840',
-                color: 'white',
-                borderRadius: 20,
-                padding: '4px 10px',
-                fontSize: 12,
-                fontWeight: 700,
-              }}
-            >
+            <div className={`room-info-card__badge ${completedCount >= 4 ? 'room-info-card__badge--done' : 'room-info-card__badge--progress'}`}>
               {completedCount >= 4 ? '已完成 🎉' : `${completedCount}/4`}
             </div>
           </div>
         </div>
 
-        {/* 3. 关卡 · 家具 */}
-        <div style={{ padding: '16px 16px 0' }}>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>
-              🗺️ 关卡 · 家具
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* 关卡 · 家具 */}
+        <div className="room-section">
+          <div className="card card--padded">
+            <div className="room-card-title">🗺️ 关卡 · 家具</div>
+            <div className="room-levels">
               {levelStatuses.map(({ levelId, status, accuracy }) => {
                 const fName = chapterFurnitures[levelId - 1]
                 const fUnlocked = gameState.unlockedFurniture.includes(`furniture_ch${chapterId}_lv${levelId}`)
@@ -564,51 +357,21 @@ function Room() {
           </div>
         </div>
 
-        {/* 5. 已学单词（2 列网格） */}
-        <div style={{ padding: '16px 16px 0' }}>
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>
-              📚 本章单词
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 8,
-              }}
-            >
+        {/* 本章单词 */}
+        <div className="room-section">
+          <div className="card card--padded">
+            <div className="room-card-title">📚 本章单词</div>
+            <div className="room-words-grid">
               {chapter.words.map(({ word, meaning, emoji }) => {
-                const wordRecord = gameState.wordHistory[word]
-                const learned = !!wordRecord
+                const learned = !!gameState.wordHistory[word]
                 return (
-                  <div
-                    key={word}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      backgroundColor: learned ? 'rgba(102,187,106,0.08)' : 'rgba(93,64,55,0.04)',
-                      border: `1.5px solid ${learned ? 'rgba(102,187,106,0.3)' : 'rgba(93,64,55,0.1)'}`,
-                    }}
-                  >
-                    <span style={{ fontSize: 20, flexShrink: 0 }}>{emoji}</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, fontSize: 13, color: '#5D4037' }}>{word}</div>
-                      <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.55)' }}>{meaning}</div>
+                  <div key={word} className={`room-word-item ${learned ? 'room-word-item--learned' : 'room-word-item--unlearned'}`}>
+                    <span className="room-word-item__emoji">{emoji}</span>
+                    <div className="room-word-item__text">
+                      <div className="room-word-item__word">{word}</div>
+                      <div className="room-word-item__meaning">{meaning}</div>
                     </div>
-                    {learned && (
-                      <span style={{ marginLeft: 'auto', fontSize: 12, color: '#66BB6A', flexShrink: 0 }}>✓</span>
-                    )}
+                    {learned && <span className="room-word-item__check">✓</span>}
                   </div>
                 )
               })}
@@ -619,79 +382,16 @@ function Room() {
 
       {/* ── 底部固定按钮 ── */}
       {!allCompleted && nextLevelId && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '12px 20px calc(12px + env(safe-area-inset-bottom, 0px))',
-            background: 'linear-gradient(to top, rgba(255,248,231,1) 70%, rgba(255,248,231,0))',
-            zIndex: 40,
-          }}
-        >
-          <button
-            onClick={handleStartClick}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: 16,
-              border: '2.5px solid #F5C87A',
-              backgroundColor: '#FFB840',
-              boxShadow: '0 4px 0 0 #A06800',
-              color: '#3D1F00',
-              fontWeight: 900,
-              fontSize: 17,
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              letterSpacing: 0.5,
-              transition: 'transform 80ms ease, box-shadow 80ms ease',
-            }}
-            onPointerDown={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(4px)'
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #A06800'
-            }}
-            onPointerUp={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #A06800'
-            }}
-            onPointerLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #A06800'
-            }}
-          >
+        <div className="room-bottom-bar">
+          <button onClick={handleStartClick} className="room-start-btn btn">
             Let&apos;s purr! 🐾 第 {nextLevelId} 关
           </button>
         </div>
       )}
 
-      {/* 全部完成时的底部提示 */}
       {allCompleted && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '12px 20px calc(12px + env(safe-area-inset-bottom, 0px))',
-            background: 'linear-gradient(to top, rgba(255,248,231,1) 70%, rgba(255,248,231,0))',
-            zIndex: 40,
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: 16,
-              border: '2.5px solid #66BB6A',
-              backgroundColor: 'rgba(102,187,106,0.1)',
-              color: '#3A7D40',
-              fontWeight: 900,
-              fontSize: 16,
-              textAlign: 'center',
-              letterSpacing: 0.5,
-            }}
-          >
+        <div className="room-bottom-bar">
+          <div className="room-complete-banner">
             ✓ 本章已全部完成！{chapter.furnitureEmoji} 家具已解锁
           </div>
         </div>
