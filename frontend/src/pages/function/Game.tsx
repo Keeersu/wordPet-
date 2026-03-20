@@ -942,8 +942,13 @@ function Game() {
   const isChoiceType = question.type === 'multiple_choice' || question.type === 'fill_blank' || question.type === 'picture_matching'
   const isSpellingType = question.type === 'letter_match' || question.type === 'word_spelling'
 
-  // ── 是否展示配图 ──
-  const showImage = question.type !== 'picture_matching'
+  // ── 是否展示顶部配图 ──
+  // multiple_choice（看图选词）：需要大图 — 用户看图猜词
+  // letter_match（字母消消乐）：需要大图 — 给用户视觉提示
+  // fill_blank（填空题）：不需要 — 用户看例句选词
+  // picture_matching（图片配对）：不需要 — 用户看英文选中文
+  // word_spelling（看图拼出单词）：不需要顶部大图 — LetterPuzzle 内已有小图
+  const showImage = question.type === 'multiple_choice' || question.type === 'letter_match'
 
   return (
     <div
