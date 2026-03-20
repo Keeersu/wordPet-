@@ -68,3 +68,22 @@
 
 **修改文件**：
 - `frontend/src/pages/function/Result.tsx` - 改造为两阶段流程
+
+### 2026-03-20 - Phase 1.5 完成：本关单词模块优化
+- ✅ Game.tsx 新增 `firstCorrect` 字段追踪首次答对状态
+- ✅ Game.tsx 通过 route state 传递 `levelWordDetails` 给 Result 页面
+  - 包含每个单词的 word、meaning、sentence、type、stats（含 firstCorrect）
+- ✅ Result.tsx 完全重构「本关单词」区块
+  - 三级掌握度系统：已掌握（绿）/ 需复习（黄）/ 未掌握（红）
+  - 按掌握程度排序：未掌握 → 需复习 → 已掌握（薄弱单词置顶）
+  - 每个单词卡展示：单词 + 中文释义 + 掌握标签 + 🔊发音按钮 + 展开箭头
+  - 点击展开：例句 + 答题统计（答对/答错次数 + 一次通过标记）
+  - 成绩卡新增掌握度概览统计条
+  - 兜底逻辑：直接访问 URL 时从 wordHistory 回退展示
+- ✅ 底部按钮改为 3 按钮布局：房间 / 再来一遍 / 下一关
+- ✅ 新增 `expandIn` CSS 动画（展开详情入场效果）
+- ✅ 编译通过，HMR 正常，无运行时错误
+
+**修改文件**：
+- `frontend/src/pages/function/Game.tsx` - 新增 firstCorrect 追踪 + route state 传递
+- `frontend/src/pages/function/Result.tsx` - 完全重构本关单词区块

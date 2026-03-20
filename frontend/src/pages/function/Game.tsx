@@ -519,7 +519,7 @@ function Game() {
   const [encourageText, setEncourageText] = useState('')
   // Track correct count for completion screen
   const [correctCount, setCorrectCount] = useState(0)
-  const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number }>>({})
+  const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number; firstCorrect: boolean }>>({})
 
   const question = QUESTIONS[currentIndex]
 
@@ -600,12 +600,13 @@ function Game() {
         setEncourageText(getRandomEncourage(true))
         setCorrectCount((c) => c + 1)
         setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0, firstCorrect: false }
           return {
             ...prev,
             [question.word]: {
               correct: existing.correct + 1,
               wrong: existing.wrong,
+              firstCorrect: newAttemptCount === 1, // 首次就答对
             },
           }
         })
@@ -616,12 +617,13 @@ function Game() {
         setAnswerState('wrong_first')
         setEncourageText(getRandomEncourage(false))
         setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0, firstCorrect: false }
           return {
             ...prev,
             [question.word]: {
               correct: existing.correct,
               wrong: existing.wrong + 1,
+              firstCorrect: false,
             },
           }
         })
@@ -630,12 +632,13 @@ function Game() {
         setAnswerState('wrong_second')
         setEncourageText('正确答案是——')
         setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
+          const existing = prev[question.word] ?? { correct: 0, wrong: 0, firstCorrect: false }
           return {
             ...prev,
             [question.word]: {
               correct: existing.correct,
               wrong: existing.wrong + 1,
+              firstCorrect: false,
             },
           }
         })
@@ -704,7 +707,18 @@ function Game() {
         }
       })
 
-      void navigate(`/chapter/${chapterId}/level/${levelId}/result`)
+      // 构建本关单词详情，传给 Result 页面
+      const levelWordDetails = QUESTIONS.map((q) => ({
+        word: q.word,
+        meaning: q.meaning,
+        sentence: q.sentence,
+        type: q.type,
+        stats: wordStats[q.word] ?? { correct: 0, wrong: 0, firstCorrect: false },
+      }))
+
+      void navigate(`/chapter/${chapterId}/level/${levelId}/result`, {
+        state: { levelWordDetails },
+      })
 
       adjustDifficulty(accuracy, gameState.adaptiveDifficulty.current, wordStats).then(
         (newDifficulty) => {

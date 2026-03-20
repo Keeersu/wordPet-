@@ -1,32 +1,57 @@
 /*
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
- * Description: 关卡结算页，进入时先全屏展示家具解锁动画，点击继续后展示正确率、单词回顾，提供返回房间或进入下一关的入口。
+ * Description: 关卡结算页，进入时先全屏展示家具解锁动画，点击继续后展示正确率、单词回顾（含释义/例句/掌握度/发音），提供返回房间、再来一遍或进入下一关的入口。
  * Style referenceFiles:
  * Design for: Mobile
  * </base-info>
  * <page-design>
  * ## Features & Interactions
  * - Phase 1: 全屏家具解锁动画（FurnitureReveal 组件）
- *   - 深色背景 + 星光粒子
- *   - 家具弹性缩放出场 + 光晕扩散
- *   - 家具名称 + "新家具已解锁！" 文字淡入
- *   - 底部「太棒了！」按钮
- * - Phase 2: 结算详情（点击继续后展示）
+ * - Phase 2: 结算详情
  *   - 成绩卡：正确率 + 鼓励文案
- *   - 本关单词回顾（2 列网格，答错标红）
- *   - 底部两按钮：返回房间 / 下一关（或返回首页）
+ *   - 本关单词回顾：
+ *     - 掌握度分类（已掌握/需复习/未掌握）+ 排序
+ *     - 中文释义
+ *     - 🔊 发音按钮
+ *     - 点击展开：例句 + 答题次数明细
+ *   - 底部三按钮：返回房间 / 再来一遍 / 下一关
  *
  * ## Page Layout
- * 先全屏 overlay 动画，过渡到顶部固定导航 + 中间可滚动内容 + 底部固定双按钮
+ * 先全屏 overlay 动画，过渡到顶部固定导航 + 中间可滚动内容 + 底部固定三按钮
  * </page-design>
  */
 
 import { useState, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
 import FurnitureReveal from './FurnitureReveal'
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface LevelWordDetail {
+  word: string
+  meaning: string
+  sentence: string
+  type: string
+  stats: { correct: number; wrong: number; firstCorrect: boolean }
+}
+
+type MasteryLevel = 'mastered' | 'weak' | 'failed'
+
+// ─── TTS ─────────────────────────────────────────────────────────────────────
+
+function speakWord(word: string, sentence?: string) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const text = sentence ? `${word}. ${sentence}` : word
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.lang = 'en-US'
+  utter.rate = 0.85
+  utter.pitch = 1
+  window.speechSynthesis.speak(utter)
+}
 
 // ─── 家具名映射 ──────────────────────────────────────────────────────────────
 
@@ -38,7 +63,6 @@ const chapterFurnitureMap: Record<number, [string, string, string, string]> = {
   5: ['小餐桌', '料理台', '香料架', '小冰箱'],
 }
 
-// 家具 emoji 映射（与 Room.tsx 保持一致）
 const chapterFurnitureEmoji: Record<number, [string, string, string, string]> = {
   1: ['📦', '📰', '🥣', '🏮'],
   2: ['🛋️', '🧶', '📚', '🪔'],
@@ -47,13 +71,194 @@ const chapterFurnitureEmoji: Record<number, [string, string, string, string]> = 
   5: ['🍽️', '🔪', '🧂', '🧊'],
 }
 
-// 当前 mock 题库的 10 个单词，后续接真实题库后可动态获取
-const LEVEL_WORDS = ['sofa', 'lamp', 'chair', 'table', 'clock', 'window', 'pillow', 'carpet', 'shelf', 'mirror']
+// ─── 掌握度工具函数 ──────────────────────────────────────────────────────────
+
+function getMasteryLevel(stats: LevelWordDetail['stats']): MasteryLevel {
+  if (stats.correct === 0 && stats.wrong > 0) return 'failed'
+  if (stats.firstCorrect) return 'mastered'
+  return 'weak'
+}
+
+function getMasteryConfig(level: MasteryLevel) {
+  switch (level) {
+    case 'mastered':
+      return {
+        label: '已掌握',
+        color: '#66BB6A',
+        bgColor: 'rgba(102,187,106,0.08)',
+        borderColor: 'rgba(102,187,106,0.3)',
+        icon: 'lucide:circle-check',
+        sortOrder: 2,
+      }
+    case 'weak':
+      return {
+        label: '需复习',
+        color: '#FFB840',
+        bgColor: 'rgba(255,184,64,0.08)',
+        borderColor: 'rgba(255,184,64,0.3)',
+        icon: 'lucide:alert-circle',
+        sortOrder: 1,
+      }
+    case 'failed':
+      return {
+        label: '未掌握',
+        color: '#EF5350',
+        bgColor: 'rgba(239,83,80,0.06)',
+        borderColor: 'rgba(239,83,80,0.35)',
+        icon: 'lucide:circle-x',
+        sortOrder: 0,
+      }
+  }
+}
+
+// ─── 单词卡组件 ──────────────────────────────────────────────────────────────
+
+function WordCard({ detail }: { detail: LevelWordDetail }) {
+  const [expanded, setExpanded] = useState(false)
+  const mastery = getMasteryLevel(detail.stats)
+  const config = getMasteryConfig(mastery)
+
+  return (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      style={{
+        padding: '12px 14px',
+        borderRadius: 14,
+        backgroundColor: config.bgColor,
+        border: `1.5px solid ${config.borderColor}`,
+        cursor: 'pointer',
+        transition: 'all 200ms ease',
+      }}
+    >
+      {/* ── 顶部行：单词 + 掌握标签 + 发音 ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* 单词 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontWeight: 800, fontSize: 16, color: '#5D4037', fontFamily: "'Nunito', sans-serif" }}>
+              {detail.word}
+            </span>
+            {/* 掌握度标签 */}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 3,
+                padding: '2px 7px',
+                borderRadius: 6,
+                fontSize: 10,
+                fontWeight: 700,
+                color: config.color,
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                border: `1px solid ${config.borderColor}`,
+                lineHeight: 1.4,
+                flexShrink: 0,
+              }}
+            >
+              <Icon icon={config.icon} style={{ width: 11, height: 11 }} />
+              {config.label}
+            </span>
+          </div>
+          {/* 中文释义 */}
+          <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.6)', marginTop: 3, lineHeight: 1.3 }}>
+            {detail.meaning}
+          </div>
+        </div>
+
+        {/* 发音按钮 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            speakWord(detail.word, expanded ? detail.sentence : undefined)
+          }}
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255,184,64,0.15)',
+            border: '1.5px solid rgba(255,184,64,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: '#FFB840' }} />
+        </button>
+
+        {/* 展开/收起指示 */}
+        <Icon
+          icon={expanded ? 'lucide:chevron-up' : 'lucide:chevron-down'}
+          style={{
+            width: 16,
+            height: 16,
+            color: 'rgba(93,64,55,0.3)',
+            flexShrink: 0,
+            transition: 'transform 200ms ease',
+          }}
+        />
+      </div>
+
+      {/* ── 展开详情 ── */}
+      {expanded && (
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 10,
+            borderTop: `1px dashed ${config.borderColor}`,
+            animation: 'expandIn 200ms ease-out',
+          }}
+        >
+          {/* 例句 */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(93,64,55,0.45)', marginBottom: 3 }}>
+              例句
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: '#5D4037',
+                fontStyle: 'italic',
+                fontFamily: "'Nunito', sans-serif",
+                lineHeight: 1.5,
+                padding: '6px 10px',
+                borderRadius: 8,
+                backgroundColor: 'rgba(255,255,255,0.6)',
+              }}
+            >
+              &ldquo;{detail.sentence}&rdquo;
+            </div>
+          </div>
+
+          {/* 答题统计 */}
+          <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon icon="lucide:check" style={{ width: 13, height: 13, color: '#66BB6A' }} />
+              <span style={{ color: '#66BB6A', fontWeight: 700 }}>答对 {detail.stats.correct} 次</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon icon="lucide:x" style={{ width: 13, height: 13, color: '#EF5350' }} />
+              <span style={{ color: '#EF5350', fontWeight: 700 }}>答错 {detail.stats.wrong} 次</span>
+            </div>
+            {detail.stats.firstCorrect && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Icon icon="lucide:zap" style={{ width: 13, height: 13, color: '#FFB840' }} />
+                <span style={{ color: '#FFB840', fontWeight: 700 }}>一次通过</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── 主页面 ──────────────────────────────────────────────────────────────────
 
 function Result() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { chapterId: cidParam, levelId: lidParam } = useParams()
   const { gameState } = useGameStore()
 
@@ -72,6 +277,24 @@ function Result() {
   const furnitureUnlocked = gameState.unlockedFurniture.includes(furnitureKey)
   const furnitureImage = `/assets/rooms/ch${chapterId}/furniture/lv${levelId}/full.png`
 
+  // 从路由 state 获取本关单词详情
+  const routeState = location.state as { levelWordDetails?: LevelWordDetail[] } | null
+  const levelWordDetails: LevelWordDetail[] = routeState?.levelWordDetails ?? []
+
+  // 按掌握度排序：未掌握 → 需复习 → 已掌握
+  const sortedWords = [...levelWordDetails].sort((a, b) => {
+    const aOrder = getMasteryConfig(getMasteryLevel(a.stats)).sortOrder
+    const bOrder = getMasteryConfig(getMasteryLevel(b.stats)).sortOrder
+    return aOrder - bOrder
+  })
+
+  // 统计各掌握度数量
+  const masteryCount = {
+    mastered: sortedWords.filter((w) => getMasteryLevel(w.stats) === 'mastered').length,
+    weak: sortedWords.filter((w) => getMasteryLevel(w.stats) === 'weak').length,
+    failed: sortedWords.filter((w) => getMasteryLevel(w.stats) === 'failed').length,
+  }
+
   // ── 页面阶段：reveal（家具解锁动画） → detail（结算详情）
   const [stage, setStage] = useState<'reveal' | 'detail'>(
     furnitureUnlocked ? 'reveal' : 'detail'
@@ -80,7 +303,6 @@ function Result() {
 
   const handleRevealContinue = useCallback(() => {
     setStage('detail')
-    // 短延迟让过渡更自然
     setTimeout(() => setDetailVisible(true), 50)
   }, [])
 
@@ -88,14 +310,15 @@ function Result() {
   const rateColor = accuracyPct >= 80 ? '#66BB6A' : accuracyPct >= 60 ? '#FFB840' : '#EF5350'
   const encourageText =
     accuracyPct >= 80
-      ? '太棒了！继续保持 🎉'
+      ? '太棒了！继续保持'
       : accuracyPct >= 60
-        ? '不错哦！再接再厉 🐾'
-        : '没关系，下次一定！💪'
+        ? '不错哦！再接再厉'
+        : '没关系，下次一定！'
 
   const isLastLevel = levelId >= 4
 
   const handleBack = () => navigate(`/rooms/${chapterId}`)
+  const handleReplay = () => navigate(`/chapter/${chapterId}/level/${levelId}`)
   const handleNext = () => {
     if (isLastLevel) {
       navigate('/')
@@ -133,8 +356,8 @@ function Result() {
         transition: 'opacity 400ms ease',
       }}
     >
-      {/* ── 注入详情页过渡动画 ── */}
-      <style>{detailKeyframes}</style>
+      {/* ── 注入动画 ── */}
+      <style>{animationKeyframes}</style>
 
       {/* ── 顶部导航 ── */}
       <div
@@ -178,12 +401,11 @@ function Result() {
           第 {levelId} 关完成！
         </div>
 
-        {/* 占位，让标题居中 */}
         <div style={{ width: 68 }} />
       </div>
 
       {/* ── 可滚动内容区 ── */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 100 }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
         {/* 1. 成绩卡 */}
         <div
           style={{
@@ -208,6 +430,30 @@ function Result() {
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#5D4037' }}>
               {encourageText}
             </div>
+
+            {/* 掌握度概览条 */}
+            {levelWordDetails.length > 0 && (
+              <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {masteryCount.mastered > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#66BB6A' }}>
+                    <Icon icon="lucide:circle-check" style={{ width: 13, height: 13 }} />
+                    已掌握 {masteryCount.mastered}
+                  </span>
+                )}
+                {masteryCount.weak > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#FFB840' }}>
+                    <Icon icon="lucide:alert-circle" style={{ width: 13, height: 13 }} />
+                    需复习 {masteryCount.weak}
+                  </span>
+                )}
+                {masteryCount.failed > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#EF5350' }}>
+                    <Icon icon="lucide:circle-x" style={{ width: 13, height: 13 }} />
+                    未掌握 {masteryCount.failed}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -228,7 +474,7 @@ function Result() {
                 padding: '14px 16px',
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 10 }}>🏠 本关解锁</div>
+              <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 10 }}>本关解锁</div>
               <div
                 style={{
                   display: 'flex',
@@ -240,7 +486,6 @@ function Result() {
                   border: '1.5px solid rgba(255,215,0,0.2)',
                 }}
               >
-                {/* 小号家具图 */}
                 <div
                   style={{
                     width: 56,
@@ -276,7 +521,7 @@ function Result() {
                     {furnitureName}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#66BB6A', marginTop: 2 }}>
-                    ✓ 已放入房间
+                    已放入房间
                   </div>
                 </div>
               </div>
@@ -284,7 +529,7 @@ function Result() {
           </div>
         )}
 
-        {/* 3. 本关单词回顾 */}
+        {/* 3. 本关单词回顾（增强版） */}
         <div
           style={{
             padding: '16px 16px 0',
@@ -300,51 +545,63 @@ function Result() {
               padding: '14px 16px',
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>📚 本关单词</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {LEVEL_WORDS.map((word) => {
-                const wr = gameState.wordHistory[word]
-                const hasWrong = wr ? wr.wrong > 0 : false
-                return (
-                  <div
-                    key={word}
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      backgroundColor: hasWrong ? 'rgba(239,83,80,0.06)' : 'rgba(93,64,55,0.04)',
-                      border: `1.5px solid ${hasWrong ? 'rgba(239,83,80,0.35)' : 'rgba(93,64,55,0.1)'}`,
-                    }}
-                  >
-                    <div style={{ fontWeight: 800, fontSize: 14, color: '#5D4037' }}>{word}</div>
-                    {wr ? (
-                      <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.55)', marginTop: 2 }}>
-                        ✓ {wr.correct} &nbsp; ✗ {wr.wrong}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.35)', marginTop: 2 }}>
-                        未作答
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontWeight: 900, fontSize: 14 }}>
+                本关单词
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.4)', fontWeight: 600 }}>
+                点击展开详情
+              </div>
             </div>
+
+            {sortedWords.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {sortedWords.map((detail) => (
+                  <WordCard key={detail.word} detail={detail} />
+                ))}
+              </div>
+            ) : (
+              /* 兜底：如果没有 route state（直接访问 URL），用 wordHistory 回退 */
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {Object.entries(gameState.wordHistory)
+                  .slice(-10)
+                  .map(([word, wr]) => {
+                    const hasWrong = wr.wrong > 0
+                    return (
+                      <div
+                        key={word}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: 10,
+                          backgroundColor: hasWrong ? 'rgba(239,83,80,0.06)' : 'rgba(93,64,55,0.04)',
+                          border: `1.5px solid ${hasWrong ? 'rgba(239,83,80,0.35)' : 'rgba(93,64,55,0.1)'}`,
+                        }}
+                      >
+                        <div style={{ fontWeight: 800, fontSize: 14, color: '#5D4037' }}>{word}</div>
+                        <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.55)', marginTop: 2 }}>
+                          答对 {wr.correct} &nbsp; 答错 {wr.wrong}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── 底部固定按钮区 ── */}
+      {/* ── 底部固定按钮区（3 按钮） ── */}
       <div
         style={{
           position: 'fixed',
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '12px 20px calc(12px + env(safe-area-inset-bottom, 0px))',
+          padding: '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))',
           background: 'linear-gradient(to top, rgba(255,248,231,1) 70%, rgba(255,248,231,0))',
           zIndex: 40,
           display: 'flex',
-          gap: 12,
+          gap: 10,
           animation: 'detailSlideUp 500ms 300ms ease-out both',
         }}
       >
@@ -353,62 +610,97 @@ function Result() {
           onClick={handleBack}
           style={{
             flex: 1,
-            padding: '14px',
-            borderRadius: 16,
-            border: '2px solid #FFB840',
+            padding: '13px 4px',
+            borderRadius: 14,
+            border: '2px solid rgba(93,64,55,0.15)',
             backgroundColor: 'white',
-            color: '#FFB840',
-            fontWeight: 900,
-            fontSize: 15,
+            color: '#5D4037',
+            fontWeight: 800,
+            fontSize: 14,
             fontFamily: 'inherit',
             cursor: 'pointer',
-            boxShadow: '0 4px 0 0 rgba(93,64,55,0.08)',
+            boxShadow: '0 3px 0 0 rgba(93,64,55,0.08)',
             transition: 'transform 80ms ease, box-shadow 80ms ease',
           }}
           onPointerDown={(e) => {
             ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 0 0 rgba(93,64,55,0.08)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(93,64,55,0.08)'
           }}
           onPointerUp={(e) => {
             ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(93,64,55,0.08)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
           }}
           onPointerLeave={(e) => {
             ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(93,64,55,0.08)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(93,64,55,0.08)'
           }}
         >
-          返回房间
+          <Icon icon="lucide:home" style={{ width: 14, height: 14, verticalAlign: -2, marginRight: 4 }} />
+          房间
+        </button>
+
+        {/* 再来一遍 */}
+        <button
+          onClick={handleReplay}
+          style={{
+            flex: 1,
+            padding: '13px 4px',
+            borderRadius: 14,
+            border: '2px solid #FFB840',
+            backgroundColor: 'white',
+            color: '#FFB840',
+            fontWeight: 800,
+            fontSize: 14,
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            boxShadow: '0 3px 0 0 rgba(255,184,64,0.2)',
+            transition: 'transform 80ms ease, box-shadow 80ms ease',
+          }}
+          onPointerDown={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(2px)'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(255,184,64,0.2)'
+          }}
+          onPointerUp={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(255,184,64,0.2)'
+          }}
+          onPointerLeave={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 rgba(255,184,64,0.2)'
+          }}
+        >
+          <Icon icon="lucide:rotate-ccw" style={{ width: 14, height: 14, verticalAlign: -2, marginRight: 4 }} />
+          再来一遍
         </button>
 
         {/* 下一关 / 返回首页 */}
         <button
           onClick={handleNext}
           style={{
-            flex: 1,
-            padding: '14px',
-            borderRadius: 16,
+            flex: 1.2,
+            padding: '13px 4px',
+            borderRadius: 14,
             border: '2.5px solid white',
             backgroundColor: '#FFB840',
             color: '#3D1F00',
             fontWeight: 900,
-            fontSize: 15,
+            fontSize: 14,
             fontFamily: 'inherit',
             cursor: 'pointer',
-            boxShadow: '0 4px 0 0 #A06800',
+            boxShadow: '0 3px 0 0 #A06800',
             transition: 'transform 80ms ease, box-shadow 80ms ease',
           }}
           onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(4px)'
+            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
             ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0px 0 0 #A06800'
           }}
           onPointerUp={(e) => {
             ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #A06800'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
           }}
           onPointerLeave={(e) => {
             ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 #A06800'
+            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 3px 0 0 #A06800'
           }}
         >
           {isLastLevel ? '返回首页' : '下一关 →'}
@@ -418,11 +710,15 @@ function Result() {
   )
 }
 
-// ─── 详情页入场动画 ──────────────────────────────────────────────────────────
+// ─── 动画 ────────────────────────────────────────────────────────────────────
 
-const detailKeyframes = `
+const animationKeyframes = `
 @keyframes detailSlideUp {
   0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes expandIn {
+  0%   { opacity: 0; transform: translateY(-6px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 `
