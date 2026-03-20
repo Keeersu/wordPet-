@@ -1014,33 +1014,43 @@ function Game() {
             </span>
           </div>
 
-          {/* 自动朗读开关 */}
-          <button
-            onClick={() => setAutoRead((prev) => !prev)}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              backgroundColor: autoRead ? 'rgba(255,184,64,0.15)' : 'white',
-              border: autoRead ? '2px solid rgba(255,184,64,0.4)' : '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              position: 'relative',
-              transition: 'all 200ms ease',
-            }}
-          >
-            <Icon
-              icon={autoRead ? 'lucide:volume-2' : 'lucide:volume-x'}
-              style={{
-                width: '20px',
-                height: '20px',
-                color: autoRead ? '#FFB840' : 'rgba(93,64,55,0.35)',
-              }}
-            />
-          </button>
+          {/* 自动朗读开关：全局 ttsEnabled 关闭时，视觉上也显示为关 */}
+          {(() => {
+            const ttsOn = gameState.settings.ttsEnabled
+            const active = autoRead && ttsOn
+            return (
+              <button
+                onClick={() => {
+                  if (!ttsOn) return // 全局朗读已关闭，按钮不可操作
+                  setAutoRead((prev) => !prev)
+                }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  backgroundColor: active ? 'rgba(255,184,64,0.15)' : 'white',
+                  border: active ? '2px solid rgba(255,184,64,0.4)' : '2px solid rgba(93,64,55,0.1)',
+                  boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: ttsOn ? 'pointer' : 'not-allowed',
+                  position: 'relative',
+                  transition: 'all 200ms ease',
+                  opacity: ttsOn ? 1 : 0.5,
+                }}
+              >
+                <Icon
+                  icon={active ? 'lucide:volume-2' : 'lucide:volume-x'}
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    color: active ? '#FFB840' : 'rgba(93,64,55,0.35)',
+                  }}
+                />
+              </button>
+            )
+          })()}
         </div>
       </div>
 
@@ -1215,7 +1225,7 @@ function Game() {
           encourageText={encourageText}
           onNext={handleNext}
           onSpeak={
-            answerState === 'wrong_second'
+            answerState === 'wrong_second' && gameState.settings.ttsEnabled
               ? () => speakWord(question.correctAnswer, gameState, question.sentence)
               : undefined
           }
