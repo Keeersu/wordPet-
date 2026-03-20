@@ -97,10 +97,10 @@
 /* 选项按钮（答题用） */
 .btn-option {
   width: 100%;
-  padding: var(--space-2xl) var(--space-3xl);
-  border-radius: var(--radius-2xl);
+  padding: var(--space-xl) var(--space-3xl);
+  border-radius: var(--radius-xl);
   border: none;
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
   font-weight: var(--font-bold);
   text-align: center;
   cursor: pointer;

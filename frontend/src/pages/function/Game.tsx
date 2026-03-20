@@ -810,8 +810,8 @@ function Game() {
         <div
           className="game-question-card"
           style={{
-            paddingTop: showImage ? '80px' : '24px',
-            marginTop: showImage ? 0 : 24,
+            paddingTop: showImage ? '68px' : '24px',
+            marginTop: showImage ? 0 : 16,
           }}
         >
           {/* Progress text */}

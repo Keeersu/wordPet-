@@ -22,12 +22,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-xl) var(--space-3xl);
   background-color: var(--color-bg-game);
-  min-height: var(--header-height);
 }
 
 .game-header__close {
@@ -797,7 +792,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-xl) var(--space-3xl);
+  padding: var(--space-lg) var(--space-3xl);
+  min-height: var(--header-height);
 }
 
 .game-header__exit-btn {
@@ -855,13 +851,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 80px;
+  padding-top: 24px;
 }
 
 /* ── Word Image (top illustration) ── */
 .game-word-image {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   border-radius: var(--radius-3xl);
   background-color: rgba(255, 184, 64, 0.2);
   border: 3px solid var(--color-primary-border);
@@ -870,8 +866,9 @@
   justify-content: center;
   overflow: hidden;
   position: relative;
-  margin-bottom: -80px;
+  margin-bottom: -60px;
   z-index: 2;
+  flex-shrink: 0;
 }
 
 .game-word-image__img {
@@ -896,9 +893,9 @@
   width: calc(100% - 32px);
   background-color: var(--color-bg-card);
   border-radius: var(--radius-4xl);
-  padding-bottom: var(--space-5xl);
-  padding-left: var(--space-4xl);
-  padding-right: var(--space-4xl);
+  padding-bottom: var(--space-4xl);
+  padding-left: var(--space-3xl);
+  padding-right: var(--space-3xl);
   box-shadow: var(--shadow-elevated);
 }
 
@@ -907,7 +904,7 @@
   text-align: center;
   font-size: 13px;
   color: rgba(93, 64, 55, 0.5);
-  margin: 0;
+  margin: 0 0 var(--space-sm);
 }
 
 /* ── Picture Word (for picture_matching) ── */
@@ -939,17 +936,17 @@
 /* ── Question Hint ── */
 .game-question-hint {
   text-align: center;
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
   font-weight: var(--font-bold);
   color: var(--color-text);
-  margin: var(--space-xl) 0 var(--space-3xl);
+  margin: var(--space-sm) 0 var(--space-xl);
 }
 
 /* ── Options Container ── */
 .game-options {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
 }
 
 /* ── Bottom Spacer ── */
