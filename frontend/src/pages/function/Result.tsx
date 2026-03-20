@@ -281,6 +281,10 @@ function Result() {
   const routeState = location.state as { levelWordDetails?: LevelWordDetail[] } | null
   const levelWordDetails: LevelWordDetail[] = routeState?.levelWordDetails ?? []
 
+  // 判断家具是否已展示过（避免"再来一遍"时重复弹出）
+  const revealShownKey = `furniture_revealed_ch${chapterId}_lv${levelId}`
+  const alreadyRevealed = sessionStorage.getItem(revealShownKey) === '1'
+
   // 按掌握度排序：未掌握 → 需复习 → 已掌握
   const sortedWords = [...levelWordDetails].sort((a, b) => {
     const aOrder = getMasteryConfig(getMasteryLevel(a.stats)).sortOrder
@@ -296,15 +300,19 @@ function Result() {
   }
 
   // ── 页面阶段：reveal（家具解锁动画） → detail（结算详情）
+  // 如果家具已解锁 且 之前没展示过 → 先展示动画；否则直接显示详情
+  const shouldShowReveal = furnitureUnlocked && !alreadyRevealed
   const [stage, setStage] = useState<'reveal' | 'detail'>(
-    furnitureUnlocked ? 'reveal' : 'detail'
+    shouldShowReveal ? 'reveal' : 'detail'
   )
   const [detailVisible, setDetailVisible] = useState(stage === 'detail')
 
   const handleRevealContinue = useCallback(() => {
+    // 标记已展示过，后续"再来一遍"不会重复弹出
+    sessionStorage.setItem(revealShownKey, '1')
     setStage('detail')
     setTimeout(() => setDetailVisible(true), 50)
-  }, [])
+  }, [revealShownKey])
 
   // 正确率颜色 & 鼓励文案
   const rateColor = accuracyPct >= 80 ? '#66BB6A' : accuracyPct >= 60 ? '#FFB840' : '#EF5350'
@@ -368,20 +376,41 @@ function Result() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 16px 12px',
+          padding: '12px 16px',
           background: 'rgba(255,248,231,0.85)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(93,64,55,0.08)',
+          gap: 10,
         }}
       >
         <button
-          onClick={handleBack}
+          onClick={handleReplay}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
+            padding: '6px 14px',
+            borderRadius: 10,
+            border: '2px solid rgba(255,184,64,0.35)',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 0 0 rgba(255,184,64,0.15)',
+            cursor: 'pointer',
+            color: '#FFB840',
+            fontWeight: 700,
+            fontSize: 13,
+            fontFamily: 'inherit',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          再来一遍
+        </button>
+
+        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5, textAlign: 'center' }}>
+          第 {levelId} 关完成！
+        </div>
+
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            padding: '6px 14px',
             borderRadius: 10,
             border: '2px solid rgba(93,64,55,0.12)',
             backgroundColor: 'white',
@@ -389,19 +418,13 @@ function Result() {
             cursor: 'pointer',
             color: '#5D4037',
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 13,
             fontFamily: 'inherit',
+            whiteSpace: 'nowrap',
           }}
         >
-          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
-          返回
+          返回首页
         </button>
-
-        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>
-          第 {levelId} 关完成！
-        </div>
-
-        <div style={{ width: 68 }} />
       </div>
 
       {/* ── 可滚动内容区 ── */}
