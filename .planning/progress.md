@@ -144,3 +144,55 @@
 - `frontend/src/pages/function/Profile.tsx` - 添加登录状态/云同步 UI
 - `frontend/src/pageLinks.ts` - 新增 Login 链接
 - `frontend/src/routes.ts` - 注册 Login 路由
+
+### 2026-03-20 - Phase 3 完成：难度等级系统完善
+- ✅ 创建词汇数据层 `frontend/src/data/words/`
+  - `types.ts` - WordConfig 接口、SentencePair 类型、getSentence() / getDistractors() 核心函数
+  - `chapter1.ts` - 15 词（街角流浪：cat, box, rain, door, bag, cold, food, wet, run, help, night, warm, sad, hand, home）
+  - `chapter2.ts` - 15 词（温暖新家：sofa, lamp, book, cup, mat, bed, clock, window, pillow, shelf, carpet, mirror, table, chair, key）
+  - `chapter3.ts` - 15 词（幼儿园：desk, pen, ball, cake, draw, color, song, play, star, name, rule, smile, time, doll, milk）
+  - `chapter4.ts` - 15 词（公园探险：tree, duck, park, friend, happy, bird, flower, fish, grass, sky, walk, water, stone, wind, leaf）
+  - `chapter5.ts` - 15 词（厨房美食：cook, rice, bread, knife, taste, egg, fruit, spoon, plate, sweet, bowl, hot, clean, fork, mix）
+  - `index.ts` - 导出 chapterWordsMap + getChapterWords() 工具函数
+  - 每个单词含：word, meaning, pos, image, sentences.basic/advanced, categoryDistractors, spellingDistractors, semanticDistractors
+- ✅ 创建难度配置层 `frontend/src/data/difficulty/`
+  - `questionTypeRatios.ts` - PRD 指定的 4 级题型比例配置表 + Fisher-Yates 洗牌分配
+  - `index.ts` - 统一导出
+  - 5 种题型：picture_matching, letter_match, word_spelling, fill_blank, multiple_choice
+- ✅ 创建题目生成引擎 `frontend/src/data/questionGenerator.ts`
+  - GeneratedQuestion 接口（type, word, meaning, pos, sentence, sentenceZh, options, correctAnswer, image, letters?, matchPairs?）
+  - 5 种题型各自的生成器函数
+  - generateQuestions() 主入口：按难度比例分配题型 → 优先未掌握单词 → 穿插复习
+  - adjustNextQuestion() 题内微调：根据最近 3 题正确率决定下一题难度调整
+  - applyAdjustment() 应用调整：切换例句难度 + 调整干扰项策略
+- ✅ 重构 Game.tsx
+  - 移除硬编码 QUESTIONS 数组（原 10 道固定题）
+  - useEffect 调用 generateQuestions() 动态生成题目
+  - 新增 LetterPuzzle 组件（字母消消乐 + 拼写题共用的 tap-to-select 交互）
+  - 题内自适应追踪（recentResults useRef，sentenceLevelOverride useState）
+  - header 显示当前难度等级指示器（爪印 emoji）
+  - 5 种题型条件渲染：图片配对、字母拼写、拼写输入、填空选择、多选题
+  - 保持既有 UI 模式：FeedbackSheet、ConfirmDialog、TTS 朗读、弹性动画
+- ✅ 实现 Settings.tsx（从占位页面变为完整功能页面）
+  - 「学习设置」分组：可展开的难度选择器（4 级 × emoji + 标题 + 副标题）
+  - 「音频设置」分组：背景音乐开关 + 音效 & 朗读开关（自定义 toggle 组件）
+  - 「关于」分组：版本信息展示
+  - 修改难度后同步更新 gameState.difficulty + adaptiveDifficulty.base/current
+- ✅ TypeScript 编译通过（新增代码无类型错误）
+- ✅ HMR 热更新正常，无运行时错误
+
+**新增文件**：
+- `frontend/src/data/words/types.ts` - 词汇类型定义 + 核心工具函数
+- `frontend/src/data/words/chapter1.ts` - 第 1 章 15 个单词配置
+- `frontend/src/data/words/chapter2.ts` - 第 2 章 15 个单词配置
+- `frontend/src/data/words/chapter3.ts` - 第 3 章 15 个单词配置
+- `frontend/src/data/words/chapter4.ts` - 第 4 章 15 个单词配置
+- `frontend/src/data/words/chapter5.ts` - 第 5 章 15 个单词配置
+- `frontend/src/data/words/index.ts` - 词汇数据统一导出
+- `frontend/src/data/difficulty/questionTypeRatios.ts` - 题型比例配置
+- `frontend/src/data/difficulty/index.ts` - 难度配置统一导出
+- `frontend/src/data/questionGenerator.ts` - 题目动态生成引擎
+
+**修改文件**：
+- `frontend/src/pages/function/Game.tsx` - 完全重构：动态题目生成 + 5 题型 + LetterPuzzle + 题内微调
+- `frontend/src/pages/function/Settings.tsx` - 完全重构：难度调整 + 音频开关 + 版本信息

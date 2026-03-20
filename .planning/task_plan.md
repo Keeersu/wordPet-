@@ -42,7 +42,7 @@
 |------|------|------|
 | 图鉴 | Collection.tsx | ⏳ placeholder |
 | 练习 | Practice.tsx | ⏳ placeholder |
-| 设置 | Settings.tsx | ⏳ placeholder |
+| 设置 | Settings.tsx | ✅ complete（Phase 3 实现） |
 
 ---
 
@@ -133,53 +133,41 @@
   - 未登录：引导登录横幅「注册账号后，换设备也能继续你的故事 →」
   - syncStatus 四态：idle / syncing / synced / error
 
-### Phase 3: 难度等级系统完善 - `pending` 🔴 高优先级
+### Phase 3: 难度等级系统完善 - `complete` ✅
 > 目标：让用户选择的英语水平真正影响游戏体验，实现 PRD 中的三维差异化设计
 
-**当前问题分析**：
-- ❌ 题目数据硬编码在 Game.tsx 中（10 道固定题目），难度选择无实际效果
-- ❌ 未实现题型比例根据难度动态调整
-- ❌ 未实现双套例句系统（basic/advanced）
-- ❌ 未实现干扰项难度策略
-- ❌ 未创建词汇配置文件
-- ⚠️ AI 自适应只在关卡结束后调用，未实现题内实时微调
-
-**难度等级完成度：约 45%**（基础设施已有，核心逻辑缺失）
+**已解决的问题**：
+- ✅ 题目数据硬编码 → 动态生成引擎（5 章节 × 15 词 = 75 个词汇）
+- ✅ 题型比例根据难度动态调整（PRD 指定比例配置表）
+- ✅ 双套例句系统（basic/advanced）根据难度自动选择
+- ✅ 三层干扰项策略（category / spelling / semantic）
+- ✅ 词汇配置文件（5 章节独立文件 + 完整 WordConfig 结构）
+- ✅ 题内实时微调（每 3 题根据正确率调整例句难度 + 干扰项策略）
 
 **任务分解**：
-- [ ] 3.1 创建词汇数据配置文件
-  - 创建 `frontend/src/data/words/` 目录
-  - 每章节独立文件：`chapter1.ts`、`chapter2.ts` 等
-  - 每个单词配置 WordConfig 结构（word, meaning, pos, image, sentences.basic, sentences.advanced）
-  - 第 1 章 4 关，每关至少 10 个单词（含干扰项词汇）
-- [ ] 3.2 创建难度配置文件
-  - 创建 `frontend/src/data/difficulty/` 目录
-  - `questionTypeRatios.ts` - 4 个难度级别的题型比例配置表
-    - 纯新手：图片配对 3、字母消消乐 3、拼写 2、填空 1、填字 1
-    - 略知一二：均匀各 2 题
-    - 勉强应付：填空 3、填字 2 为主
-    - 还不错哦：填空 3、填字 3 为主
-  - `distractorStrategies.ts` - 4 个难度级别的干扰项策略
-    - 纯新手：差异大（sofa vs tree）
-    - 略知一二：同类别（sofa vs chair vs desk）
-    - 勉强应付：拼写相近（sofa vs sofe vs sopa）
-    - 还不错哦：语义相近（sofa vs couch vs bench）
-- [ ] 3.3 重构 Game.tsx 题目生成逻辑
-  - 移除硬编码的 QUESTIONS 数组
-  - 新建 `generateQuestions()` 函数
-  - 根据 `gameState.adaptiveDifficulty.current` 读取对应的题型比例
-  - 从词汇库中随机抽取单词，按比例生成各题型
-  - 根据难度选择 basic/advanced 例句
-  - 根据难度策略生成干扰项
-- [ ] 3.4 实现题内实时微调（每 3 题调整）
-  - 追踪最近 3 题正确率 + 答题速度
-  - 正确率 ≥ 80% 且首次作答正确 → 例句切换 advanced
-  - 正确率 ≤ 40% 或需要 2 次机会 → 例句切换 basic
-  - 不在关内改变整体难度等级，只调整例句和干扰项
-- [ ] 3.5 个人主页添加难度调整入口
-  - Profile.tsx 中新增「修改英语水平」按钮
-  - 点击后弹出或跳转到水平选择界面
-  - 修改后更新 gameState.difficulty 和 adaptiveDifficulty.base
+- [x] 3.1 创建词汇数据配置文件
+  - 创建 `frontend/src/data/words/` 目录（types.ts + chapter1-5.ts + index.ts）
+  - 每章节 15 个单词，WordConfig 结构（word, meaning, pos, image, sentences.basic/advanced）
+  - 每个单词配置 3 类干扰项：categoryDistractors、spellingDistractors、semanticDistractors
+- [x] 3.2 创建难度配置文件
+  - `frontend/src/data/difficulty/questionTypeRatios.ts` - 4 级题型比例配置
+  - getQuestionTypeDistribution() - Fisher-Yates 洗牌生成题目类型序列
+  - 干扰项策略集成在 words/types.ts 的 getDistractors() 函数中
+- [x] 3.3 重构 Game.tsx 题目生成逻辑
+  - 移除硬编码 QUESTIONS 数组，改用 generateQuestions() 动态生成
+  - 支持 5 种题型：picture_matching、letter_match、word_spelling、fill_blank、multiple_choice
+  - 新增 LetterPuzzle 组件（字母消消乐 + 拼写题共用）
+  - 优先出未掌握单词，穿插复习已掌握单词
+- [x] 3.4 实现题内实时微调（每 3 题调整）
+  - recentResults ref 追踪最近 3 题正确率
+  - 正确率 ≥ 67% → 例句切换 advanced + 干扰项增强
+  - 正确率 ≤ 33% → 例句切换 basic + 干扰项降低
+  - adjustNextQuestion() + applyAdjustment() 动态调整下一题
+- [x] 3.5 Settings 页面添加难度调整入口
+  - Settings.tsx 完整实现（不再是 Coming Soon）
+  - 可展开的难度选择器（4 级，含 emoji + 描述）
+  - 音乐/音效开关 + 关于信息
+  - 修改后更新 gameState.difficulty + adaptiveDifficulty.base/current
 
 ### Phase 4: 初始动画 + 引导过场 - `pending`
 > 目标：首次启动流程完整性
