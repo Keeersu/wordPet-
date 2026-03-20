@@ -368,32 +368,79 @@ function Home() {
       {/* 5. Floating nav buttons — left side */}
       <MainTabBar />
 
-      {/* 6. FAB — fixed bottom-right */}
-      {/* 🖼️ ASSET | 快速开始按钮 | PNG @3x | /assets/ui/buttons/btn-quick-start.png */}
+      {/* 6. FAB — fixed bottom-right — 猫咪头部外轮廓 */}
       <button
         onClick={handleFabClick}
-        className="flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
+        className="flex items-center justify-center active:translate-y-[4px] active:shadow-none transition-all"
         style={{
           position: 'fixed',
           zIndex: 40,
-          width: '64px',
-          height: '64px',
-          bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
-          right: '20px',
+          width: '68px',
+          height: '68px',
+          bottom: 'calc(18px + env(safe-area-inset-bottom, 0px))',
+          right: '18px',
           backgroundColor: '#FFB840',
           border: '3px solid white',
+          borderRadius: '50%',
           boxShadow: '0 4px 0 0 #A06800',
-          overflow: 'hidden',
+          cursor: 'pointer',
+          padding: 0,
         }}
       >
-        <img
-          src="/assets/ui/buttons/btn-quick-start.png"
-          alt="Start"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
-          onError={(e) => {
-            ;(e.target as HTMLImageElement).style.display = 'none'
-          }}
-        />
+        {/* 猫咪头部外轮廓 SVG — 简约可爱风 */}
+        <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* 两只尖耳朵 */}
+          <path
+            d="M14 28L8 8L22 20Z"
+            fill="white"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M50 28L56 8L42 20Z"
+            fill="white"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+          {/* 圆脸 */}
+          <ellipse
+            cx="32"
+            cy="38"
+            rx="22"
+            ry="20"
+            fill="white"
+            stroke="white"
+            strokeWidth="3"
+          />
+          {/* 耳朵内部粉色三角 */}
+          <path d="M15 26L11 12L21 21Z" fill="#FFD4D4" />
+          <path d="M49 26L53 12L43 21Z" fill="#FFD4D4" />
+          {/* 眼睛 — 闭眼微笑弧线 */}
+          <path
+            d="M22 36C22 36 24 33 26 36"
+            stroke="#5D4037"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M38 36C38 36 40 33 42 36"
+            stroke="#5D4037"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          {/* 小鼻子 */}
+          <ellipse cx="32" cy="41" rx="2.5" ry="2" fill="#FFB0B0" />
+          {/* 嘴巴 — W 形 */}
+          <path
+            d="M29 44C30 45.5 31 46 32 44.5C33 46 34 45.5 35 44"
+            stroke="#5D4037"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
 
       {/* 7. Settings Modal */}
