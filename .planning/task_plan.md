@@ -48,7 +48,7 @@
 
 ## 🎯 新的开发阶段规划
 
-### Phase 1: 炫酷家具解锁结算页 - `pending` ⭐ 最高优先级
+### Phase 1: 炫酷家具解锁结算页 - `complete` ⭐ 最高优先级
 > 目标：关卡完成时，解锁的家具以震撼的动画效果优先弹出，替代当前普通的列表展示
 
 **设计思路**：
@@ -57,24 +57,31 @@
 - 动画结束后过渡到结算信息页（正确率、单词回顾等）
 
 **任务分解**：
-- [ ] 1.1 设计家具解锁动画组件 `FurnitureReveal`
-  - 全屏深色遮罩背景 + 星光/粒子效果
-  - 家具图从 scale(0) 弹性放大到 scale(1)，配合光晕扩散
-  - 家具名称淡入 + "已解锁" 标签
-  - 「恭喜获得 XXX！」文字动画
-  - 底部「继续」按钮，点击后进入结算详情
-- [ ] 1.2 改造 Result.tsx 页面流程
-  - 进入结算页时，先展示 FurnitureReveal 动画
-  - 动画结束/点击继续后，展示正确率、单词回顾等信息
+- [x] 1.1 设计家具解锁动画组件 `FurnitureReveal`
+  - 全屏深色遮罩背景（radial-gradient 星空感）+ 30 颗闪烁星光
+  - 家具图从 scale(0) 弹性放大到 scale(1)（cubic-bezier(.34,1.56,.64,1)），配合光晕扩散
+  - 24 颗金色粒子散射效果（径向散射 + 渐隐）
+  - 家具名称淡入 + "✨ 新家具已解锁！✨" 金色标签
+  - 「恭喜获得新家具，房间更温馨了~」副标题动画
+  - 底部「太棒了！🎉」按钮，点击后进入结算详情
+- [x] 1.2 改造 Result.tsx 页面流程
+  - 进入结算页时，先展示 FurnitureReveal 全屏动画（stage: reveal）
+  - 点击继续后，平滑过渡到结算详情页（stage: detail）
+  - 结算详情增加 detailSlideUp 入场动画
+  - 家具解锁卡改为横排紧凑布局（56px 小图 + 名称 + "已放入房间"）
   - 底部保留「返回房间」和「下一关」按钮
-- [ ] 1.3 CSS 动画实现
-  - @keyframes 弹性缩放（cubic-bezier 弹簧效果）
-  - 粒子/星光散射效果（CSS animation + pseudo-elements）
-  - 光圈扩散效果
-  - 背景渐变过渡
-- [ ] 1.4 适配当前数据结构
-  - 确认 1 房间 4 关 4 家具的数据映射关系
-  - 确认 furnitureUnlocked 状态管理
+- [x] 1.3 CSS 动画实现
+  - @keyframes furniturePopIn：弹性缩放（0→1.15→0.95→1）
+  - @keyframes glowPulse + glowBreath：光晕扩散 + 呼吸效果
+  - @keyframes ringExpand：外环光圈扩散
+  - @keyframes particleBurst：粒子径向散射（CSS custom property --tx/--ty）
+  - @keyframes starTwinkle：背景星光闪烁
+  - @keyframes badgeFadeIn / nameFadeUp：文字入场
+  - @keyframes detailSlideUp：结算详情区块依次上浮入场
+- [x] 1.4 适配当前数据结构
+  - 1 房间 4 关 4 家具映射（chapterFurnitureMap + chapterFurnitureEmoji）
+  - furnitureUnlocked 状态判断 → 控制 reveal/detail 初始阶段
+  - 图片加载失败时 fallback 到 emoji
 
 ### Phase 2: 信息存储与登录功能 - `pending`
 > 目标：将游戏进度存储到服务端，支持用户登录

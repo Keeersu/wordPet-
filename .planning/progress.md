@@ -46,3 +46,25 @@
 4. Phase 4: 初始动画 + 引导过场
 5. Phase 5: 音频系统
 6. Phase 6: 剧情过场系统
+
+### 2026-03-20 - Phase 1 完成：炫酷家具解锁结算页
+- ✅ 创建 `FurnitureReveal.tsx` 全屏家具解锁动画组件
+  - 深色星空背景（radial-gradient + 30 颗闪烁星光）
+  - 家具弹性缩放出场（cubic-bezier 弹簧曲线 0→1.15→0.95→1）
+  - 24 颗金色粒子径向散射效果
+  - 光晕扩散 + 呼吸动画 + 外环光圈
+  - "✨ 新家具已解锁！✨" 金色标签 + 家具名称淡入
+  - "恭喜获得新家具，房间更温馨了~" 副标题
+  - 底部「太棒了！🎉」按钮
+- ✅ 改造 `Result.tsx` 页面流程
+  - 两阶段流程：reveal（动画）→ detail（结算详情）
+  - 结算详情增加 detailSlideUp 依次入场动画
+  - 家具解锁卡改为横排紧凑布局（缩小版作为回顾）
+  - 新增 chapterFurnitureEmoji 映射表
+- ✅ 编译通过，HMR 热更新正常，无运行时错误
+
+**新增文件**：
+- `frontend/src/pages/function/FurnitureReveal.tsx` - 家具解锁全屏动画组件
+
+**修改文件**：
+- `frontend/src/pages/function/Result.tsx` - 改造为两阶段流程
