@@ -270,32 +270,39 @@
 
 /* ── 弹窗 ── */
 .modal {
-  width: 280px;
+  width: 300px;
   background-color: white;
   border-radius: var(--radius-4xl);
-  padding: var(--space-6xl) var(--space-5xl) var(--space-4xl);
+  padding: var(--space-7xl) var(--space-5xl) var(--space-5xl);
   text-align: center;
   box-shadow: var(--shadow-modal);
   font-family: var(--font-main);
 }
 
 .modal__title {
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-md);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-black);
+  color: var(--color-text-dark);
+  margin: 0 0 var(--space-xl);
 }
 
 .modal__message {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   color: var(--color-text-secondary);
-  margin: 0 0 var(--space-5xl);
+  margin: 0 0 var(--space-6xl);
   line-height: 1.5;
 }
 
 .modal__actions {
   display: flex;
   gap: var(--space-xl);
+}
+
+.modal__actions .btn-secondary,
+.modal__actions .btn-danger {
+  padding: var(--space-2xl) var(--space-3xl);
+  font-size: var(--text-lg);
+  border-radius: var(--radius-3xl);
 }
 
 /* ── 进度条 ── */

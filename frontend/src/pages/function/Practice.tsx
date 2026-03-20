@@ -580,7 +580,7 @@ function Practice() {
           {weakWords.length > 0 && (
             <button
               onClick={() => startReview(weakWords)}
-              className="practice-start-btn btn-danger"
+              className="practice-start-btn"
             >
               <Icon icon="lucide:swords" width={18} height={18} style={{ marginRight: 8, verticalAlign: -3 }} />
               开始复习（全部 {weakWords.length} 词）
