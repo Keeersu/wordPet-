@@ -11,7 +11,7 @@
  * - 核心统计 3 列（已学单词/完成关卡/解锁家具）
  * - 冒险进度条 + 继续冒险按钮
  * - 薄弱单词提醒（正确率 <70% 的单词，最多展示 6 个）
- * - 底部：设置入口
+ * - 设置入口仅在右上角 Header
  *
  * ## Page Layout
  * h-screen flex flex-col，顶部固定 Header，中间可滚动内容
@@ -421,74 +421,6 @@ function Profile() {
           )}
         </div>
 
-        {/* 5. 快捷入口 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <button
-            onClick={() => navigate('/collection')}
-            style={{
-              ...cardStyle,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              border: '2px solid rgba(93,64,55,0.1)',
-              fontFamily: 'inherit',
-            }}
-          >
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: 'rgba(78,205,196,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                flexShrink: 0,
-              }}
-            >
-              📖
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: '#5D4037' }}>单词图鉴</div>
-              <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)' }}>查看收集</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => navigate('/settings')}
-            style={{
-              ...cardStyle,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              border: '2px solid rgba(93,64,55,0.1)',
-              fontFamily: 'inherit',
-            }}
-          >
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: 'rgba(93,64,55,0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                flexShrink: 0,
-              }}
-            >
-              ⚙️
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: '#5D4037' }}>设置</div>
-              <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)' }}>难度 / 音效</div>
-            </div>
-          </button>
-        </div>
       </div>
     </div>
   )
