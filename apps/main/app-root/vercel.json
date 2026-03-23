@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/modai-api/:path*",
+      "destination": "https://conan-modai-studio.zhenguanyu.com/conan-modai-studio/api/web/ai/:path*"
+    }
+  ]
+}
