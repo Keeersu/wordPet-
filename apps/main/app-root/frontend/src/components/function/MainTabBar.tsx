@@ -4,7 +4,7 @@ import { pageLinks } from '../../pageLinks'
 
 const tabs = [
   { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4', borderColor: '#9AE0DA' },
-  { id: 'practice', label: '复习', path: pageLinks.Practice(), color: '#FFB840', borderColor: '#F5C87A' },
+  { id: 'practice', label: '复习', path: pageLinks.Practice(), color: '#FF7821', borderColor: '#E86A18' },
   { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A', borderColor: '#A5D6A7' },
 ] as const
 

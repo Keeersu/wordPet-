@@ -217,7 +217,7 @@ function RoomBackground({ chapter, completedCount, gameState, onRoomImageReady }
           />
         ) : generating ? (
           <div className="flex h-full w-full items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#FFB840] border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#2ABFBF] border-t-transparent" />
           </div>
         ) : (
           <span className="flex h-full w-full items-center justify-center text-2xl">🐱</span>

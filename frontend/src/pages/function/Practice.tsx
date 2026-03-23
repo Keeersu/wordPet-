@@ -411,8 +411,8 @@ function Practice() {
                       key={i}
                       className="practice-quiz-letter-slot"
                       style={{
-                        borderColor: isCorrect === true ? '#66BB6A' : isCorrect === false ? '#EF5350' : letter ? '#FFB840' : 'rgba(93,64,55,0.15)',
-                        backgroundColor: isCorrect === true ? 'rgba(102,187,106,0.1)' : isCorrect === false ? 'rgba(239,83,80,0.1)' : letter ? 'rgba(255,184,64,0.1)' : 'rgba(93,64,55,0.03)',
+                        borderColor: isCorrect === true ? '#66BB6A' : isCorrect === false ? '#EF5350' : letter ? '#FF7821' : 'rgba(93,64,55,0.15)',
+                        backgroundColor: isCorrect === true ? 'rgba(102,187,106,0.1)' : isCorrect === false ? 'rgba(239,83,80,0.1)' : letter ? 'rgba(255,120,33,0.1)' : 'rgba(93,64,55,0.03)',
                       }}
                     >
                       {letter || ''}
@@ -503,7 +503,7 @@ function Practice() {
           <div className="card card--padded practice-result__score-card">
             <div className="practice-result__score-grid">
               <div className="practice-result__score-item">
-                <div className="practice-result__score-value" style={{ color: '#FFB840' }}>{sessionCorrect}/{sessionTotal}</div>
+                <div className="practice-result__score-value" style={{ color: '#1A8F8F' }}>{sessionCorrect}/{sessionTotal}</div>
                 <div className="practice-result__score-label">答对</div>
               </div>
               <div className="practice-result__score-item">

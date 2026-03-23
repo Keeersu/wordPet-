@@ -172,7 +172,7 @@ function Settings() {
             <div className="settings-item">
               <div className="settings-item__left">
                 <div className="settings-item__icon">
-                  <Icon icon="lucide:music" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                  <Icon icon="lucide:music" style={{ width: 20, height: 20, color: '#FF7821' }} />
                 </div>
                 <p className="settings-item__title">背景音乐</p>
               </div>
@@ -190,7 +190,7 @@ function Settings() {
             <div className="settings-item">
               <div className="settings-item__left">
                 <div className="settings-item__icon">
-                  <Icon icon="lucide:volume-2" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                  <Icon icon="lucide:volume-2" style={{ width: 20, height: 20, color: '#FF7821' }} />
                 </div>
                 <div>
                   <p className="settings-item__title">音效</p>
@@ -211,7 +211,7 @@ function Settings() {
             <div className="settings-item">
               <div className="settings-item__left">
                 <div className="settings-item__icon">
-                  <Icon icon="lucide:mic" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                  <Icon icon="lucide:mic" style={{ width: 20, height: 20, color: '#FF7821' }} />
                 </div>
                 <div>
                   <p className="settings-item__title">朗读</p>

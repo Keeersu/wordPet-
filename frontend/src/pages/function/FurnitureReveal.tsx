@@ -37,7 +37,7 @@ function generateParticles(count: number): Particle[] {
     '#FFA500', // 橙金
     '#FFE066', // 浅金
     '#FFFFFF', // 白色
-    '#FFB840', // 主题色
+    '#FF7821', // 主题色
     '#FF9800', // 深橙
     '#FFF59D', // 淡黄
   ]

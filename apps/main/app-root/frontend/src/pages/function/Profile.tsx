@@ -108,7 +108,7 @@ function Profile() {
               <div
                 className="profile-today__value"
                 style={{
-                  color: todayStats.rate >= 80 ? '#66BB6A' : todayStats.rate >= 60 ? '#FFB840' : '#EF5350',
+                  color: todayStats.rate >= 80 ? '#66BB6A' : todayStats.rate >= 60 ? '#1A8F8F' : '#EF5350',
                 }}
               >
                 {todayStats.words > 0 ? `${todayStats.rate}%` : '--'}
@@ -154,7 +154,7 @@ function Profile() {
               className="profile-progress__fill"
               style={{
                 width: `${progressPct}%`,
-                backgroundColor: progressPct >= 100 ? '#66BB6A' : '#FFB840',
+                backgroundColor: progressPct >= 100 ? '#66BB6A' : '#2ABFBF',
               }}
             />
           </div>

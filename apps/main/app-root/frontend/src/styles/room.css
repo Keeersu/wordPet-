@@ -413,7 +413,7 @@
   border: 2.5px solid var(--color-primary-border);
   background-color: var(--color-primary);
   box-shadow: var(--shadow-button-primary);
-  color: var(--color-text-dark);
+  color: white;
   font-weight: var(--font-black);
   font-size: var(--text-xl);
   font-family: var(--font-main);

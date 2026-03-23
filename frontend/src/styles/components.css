@@ -39,7 +39,7 @@
   background-color: var(--color-primary);
   border: 2.5px solid var(--color-primary-border);
   box-shadow: var(--shadow-button-primary);
-  color: var(--color-text-dark);
+  color: white;
   font-weight: var(--font-black);
   border-radius: var(--radius-2xl);
 }
@@ -239,7 +239,7 @@
 }
 
 .toggle--on {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .toggle--off {
@@ -331,7 +331,7 @@
   transition: width 0.3s ease;
 }
 
-.progress-bar__fill--primary { background-color: var(--color-primary); }
+.progress-bar__fill--primary { background-color: var(--color-accent); }
 .progress-bar__fill--success { background-color: var(--color-success); }
 
 /* ── 正确率色标 ── */
@@ -460,8 +460,8 @@
 }
 
 .letter-slot--filled {
-  border: 2px solid var(--color-primary);
-  background-color: var(--color-primary-light);
+  border: 2px solid var(--color-primary-soft);
+  background-color: var(--color-primary-soft-light);
 }
 
 .letter-slot--wrong {

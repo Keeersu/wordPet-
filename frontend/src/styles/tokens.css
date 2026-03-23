@@ -6,11 +6,20 @@
 
 :root {
   /* ── 品牌色 / 主题色 ── */
-  --color-primary: #FFB840;
-  --color-primary-dark: #A06800;
-  --color-primary-light: #FFF8E7;
-  --color-primary-border: #F5C87A;
-  --color-primary-bg: rgba(255, 184, 64, 0.15);
+  --color-primary: #FF7821;
+  --color-primary-dark: #C45A10;
+  --color-primary-light: #FFF1E8;
+  --color-primary-border: #E86A18;
+  --color-primary-bg: rgba(255, 120, 33, 0.12);
+  --color-primary-soft: #FFA460;
+  --color-primary-soft-light: #FFF4EC;
+
+  /* ── 强调色 / 青色 ── */
+  --color-accent: #2ABFBF;
+  --color-accent-dark: #1A8F8F;
+  --color-accent-light: #E6F7F7;
+  --color-accent-border: rgba(42, 191, 191, 0.3);
+  --color-accent-bg: rgba(42, 191, 191, 0.10);
 
   /* ── 文字色 ── */
   --color-text: #5D4037;
@@ -35,9 +44,9 @@
   --color-error-bg: rgba(239, 83, 80, 0.12);
   --color-error-border: rgba(239, 83, 80, 0.35);
 
-  --color-warning: #FFB840;
-  --color-warning-bg: rgba(255, 184, 64, 0.12);
-  --color-warning-border: rgba(255, 184, 64, 0.3);
+  --color-warning: #FF9F1C;
+  --color-warning-bg: rgba(255, 159, 28, 0.12);
+  --color-warning-border: rgba(255, 159, 28, 0.3);
 
   /* ── 背景色 ── */
   --color-bg-warm: #FFF8E7;           /* 大多数页面背景 */
@@ -49,11 +58,11 @@
   --color-bg-icon: #FFF8E7;           /* 设置页图标背景 */
 
   /* 首页天空渐变 */
-  --gradient-sky: linear-gradient(to bottom, #87CEEB, #D4EEC0);
+  --gradient-sky: linear-gradient(to bottom, #CAF7FD, #FDD0CA);
   /* 底部白色渐变遮罩 */
   --gradient-white-bottom: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
   /* 今日学习卡片 */
-  --gradient-today: linear-gradient(135deg, #FFF3DC 0%, #FFEDC2 100%);
+  --gradient-today: linear-gradient(135deg, #FFF1E8 0%, #FFE4D0 100%);
 
   /* ── 边框色 ── */
   --color-border: rgba(93, 64, 55, 0.1);
@@ -102,12 +111,12 @@
   /* ── 阴影 ── */
   --shadow-card: 0 4px 0 0 rgba(93, 64, 55, 0.08);
   --shadow-button: 0 3px 0 0 #E8D5B0;
-  --shadow-button-primary: 0 3px 0 0 #A06800;
+  --shadow-button-primary: 0 4px 0 0 #C45A10;
   --shadow-button-pressed: 0 1px 0 0;
   --shadow-nav: 0 2px 0 0 rgba(93, 64, 55, 0.1);
   --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.15);
   --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-fab: 0 4px 0 0 #A06800;
+  --shadow-fab: 0 4px 0 0 #C45A10;
 
   /* ── 间距 ── */
   --space-xs: 4px;
@@ -146,7 +155,7 @@
   /* ── 布局 ── */
   --header-height: 56px;
   --tabbar-height: 52px;
-  --fab-size: 64px;
+  --fab-size: 20vw;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --scroll-safe-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }

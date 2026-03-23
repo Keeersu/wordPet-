@@ -794,7 +794,7 @@ function Game() {
               >
                 <Icon
                   icon="lucide:mic"
-                  style={{ width: 18, height: 18, color: active ? '#FFB840' : 'rgba(93,64,55,0.3)' }}
+                  style={{ width: 18, height: 18, color: active ? '#FF7821' : 'rgba(93,64,55,0.3)' }}
                 />
               </button>
             )
@@ -930,8 +930,8 @@ function Game() {
           <div
             className="game-difficulty-toast__card"
             style={{
-              backgroundColor: difficultyToast.direction === 'up' ? '#E8F5E9' : '#FFF3E0',
-              border: `2px solid ${difficultyToast.direction === 'up' ? 'rgba(102,187,106,0.3)' : 'rgba(255,184,64,0.3)'}`,
+              backgroundColor: difficultyToast.direction === 'up' ? '#E8F5E9' : '#FFF1E8',
+              border: `2px solid ${difficultyToast.direction === 'up' ? 'rgba(102,187,106,0.3)' : 'rgba(255,120,33,0.3)'}`,
             }}
           >
             <span className="game-difficulty-toast__emoji">

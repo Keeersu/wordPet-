@@ -116,13 +116,14 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
   return (
     <div
       className={`home-room-card${isLocked ? ' home-room-card--locked' : ''}`}
+      data-room-id={room.id}
       onClick={onClick}
       style={{
         filter: isCompleted ? 'saturate(0.7)' : isLocked ? 'grayscale(0.8)' : undefined,
         opacity: isLocked ? 0.7 : 1,
       }}
     >
-      {/* 层1：房间背景图 + 色块回退，底部对齐 */}
+      {/* 层1：房间背景图（独立） */}
       <div
         className="home-room-card__bg"
         style={{ backgroundColor: bgLoaded ? 'transparent' : room.themeColor }}
@@ -144,25 +145,16 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
         )}
       </div>
 
-      {/* 层2：边框占位，整体覆盖 */}
-      <div className="home-room-card__border" />
-
-      {/* 章节名称，在顶部区域内 */}
-      <div className="home-room-card__name">
-        {room.nameCn} · {room.nameEn}
-      </div>
-
-      {/* 进度标签 */}
-      <div className="home-room-card__progress">
-        {room.progress}
-      </div>
-
-      {/* 状态标签 */}
-      <div
-        className="home-room-card__status"
-        style={{ background: statusBgColor[room.status] }}
-      >
-        {statusLabel[room.status]}
+      {/* 层2：边框 + 文案（成组，宽度跟随边框图） */}
+      <div className="home-room-card__frame">
+        <img
+          src="/assets/rooms/borders/border.png"
+          alt=""
+          className="home-room-card__border"
+        />
+        <div className="home-room-card__name">
+          {room.nameCn} · {room.nameEn}
+        </div>
       </div>
     </div>
   )
@@ -260,14 +252,19 @@ function Home() {
       {/* 3. Scrollable room card list — reversed so ch1 is at bottom (tower layout) */}
       <div className="home-scroll" ref={scrollRef}>
         {[...rooms].reverse().map((room) => (
-          <div key={room.id} data-room-id={room.id}>
-            <RoomCard room={room} onClick={() => handleRoomCardClick(room)} />
-          </div>
+          <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
         ))}
 
-        {/* 4. Bottom scene placeholder */}
+        {/* Gradient fade from sky to scene */}
+        <div className="home-scene-fade" />
+
+        {/* 4. Bottom scene */}
         <div className="home-scene-placeholder">
-          🌿 底部场景图占位
+          <img
+            src="/assets/ui/home-scene.png"
+            alt=""
+            className="home-scene-placeholder__img"
+          />
         </div>
       </div>
 

@@ -66,7 +66,7 @@
 }
 
 .collection-progress__fill--partial {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 
 .collection-progress__percent {

@@ -1,9 +1,9 @@
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
 
-const ICON_ON = '#FFB840'
+const ICON_ON = '#FF7821'
 const ICON_OFF = 'rgba(93,64,55,0.3)'
-const BG_ON = 'rgba(255,184,64,0.15)'
+const BG_ON = 'rgba(255,120,33,0.12)'
 const BORDER_ON = '1.5px solid rgba(255,184,64,0.4)'
 const BORDER_OFF = `1.5px solid ${ICON_OFF}`
 

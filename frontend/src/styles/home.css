@@ -491,9 +491,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3xl);
+  gap: 0;
   padding-top: calc(var(--header-height) + var(--space-7xl));
-  padding-bottom: var(--scroll-safe-bottom);
+  padding-bottom: 0;
   overflow-y: auto;
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* IE / Edge */
@@ -505,6 +505,15 @@
   bottom: calc(60px + var(--safe-bottom));
 }
 
+.home-page .main-tabbar {
+  gap: var(--space-sm);
+}
+
+.home-page .tabbar-btn {
+  width: calc(100vw / 6);
+  height: calc(100vw / 6);
+}
+
 .home-scroll::-webkit-scrollbar {
   display: none;                  /* Chrome / Safari */
 }
@@ -512,34 +521,32 @@
 /* ── Room Card ── */
 .home-room-card {
   position: relative;
-  width: 311px;
-  height: 210px;
+  z-index: 1;
+  width: 80%;
+  aspect-ratio: 311 / 169;
   margin: 0 auto;
   flex-shrink: 0;
   cursor: pointer;
+  overflow: visible;
 }
 
 .home-room-card--locked {
   cursor: default;
 }
 
+/* 层1：房间背景图（独立，填满卡片） */
 .home-room-card__bg {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 311px;
-  height: 169px;
-  border-radius: var(--radius-xl);
+  inset: 0;
+  border-radius: 5vw;
   overflow: hidden;
 }
 
 .home-room-card__bg-img {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: var(--z-base);
+  display: block;
 }
 
 .home-room-card__lock {
@@ -551,68 +558,84 @@
   font-size: 48px;
 }
 
-.home-room-card__border {
+/* 层2：边框 + 文案组（高度与卡片一致，宽度由边框图决定，居中，不受卡片宽度限制） */
+.home-room-card__frame {
   position: absolute;
+  top: 0;
   bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 210px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  border-radius: var(--radius-3xl);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
   z-index: 2;
+}
+
+.home-room-card__border {
+  height: 100%;
+  width: auto;
+  display: block;
   pointer-events: none;
 }
 
 .home-room-card__name {
   position: absolute;
-  top: 0;
+  top: calc(2vw - 2px);
   left: 0;
   right: 0;
-  height: 41px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
-  font-size: var(--text-sm);
-  color: var(--color-text);
+  font-size: 3.2vw;
+  font-weight: var(--font-bold);
+  color: #E38B67;
 }
 
 .home-room-card__progress {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
+  bottom: 3vw;
+  left: 3vw;
   z-index: 3;
   background: white;
-  border-radius: var(--radius-md);
-  padding: var(--space-xs) var(--space-md);
-  font-size: var(--text-sm);
+  border-radius: 1.5vw;
+  padding: 0.8vw 2vw;
+  font-size: 3vw;
   color: var(--color-text);
 }
 
 .home-room-card__status {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 3vw;
+  right: 3vw;
   z-index: 3;
-  border-radius: var(--radius-md);
-  padding: var(--space-xs) var(--space-xl);
-  font-size: var(--text-sm);
+  border-radius: 1.5vw;
+  padding: 0.8vw 3vw;
+  font-size: 3vw;
   color: white;
+}
+
+/* ── Gradient fade into scene ── */
+.home-scene-fade {
+  width: 100%;
+  height: calc(100vw * 0.8 / 311 * 169);
+  flex-shrink: 0;
+  margin-top: calc(100vw * 0.8 / 311 * 169 * -1);
+  position: relative;
+  z-index: 0;
+  background: linear-gradient(to bottom, transparent, #FDD0CA);
+  pointer-events: none;
 }
 
 /* ── Bottom Scene Placeholder ── */
 .home-scene-placeholder {
   width: 100%;
-  height: 350px;
   flex-shrink: 0;
-  background-color: var(--color-bg-scene);
-  border-radius: var(--radius-4xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(93, 64, 55, 0.5);
-  font-weight: var(--font-bold);
-  font-size: var(--text-2xl);
+  overflow: hidden;
+  background: #FDD0CA;
+}
+
+.home-scene-placeholder__img {
+  width: 100%;
+  display: block;
 }
 
 /* ── Settings Popup ── */

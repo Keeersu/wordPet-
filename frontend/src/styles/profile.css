@@ -61,7 +61,7 @@
 }
 
 .profile-today__value--primary {
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
 }
 
 .profile-today__label {
@@ -93,7 +93,7 @@
 .profile-stats__value {
   font-size: var(--text-5xl);
   font-weight: var(--font-black);
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
   line-height: 1;
 }
 
@@ -171,7 +171,7 @@
 
 .profile-weak__link {
   font-size: var(--text-sm);
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
   font-weight: var(--font-bold);
   border: none;
   background-color: transparent;

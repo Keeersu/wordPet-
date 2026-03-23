@@ -84,8 +84,8 @@
   border-radius: var(--radius-3xl);
   border: 2.5px solid var(--color-primary-border);
   background-color: var(--color-primary);
-  box-shadow: 0 4px 0 0 var(--color-primary-dark);
-  color: var(--color-text-dark);
+  box-shadow: var(--shadow-button-primary);
+  color: white;
   font-family: var(--font-main);
   font-size: var(--text-2xl);
   font-weight: var(--font-black);
@@ -95,7 +95,7 @@
 }
 
 .practice-start-btn:active {
-  box-shadow: 0 1px 0 0 var(--color-primary-dark);
+  box-shadow: 0 0 0 0 var(--color-primary-dark);
   transform: translateY(3px);
 }
 
@@ -559,7 +559,7 @@
 .practice-result__score {
   font-size: var(--text-8xl);
   font-weight: var(--font-black);
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
   line-height: 1;
   margin-bottom: var(--space-md);
 }
@@ -647,7 +647,7 @@
   background-color: var(--color-primary);
   border: 2.5px solid var(--color-primary-border);
   box-shadow: var(--shadow-button-primary);
-  color: var(--color-text-dark);
+  color: white;
 }
 
 .practice-result__btn--retry:active {

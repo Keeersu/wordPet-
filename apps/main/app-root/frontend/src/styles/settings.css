@@ -94,7 +94,7 @@
 .settings-item__value {
   font-size: var(--text-base);
   font-weight: var(--font-medium);
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
   text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;

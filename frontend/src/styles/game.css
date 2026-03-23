@@ -93,7 +93,7 @@
 .game-progress__fill {
   height: 100%;
   border-radius: var(--radius-full);
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
   transition: width var(--transition-slower);
 }
 
@@ -274,8 +274,9 @@
 }
 
 .game-option--selected {
-  border: 2.5px solid var(--color-primary);
-  background-color: var(--color-primary-light);
+  border: 2.5px solid var(--color-primary-soft);
+  background-color: var(--color-primary-soft);
+  color: white;
 }
 
 /* ── Fill in the Blank ── */
@@ -323,9 +324,9 @@
   width: 100%;
   padding: var(--space-2xl);
   border-radius: var(--radius-2xl);
-  border: none;
+  border: 2.5px solid var(--color-primary-border);
   background-color: var(--color-primary);
-  color: var(--color-text-dark);
+  color: white;
   font-size: var(--text-lg);
   font-weight: var(--font-black);
   font-family: var(--font-main);
@@ -374,8 +375,8 @@
 }
 
 .game-letter-slot--filled {
-  border: 2px solid var(--color-primary);
-  background-color: var(--color-primary-light);
+  border: 2px solid var(--color-primary-soft);
+  background-color: var(--color-primary-soft-light);
 }
 
 .game-letter-slot--correct {
@@ -391,8 +392,8 @@
 }
 
 .game-letter-slot--active {
-  border: 2.5px solid var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-bg);
+  border: 2.5px solid var(--color-primary-soft);
+  box-shadow: 0 0 0 3px rgba(255, 164, 96, 0.15);
 }
 
 /* ── Letter Pool ── */
