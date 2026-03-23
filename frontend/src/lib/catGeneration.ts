@@ -258,8 +258,8 @@ async function callDoubao({ prompt, negativePrompt, model, imageUrls }: CallDoub
 
   if (!resp.ok) {
     const errText = await resp.text().catch(() => '')
-    console.error(`[callDoubao] ${model} error ${resp.status}:`, errText)
-    throw new Error(`Doubao API ${resp.status}: ${errText}`)
+    console.error(`[callDoubao] ${model} error ${resp.status}:`, errText.substring(0, 200))
+    throw new Error(`AI 图片生成服务暂时不可用 (${resp.status})，请稍后再试`)
   }
 
   const respText = await resp.text()
