@@ -1,0 +1,229 @@
+/* ============================================================================
+ * 图鉴页 (Collection) 样式
+ * 按章节展示已学单词卡片，含正确率、词性、释义
+ * ============================================================================ */
+
+/* ── 页面容器 ── */
+.collection-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-warm);
+  font-family: var(--font-main);
+  color: var(--color-text);
+}
+
+/* ── 可滚动内容 ── */
+.collection-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  padding-bottom: 120px;
+}
+
+/* ── 收集进度概览 ── */
+.collection-progress {
+  padding: var(--space-3xl);
+}
+
+.collection-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.collection-progress__title {
+  font-weight: var(--font-black);
+  font-size: var(--text-md);
+}
+
+.collection-progress__count {
+  font-size: var(--text-base) - 1;
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+}
+
+.collection-progress__bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background-color: rgba(93, 64, 55, 0.08);
+  overflow: hidden;
+}
+
+.collection-progress__fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width var(--transition-slowest);
+}
+
+.collection-progress__fill--complete {
+  background-color: var(--color-success);
+}
+
+.collection-progress__fill--partial {
+  background-color: var(--color-primary);
+}
+
+.collection-progress__percent {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  margin-top: var(--space-sm);
+  text-align: right;
+}
+
+/* ── 章节区块 ── */
+.collection-chapter__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2xl) var(--space-3xl);
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-family: var(--font-main);
+  color: var(--color-text);
+}
+
+.collection-chapter__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.collection-chapter__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.collection-chapter__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.collection-chapter__name {
+  text-align: left;
+}
+
+.collection-chapter__name-cn {
+  font-weight: var(--font-extrabold);
+  font-size: var(--text-base);
+}
+
+.collection-chapter__name-en {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 1px;
+}
+
+.collection-chapter__count {
+  font-size: var(--text-base) - 1;
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+}
+
+.collection-chapter__expand-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-disabled);
+}
+
+/* ── 章节展开内容 ── */
+.collection-chapter__body {
+  border-top: 1px solid var(--color-border-light);
+  padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.collection-chapter__empty {
+  text-align: center;
+  padding: var(--space-3xl) 0;
+  font-size: var(--text-base) - 1;
+  color: var(--color-text-hint);
+}
+
+/* ── 单词卡片 ── */
+.collection-word {
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-bg-subtle);
+  border: 1.5px solid rgba(93, 64, 55, 0.08);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.collection-word__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.collection-word__name-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.collection-word__name {
+  font-weight: var(--font-extrabold);
+  font-size: var(--text-xl);
+  color: var(--color-text);
+}
+
+.collection-word__pos {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  font-weight: var(--font-medium);
+}
+
+.collection-word__meaning {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-word__rate {
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-lg);
+  border-radius: var(--radius-4xl);
+  font-size: var(--text-base) - 1;
+  font-weight: var(--font-extrabold);
+}
+
+/* ── 全空状态 ── */
+.collection-empty {
+  text-align: center;
+  padding: var(--space-7xl) var(--space-4xl);
+  color: var(--color-text-tertiary);
+}
+
+.collection-empty__emoji {
+  font-size: 48px;
+  margin-bottom: var(--space-xl);
+}
+
+.collection-empty__title {
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-sm);
+}
+
+.collection-empty__text {
+  font-size: var(--text-base) - 1;
+}

@@ -3,11 +3,10 @@
 //
 // Usage in components:
 //   import { pageLinks } from '../pageLinks'
-//   <Link to={pageLinks.Login()}>Login</Link>
-//   navigate(pageLinks.PollVotingForm(id))
+//   navigate(pageLinks.Home())
 //
 // Key naming convention: Keys MUST match the page TSX file name (without .tsx extension)
-// e.g., Login.tsx -> pageLinks.Login(), PollList.tsx -> pageLinks.PollList()
+// e.g., Home.tsx -> pageLinks.Home(), Profile.tsx -> pageLinks.Profile()
 
 // global_shortcut_xxx are not Pages
 // one of the pageLink must be /, otherwise global_shortcut_home will be a broken link
@@ -18,6 +17,7 @@ export const pageLinks = {
   Profile: () => '/profile',
   Settings: () => '/settings',
   Onboarding: () => '/onboarding',
+  OnboardingTransition: () => '/onboarding/transition',
   OnboardingLevel: () => '/onboarding/level',
   Splash: () => '/splash',
   Home: () => '/',
@@ -33,7 +33,6 @@ export const pageLinks = {
 
 
   global_shortcut_home: () => '/', // MUST BE '/', do not change
-  global_shortcut_login: () => '/login',
 }
 
 

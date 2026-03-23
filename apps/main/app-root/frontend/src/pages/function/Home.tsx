@@ -2,7 +2,7 @@
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
  * Description: 展示所有关卡房间的主页，用户可在此选择房间开始冒险学习。
- * Style referenceFiles:
+ * Style referenceFiles: styles/home.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
@@ -53,68 +53,46 @@
  * </page-design>
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { MainTabBar } from '@/components/function/MainTabBar'
-import { pageLinks } from '../../pageLinks'
 import { useGameStore } from '@/store/GameContext'
-import type { GameState } from '@/store/gameStore'
+import { getCatImageSrc, getCatRoomImageSrc, type GameState } from '@/store/gameStore'
+import { CHAPTERS } from '@/data/chapters'
+import { preloadImages } from '@/lib/imageCache'
+import { useBackgroundRoomGen } from '@/lib/useBackgroundRoomGen'
 
-type RoomStatus = 'in_progress' | 'completed' | 'locked'
+const PAPER_FAB_FALLBACK_IMAGE_URL =
+  'https://workers.paper.design/file-assets/01KKNBS08ZA5774YRC17FK851S/01KM676Q1YAXV1MJ9VC50EBM6S.png'
+
+type RoomStatus = 'available' | 'in_progress' | 'completed' | 'locked'
 
 interface Room {
   id: number
   nameCn: string
   nameEn: string
   progress: string
+  stage: number
   status: RoomStatus
   themeColor: string
 }
 
-const chapterMeta = [
-  {
-    id: 1,
-    nameCn: '街角流浪',
-    nameEn: 'Street Corner',
-    themeColor: '#F5E6C8',
-  },
-  {
-    id: 2,
-    nameCn: '温暖新家',
-    nameEn: 'Warm Home',
-    themeColor: '#C8E8F5',
-  },
-  {
-    id: 3,
-    nameCn: '幼儿园',
-    nameEn: 'Kindergarten',
-    themeColor: '#D8F0FF',
-  },
-  {
-    id: 4,
-    nameCn: '公园探险',
-    nameEn: 'Park Adventure',
-    themeColor: '#E5F4D8',
-  },
-  {
-    id: 5,
-    nameCn: '厨房美食',
-    nameEn: 'Kitchen Feast',
-    themeColor: '#FFF0D9',
-  },
-] as const
+/** 使用公共章节元数据 */
+const chapterMeta = CHAPTERS
 
 const statusLabel: Record<RoomStatus, string> = {
+  available: '已开启',
   in_progress: '进行中',
   completed: '已完成',
   locked: '未解锁',
 }
 
 const statusBgColor: Record<RoomStatus, string> = {
-  in_progress: '#FFB840',
-  completed: '#4CAF50',
-  locked: '#9E9E9E',
+  available: 'var(--color-primary)',
+  in_progress: 'var(--color-primary)',
+  completed: 'var(--color-success)',
+  locked: 'var(--color-text-disabled)',
 }
 
 function getCompletedLevelCount(
@@ -133,104 +111,56 @@ function getCompletedLevelCount(
 function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
   const isLocked = room.status === 'locked'
   const isCompleted = room.status === 'completed'
+  const [bgLoaded, setBgLoaded] = useState(false)
 
   return (
     <div
+      className={`home-room-card${isLocked ? ' home-room-card--locked' : ''}`}
       onClick={onClick}
       style={{
-        position: 'relative',
-        width: '311px',
-        height: '210px',
-        margin: '0 auto',
-        flexShrink: 0,
         filter: isCompleted ? 'saturate(0.7)' : isLocked ? 'grayscale(0.8)' : undefined,
         opacity: isLocked ? 0.7 : 1,
-        cursor: isLocked ? 'default' : 'pointer',
       }}
     >
-      {/* 层1：房间背景色块，底部对齐 */}
+      {/* 层1：房间背景图 + 色块回退，底部对齐 */}
       <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '311px',
-          height: '169px',
-          backgroundColor: room.themeColor,
-          borderRadius: '12px',
-        }}
+        className="home-room-card__bg"
+        style={{ backgroundColor: bgLoaded ? 'transparent' : room.themeColor }}
       >
+        <img
+          src={`/assets/rooms/ch${room.id}/progress/stage${room.stage}.jpg`}
+          alt={room.nameCn}
+          className="home-room-card__bg-img"
+          onLoad={() => setBgLoaded(true)}
+          onError={(e) => {
+            setBgLoaded(false)
+            ;(e.target as HTMLImageElement).style.display = 'none'
+          }}
+        />
         {isLocked && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: '48px' }}>🔒</span>
+          <div className="home-room-card__lock">
+            <span>🔒</span>
           </div>
         )}
       </div>
 
       {/* 层2：边框占位，整体覆盖 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '311px',
-          height: '210px',
-          border: '2px solid rgba(255,255,255,0.9)',
-          borderRadius: '16px',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      />
+      <div className="home-room-card__border" />
 
       {/* 章节名称，在顶部区域内 */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '41px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 3,
-          fontSize: '12px',
-          color: '#5D4037',
-        }}
-      >
+      <div className="home-room-card__name">
         {room.nameCn} · {room.nameEn}
       </div>
 
       {/* 进度标签 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '12px',
-          left: '12px',
-          zIndex: 3,
-          background: 'white',
-          borderRadius: '8px',
-          padding: '4px 8px',
-          fontSize: '12px',
-          color: '#5D4037',
-        }}
-      >
+      <div className="home-room-card__progress">
         {room.progress}
       </div>
 
       {/* 状态标签 */}
       <div
-        style={{
-          position: 'absolute',
-          bottom: '12px',
-          right: '12px',
-          zIndex: 3,
-          background: statusBgColor[room.status],
-          borderRadius: '8px',
-          padding: '4px 12px',
-          fontSize: '12px',
-          color: 'white',
-        }}
+        className="home-room-card__status"
+        style={{ background: statusBgColor[room.status] }}
       >
         {statusLabel[room.status]}
       </div>
@@ -241,32 +171,62 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
 function Home() {
   const navigate = useNavigate()
   const { gameState, updateGameState } = useGameStore()
+  useBackgroundRoomGen()
   const [showSettings, setShowSettings] = useState(false)
+  const [fabImageSrc, setFabImageSrc] = useState('/assets/ui/buttons/btn-quick-start.png')
+  const [fabHasVisualAsset, setFabHasVisualAsset] = useState(true)
+  const [settingsBgLoaded, setSettingsBgLoaded] = useState(false)
 
   const rooms = useMemo<Room[]>(() => {
     return chapterMeta.map((chapter) => {
       const completedCount = getCompletedLevelCount(chapter.id, gameState.completedLevels)
+      const stage = Math.min(completedCount, 4)
       const status: RoomStatus =
         chapter.id > gameState.currentChapter
           ? 'locked'
           : completedCount >= 4
             ? 'completed'
-            : 'in_progress'
+            : completedCount > 0
+              ? 'in_progress'
+              : 'available'
 
       return {
         id: chapter.id,
         nameCn: chapter.nameCn,
         nameEn: chapter.nameEn,
-        progress: `${Math.min(completedCount, 4)}/4`,
+        progress: `${stage}/4`,
+        stage,
         status,
         themeColor: chapter.themeColor,
       }
     })
   }, [gameState.completedLevels, gameState.currentChapter])
 
-  const unlockedRoomCount = rooms.filter((room) => room.status !== 'locked').length
+  const scrollRef = useRef<HTMLDivElement>(null)
+
   const activeChapterId = gameState.currentChapter
   const activeLevelId = gameState.currentLevel
+
+  useEffect(() => {
+    const completedCount = getCompletedLevelCount(activeChapterId, gameState.completedLevels)
+    const stage = Math.min(completedCount, 4)
+    const srcs = [
+      `/assets/rooms/ch${activeChapterId}/progress/stage${stage}.jpg`,
+      getCatImageSrc(gameState.cat),
+      getCatRoomImageSrc(gameState.cat, activeChapterId),
+    ].filter(Boolean)
+    preloadImages(srcs)
+  }, [activeChapterId, gameState.cat, gameState.completedLevels])
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const target = container.querySelector<HTMLElement>(`[data-room-id="${activeChapterId}"]`)
+    if (!target) return
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ block: 'center' })
+    })
+  }, [])
 
   const handleRoomCardClick = (room: Room) => {
     if (room.status === 'locked') return
@@ -278,89 +238,35 @@ function Home() {
   }
 
   return (
-    <div
-      className="relative h-screen w-full flex flex-col overflow-hidden"
-      style={{ fontFamily: "'Nunito', 'PingFang SC', sans-serif", color: '#5D4037' }}
-    >
+    <div className="home-page">
       {/* 1. Full-screen fixed gradient background */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          background: 'linear-gradient(to bottom, #87CEEB, #D4EEC0)',
-        }}
-      />
+      <div className="home-bg" />
 
       {/* 2. Fixed top navigation bar */}
-      <div
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          paddingTop: 16,
-          background: 'transparent',
-        }}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Left: house icon + unlocked room count */}
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[12px]"
-            style={{
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            }}
-          >
-            <Icon icon="lucide:home" className="w-5 h-5" style={{ color: '#FFB840' }} />
-            <span className="font-bold text-[16px]">{unlockedRoomCount}</span>
-          </div>
+      <div className="home-header">
+        <div className="home-header__inner">
+          <div className="home-header__left" />
 
           {/* Right: settings gear */}
           <button
+            className="home-header__settings-btn"
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-[12px] active:translate-y-[2px] active:shadow-none transition-all"
-            style={{
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-            }}
           >
-            <Icon icon="lucide:settings" className="w-6 h-6" style={{ color: '#5D4037' }} />
+            <Icon icon="lucide:settings" className="home-header__settings-icon" />
           </button>
         </div>
       </div>
 
-      {/* 3. Scrollable room card list */}
-      <div
-        className="relative z-10 scrollbar-hidden"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-          paddingTop: '84px',
-          paddingBottom: '90px',
-          overflowY: 'auto',
-        }}
-      >
-        {rooms.map((room) => (
-          <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
+      {/* 3. Scrollable room card list — reversed so ch1 is at bottom (tower layout) */}
+      <div className="home-scroll" ref={scrollRef}>
+        {[...rooms].reverse().map((room) => (
+          <div key={room.id} data-room-id={room.id}>
+            <RoomCard room={room} onClick={() => handleRoomCardClick(room)} />
+          </div>
         ))}
 
         {/* 4. Bottom scene placeholder */}
-        <div
-          style={{
-            width: '100%',
-            height: '350px',
-            flexShrink: 0,
-            backgroundColor: '#C8E8C0',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(93,64,55,0.5)',
-            fontWeight: 700,
-            fontSize: '18px',
-          }}
-        >
+        <div className="home-scene-placeholder">
           🌿 底部场景图占位
         </div>
       </div>
@@ -371,209 +277,122 @@ function Home() {
       {/* 6. FAB — fixed bottom-right */}
       {/* 🖼️ ASSET | 快速开始按钮 | PNG @3x | /assets/ui/buttons/btn-quick-start.png */}
       <button
+        className={`fab ${fabHasVisualAsset ? 'fab--image-only' : 'fab--fallback-shell'}`}
         onClick={handleFabClick}
-        className="flex items-center justify-center rounded-full active:translate-y-[4px] active:shadow-none transition-all"
-        style={{
-          position: 'fixed',
-          zIndex: 40,
-          width: '64px',
-          height: '64px',
-          bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
-          right: '20px',
-          backgroundColor: '#FFB840',
-          border: '3px solid white',
-          boxShadow: '0 4px 0 0 #A06800',
-          overflow: 'hidden',
-        }}
       >
-        <img
-          src="/assets/ui/buttons/btn-quick-start.png"
+        {fabHasVisualAsset && (
+          <img
+            className="fab__img"
+            src={fabImageSrc}
           alt="Start"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
           onError={(e) => {
-            ;(e.target as HTMLImageElement).style.display = 'none'
+            if (fabImageSrc === PAPER_FAB_FALLBACK_IMAGE_URL) {
+              setFabHasVisualAsset(false)
+              return
+            }
+            setFabImageSrc(PAPER_FAB_FALLBACK_IMAGE_URL)
           }}
-        />
+          />
+        )}
       </button>
 
       {/* 7. Settings Modal */}
       {showSettings && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setShowSettings(false)}
-        >
+        <div className="overlay" onClick={() => setShowSettings(false)}>
           <div
-            style={{
-              width: 'calc(100% - 48px)',
-              maxWidth: 360,
-              position: 'relative',
-              borderRadius: 20,
-              overflow: 'hidden',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-              color: '#5D4037',
-            }}
+            className="home-settings-popup"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 🖼️ ASSET | 设置弹窗背景 | PNG @3x | /assets/ui/settings-bg.png */}
             <img
+              className="home-settings-popup__bg-img"
               src="/assets/ui/settings-bg.png"
               alt=""
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                zIndex: 0,
+              onLoad={() => {
+                setSettingsBgLoaded(true)
               }}
               onError={(e) => {
+                setSettingsBgLoaded(false)
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <div style={{ position: 'absolute', inset: 0, backgroundColor: '#FFE8A0', zIndex: -1 }} />
+            {!settingsBgLoaded && <div className="home-settings-popup__fallback-bg" />}
 
-            <div style={{ position: 'relative', zIndex: 1 }}>
-            {/* 橙色横幅标题 */}
-            <div
-              style={{
-                backgroundColor: '#FFB840',
-                padding: 14,
-                textAlign: 'center',
-                fontSize: 18,
-                fontWeight: 900,
-                color: 'white',
-              }}
-            >
-              ⚙️ 设置
-            </div>
+            <div className="home-settings-popup__content">
+              {/* 弹窗主体 */}
+              <div className="home-settings-popup__body">
+                {/* 声音 & 震动 */}
+                <div className="home-settings-popup__section-label">声音 &amp; 震动</div>
 
-            {/* 弹窗主体 */}
-            <div
-              style={{
-                backgroundColor: 'transparent',
-                padding: '20px 24px 24px',
-              }}
-            >
-              {/* 音乐 / 音效 两列 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {/* 音乐 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音乐</div>
-                  <button
-                    onClick={() =>
-                      updateGameState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, musicEnabled: !prev.settings.musicEnabled },
-                      }))
-                    }
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: 12,
-                      border: 'none',
-                      backgroundColor: gameState.settings.musicEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
-                      boxShadow: gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)',
-                      color: gameState.settings.musicEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 16,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'transform 80ms ease, box-shadow 80ms ease',
-                    }}
-                    onPointerDown={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 1px 0 0 #4A9050'
-                        : '0 1px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerUp={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.musicEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                  >
-                    🎵 {gameState.settings.musicEnabled ? '开' : '关'}
-                  </button>
+                {/* 音乐 / 音效 / 朗读 三格 */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                  {([
+                    { key: 'musicEnabled' as const, icon: 'lucide:music', label: '音乐' },
+                    { key: 'soundEnabled' as const, icon: 'lucide:volume-2', label: '音效' },
+                    { key: 'ttsEnabled' as const, icon: 'lucide:mic', label: '朗读' },
+                  ]).map(({ key, icon, label }) => {
+                    const on = gameState.settings[key]
+                    return (
+                      <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                        <button
+                          onClick={() =>
+                            updateGameState((prev) => ({
+                              ...prev,
+                              settings: { ...prev.settings, [key]: !prev.settings[key] },
+                            }))
+                          }
+                          style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: 14,
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            backgroundColor: on ? '#4ECDC4' : 'rgba(93,64,55,0.1)',
+                            boxShadow: on ? '0 4px 0 0 #3BA89F' : '0 4px 0 0 rgba(93,64,55,0.06)',
+                            transition: 'transform 80ms ease, box-shadow 80ms ease',
+                          }}
+                          onPointerDown={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = 'translateY(3px)'
+                            el.style.boxShadow = on ? '0 1px 0 0 #3BA89F' : '0 1px 0 0 rgba(93,64,55,0.06)'
+                          }}
+                          onPointerUp={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = ''
+                            el.style.boxShadow = ''
+                          }}
+                          onPointerLeave={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = ''
+                            el.style.boxShadow = ''
+                          }}
+                        >
+                          <Icon
+                            icon={icon}
+                            style={{ width: 26, height: 26, color: on ? '#FFFFFF' : 'rgba(93,64,55,0.3)' }}
+                          />
+                        </button>
+                        <span style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)', fontWeight: 600 }}>
+                          {label}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
 
-                {/* 音效 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: 'rgba(93,64,55,0.5)', marginBottom: 6 }}>音效</div>
-                  <button
-                    onClick={() =>
-                      updateGameState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, soundEnabled: !prev.settings.soundEnabled },
-                      }))
-                    }
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: 12,
-                      border: 'none',
-                      backgroundColor: gameState.settings.soundEnabled ? '#66BB6A' : 'rgba(93,64,55,0.12)',
-                      boxShadow: gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)',
-                      color: gameState.settings.soundEnabled ? 'white' : 'rgba(93,64,55,0.4)',
-                      fontSize: 16,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'transform 80ms ease, box-shadow 80ms ease',
-                    }}
-                    onPointerDown={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 1px 0 0 #4A9050'
-                        : '0 1px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerUp={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                    onPointerLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-                      ;(e.currentTarget as HTMLButtonElement).style.boxShadow = gameState.settings.soundEnabled
-                        ? '0 4px 0 0 #4A9050'
-                        : '0 4px 0 0 rgba(93,64,55,0.08)'
-                    }}
-                  >
-                    🔊 {gameState.settings.soundEnabled ? '开' : '关'}
-                  </button>
+                {/* 分割线 */}
+                <div className="home-settings-popup__divider" />
+
+                <div className="home-settings-popup__team">
+                  👩‍💻 猫卷装修队
+                </div>
+                <div className="home-settings-popup__version">
+                  VERSION: 1.3.0
                 </div>
               </div>
-
-              {/* 分割线 */}
-              <div style={{ height: 1, backgroundColor: 'rgba(93,64,55,0.1)', margin: '16px 0' }} />
-
-              <div style={{ fontSize: 13, color: 'rgba(93,64,55,0.5)', textAlign: 'center' }}>
-                👩‍💻 猫卷装修队
-              </div>
-              <div style={{ fontSize: 11, color: 'rgba(93,64,55,0.3)', textAlign: 'center', marginTop: 6 }}>
-                VERSION: 1.3.0
-              </div>
-            </div>
             </div>
           </div>
         </div>

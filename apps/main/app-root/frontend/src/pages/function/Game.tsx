@@ -1,77 +1,56 @@
 /*
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
- * Description: 英语单词答题页面，展示单词配图和四个选项供用户选择，支持答题交互、反馈弹窗和进度管理。
- * Style referenceFiles:
+ * Description: 英语单词答题页面，动态生成题目（根据难度等级调整题型比例、例句难度、干扰项策略），支持多种题型（看图选词、填空、字母消消乐、拼写、图片配对），含自适应难度、TTS 和反馈机制。
+ * Style referenceFiles: styles/game.css, styles/components.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
  * ## Features & Interactions
- * - 查看当前题目的单词配图
- * - 从四个选项中选出正确答案（最多2次机会）
+ * - 根据用户难度等级动态生成 10 道混合题型
+ * - 五种题型：看图选词、填空题、字母消消乐、单词拼写、图片配对
  * - 答对/答错视觉反馈（绿色/红色高亮）
  * - 底部反馈弹窗（鼓励文案、正确答案展示）
+ * - 题内实时微调（每 3 题调整例句和干扰项难度）
+ * - 关卡结束后 AI 自适应调整下一关难度
  * - 进度实时更新（第X题·共10题）
  * - 退出确认对话框
- * - 返回上一页
  *
  * ## Basic Layout
  * 纯色背景 + 白色底部渐变 + 顶部导航 + 单词插图 + 白色题目卡片 + 底部反馈弹窗
  *
  * ## Page Layout
- * 全屏纯色背景（CSS变量 --game-bg-color），底部白色渐变层覆盖40%高度。
- *
- * **Header**: 透明背景导航栏
- * - 左侧：← 返回按钮（白底圆角方形），点击弹出退出确认
- * - 中间：「第 X 关 · WordPet」
- * - 右侧：空
- *
- * **Main**:
- * 1. 单词插图区：圆形色块占位（160px，#FFB840 30%透明度），下半部分压入卡片
- * 2. 白色题目卡片：圆角20px，paddingTop 80px，包含进度文字、题目文案、4个选项按钮
- * 3. 底部留白100px（反馈弹窗弹出区）
- *
- * **FeedbackSheet**: 底部滑入弹窗
- * - 答对：鼓励文案 + 下一题按钮
- * - 答错第1次：鼓励文案 + 再试一次按钮
- * - 答错第2次：正确答案 + 词义 + 例句 + 下一题按钮
- *
- * ## Mock Data
- * 10道四选一题目，涵盖家居/生活场景单词
+ * 全屏纯色背景（#F5E6C8），底部白色渐变层覆盖40%高度。
  * </page-design>
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
-import type { GameState } from '@/store/gameStore'
+// GameState type no longer needed at module level
+import {
+  generateQuestions,
+  adjustNextQuestion,
+  type GeneratedQuestion,
+  type AdaptiveSignal,
+} from '@/data/questionGenerator'
+import type { DifficultyLevel } from '@/data/words/types'
+import { speakWord as _speakWord } from '@/lib/utils/tts'
+import { getRandomEncourage } from '@/lib/utils/encouragements'
+import { getChapterName } from '@/data/chapters'
+import { useAudio } from '@/lib/audio/useAudio'
+
+// ── TTS 工具函数已移入组件内部（speak），同时检查页面朗读开关 + 全局 ttsEnabled ──
 
 // ============================================================================
-// TTS
-// ============================================================================
-
-function speakWord(word: string, gameState: GameState, sentence?: string) {
-  if (!gameState.settings.soundEnabled) return
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-
-  const text = sentence ? `${word}. ${sentence}` : word
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'en-US'
-  utter.rate = 0.85
-  utter.pitch = 1
-  window.speechSynthesis.speak(utter)
-}
-
-// ============================================================================
-// LLM Adaptive Difficulty
+// LLM Adaptive Difficulty (关卡结束后大调整)
 // ============================================================================
 
 const LLM_API_URL = 'https://ai-platform-test.zhenguanyu.com/litellm/v1/chat/completions'
 const LLM_API_KEY = 'sk-ZDolX3RGKGtyyWiaP0zXOQ'
 
-async function adjustDifficulty(
+async function adjustDifficultyViaLLM(
   accuracy: number,
   currentDifficulty: number,
   stats: Record<string, { correct: number; wrong: number }>,
@@ -108,124 +87,17 @@ async function adjustDifficulty(
 }
 
 // ============================================================================
-// Mock Data
+// Constants
 // ============================================================================
 
-interface Question {
-  type: 'multiple_choice' | 'fill_blank' | 'picture_match'
-  word: string
-  meaning: string
-  sentence: string
-  options: string[]
-  correctAnswer: string
-}
+// 鼓励文案 & 章节名称使用公共模块 ↑
 
-const QUESTIONS: Question[] = [
-  // ── multiple_choice (4) ──
-  {
-    type: 'multiple_choice',
-    word: 'sofa',
-    meaning: 'n. 沙发；长沙发',
-    sentence: 'Come sit on the sofa.',
-    options: ['sofa', 'lamp', 'desk', 'book'],
-    correctAnswer: 'sofa',
-  },
-  {
-    type: 'multiple_choice',
-    word: 'lamp',
-    meaning: 'n. 灯；台灯',
-    sentence: 'Turn on the lamp, please.',
-    options: ['chair', 'lamp', 'table', 'door'],
-    correctAnswer: 'lamp',
-  },
-  {
-    type: 'multiple_choice',
-    word: 'chair',
-    meaning: 'n. 椅子',
-    sentence: 'Please sit in the chair.',
-    options: ['sofa', 'bed', 'chair', 'shelf'],
-    correctAnswer: 'chair',
-  },
-  {
-    type: 'multiple_choice',
-    word: 'table',
-    meaning: 'n. 桌子',
-    sentence: 'Put it on the table.',
-    options: ['desk', 'table', 'floor', 'wall'],
-    correctAnswer: 'table',
-  },
-  // ── fill_blank (3) ──
-  {
-    type: 'fill_blank',
-    word: 'clock',
-    meaning: 'n. 时钟',
-    sentence: 'The ___ shows three.',
-    options: ['watch', 'phone', 'clock', 'bell'],
-    correctAnswer: 'clock',
-  },
-  {
-    type: 'fill_blank',
-    word: 'window',
-    meaning: 'n. 窗户',
-    sentence: 'Open the ___ for fresh air.',
-    options: ['window', 'mirror', 'door', 'wall'],
-    correctAnswer: 'window',
-  },
-  {
-    type: 'fill_blank',
-    word: 'pillow',
-    meaning: 'n. 枕头',
-    sentence: 'Rest your head on the ___.',
-    options: ['blanket', 'sheet', 'pillow', 'towel'],
-    correctAnswer: 'pillow',
-  },
-  // ── picture_match (3) ──
-  {
-    type: 'picture_match',
-    word: 'carpet',
-    meaning: 'n. 地毯',
-    sentence: 'The cat sleeps on the carpet.',
-    options: ['carpet', 'curtain', 'couch', 'closet'],
-    correctAnswer: 'carpet',
-  },
-  {
-    type: 'picture_match',
-    word: 'shelf',
-    meaning: 'n. 架子；搁板',
-    sentence: 'Put the books on the shelf.',
-    options: ['drawer', 'shelf', 'basket', 'box'],
-    correctAnswer: 'shelf',
-  },
-  {
-    type: 'picture_match',
-    word: 'mirror',
-    meaning: 'n. 镜子',
-    sentence: 'Look at yourself in the mirror.',
-    options: ['glass', 'screen', 'frame', 'mirror'],
-    correctAnswer: 'mirror',
-  },
-]
-
-const TOTAL_QUESTIONS = QUESTIONS.length
-
-const ENCOURAGE_CORRECT = [
-  '完美！',
-  '太棒了！',
-  '就是这样！',
-  '答对啦！',
-  '真厉害！',
-]
-
-const ENCOURAGE_WRONG = [
-  '没关系，继续加油！',
-  '差一点～再来！',
-  '记住了，下次一定会！',
-  '别灰心，你可以的！',
-]
-
-function getRandomEncourage(isCorrect: boolean): string {
-  const list = isCorrect ? ENCOURAGE_CORRECT : ENCOURAGE_WRONG
-  return list[Math.floor(Math.random() * list.length)]
+const QUESTION_TYPE_HINT: Record<string, string> = {
+  multiple_choice: '这张图对应哪个单词？',
+  fill_blank: '选出空格处的单词',
+  picture_matching: '选出对应的中文含义',
+  letter_match: '把字母排列成正确的单词',
+  word_spelling: '看图片拼出单词',
 }
 
 // ============================================================================
@@ -233,14 +105,6 @@ function getRandomEncourage(isCorrect: boolean): string {
 // ============================================================================
 
 type AnswerState = 'idle' | 'correct' | 'wrong_first' | 'wrong_second'
-
-const CHAPTER_NAME_MAP: Record<number, string> = {
-  1: '街角流浪',
-  2: '温暖新家',
-  3: '幼儿园',
-  4: '公园探险',
-  5: '厨房美食',
-}
 
 // ============================================================================
 // Sub-components
@@ -254,80 +118,26 @@ function ConfirmDialog({
   onCancel: () => void
 }) {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0,0,0,0.4)',
-      }}
-    >
-      <div
-        style={{
-          width: '280px',
-          backgroundColor: 'white',
-          borderRadius: '20px',
-          padding: '28px 24px 20px',
-          textAlign: 'center',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        }}
-      >
-        <p
-          style={{
-            fontSize: '17px',
-            fontWeight: 700,
-            color: '#5D4037',
-            margin: '0 0 8px',
-          }}
-        >
+    <div className="overlay">
+      <div className="modal">
+        <p className="modal__title">
           确认退出？
         </p>
-        <p
-          style={{
-            fontSize: '14px',
-            color: 'rgba(93,64,55,0.6)',
-            margin: '0 0 24px',
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="modal__message">
           退出后本关进度将丢失
         </p>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="modal__actions">
           <button
             onClick={onCancel}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              border: '2px solid rgba(93,64,55,0.15)',
-              backgroundColor: 'white',
-              fontSize: '15px',
-              fontWeight: 700,
-              color: '#5D4037',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-            }}
+            className="btn-secondary"
+            style={{ flex: 1 }}
           >
             继续答题
           </button>
           <button
             onClick={onConfirm}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              border: 'none',
-              backgroundColor: '#EF5350',
-              fontSize: '15px',
-              fontWeight: 700,
-              color: 'white',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-            }}
+            className="btn-danger"
+            style={{ flex: 1 }}
           >
             退出
           </button>
@@ -345,7 +155,7 @@ function FeedbackSheet({
   onSpeak,
 }: {
   answerState: 'correct' | 'wrong_first' | 'wrong_second'
-  question: Question
+  question: GeneratedQuestion
   encourageText: string
   onNext: () => void
   onSpeak?: () => void
@@ -355,144 +165,201 @@ function FeedbackSheet({
   const headerText = isWrongSecond ? '正确答案是——' : encourageText
 
   return (
-    <>
-      {/* Sheet — no overlay, options stay visible */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 51,
-          backgroundColor: 'white',
-          borderTopLeftRadius: '24px',
-          borderTopRightRadius: '24px',
-          padding: '24px 20px',
-          paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 34px))',
-          boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
-          fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-          animation: 'slideUp 300ms ease-out',
-        }}
-      >
-        {/* Status icon + encourage text */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: isWrongSecond ? '16px' : '0' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: isCorrect ? '#66BB6A' : '#EF5350',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Icon
-              icon={isCorrect ? 'lucide:check' : 'lucide:x'}
-              style={{ width: '18px', height: '18px', color: 'white' }}
-            />
-          </div>
-          <span style={{ fontSize: '17px', fontWeight: 700, color: '#5D4037' }}>
-            {headerText}
-          </span>
+    <div className="feedback-sheet">
+      <div className="game-feedback__header" style={{ marginBottom: isWrongSecond ? '16px' : '0' }}>
+        <div className={`feedback-icon ${isCorrect ? 'feedback-icon--correct' : 'feedback-icon--wrong'}`}>
+          <Icon
+            icon={isCorrect ? 'lucide:check' : 'lucide:x'}
+            style={{ width: '18px', height: '18px', color: 'white' }}
+          />
         </div>
+        <span className="game-feedback__header-text">
+          {headerText}
+        </span>
+      </div>
 
-        {/* Show correct answer on second wrong attempt */}
-        {isWrongSecond && (
-          <div
-            style={{
-              backgroundColor: '#F5F5F5',
-              borderRadius: '14px',
-              padding: '16px',
-              marginBottom: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14px', color: 'rgba(93,64,55,0.6)' }}>
-                正确答案：
-              </span>
-              <span
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 800,
-                  color: '#66BB6A',
-                  fontFamily: "'Nunito', sans-serif",
-                }}
+      {isWrongSecond && (
+        <div className="game-feedback__answer-card">
+          <div className="game-feedback__header" style={{ marginBottom: '8px' }}>
+            <span className="game-feedback__answer-label">
+              正确答案：
+            </span>
+            <span className="game-feedback__answer-word">
+              {question.correctAnswer}
+            </span>
+            {onSpeak && (
+              <button
+                onClick={onSpeak}
+                className="speak-btn speak-btn--lg"
+                style={{ marginLeft: 'auto' }}
               >
-                {question.correctAnswer}
-              </span>
-              {onSpeak && (
-                <button
-                  onClick={onSpeak}
-                  style={{
-                    marginLeft: 'auto',
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255,184,64,0.15)',
-                    border: '1.5px solid #FFB840',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    fontSize: 20,
-                    lineHeight: 1,
-                  }}
-                >
-                  🔊
-                </button>
-              )}
-            </div>
-            <p style={{ fontSize: '14px', color: '#5D4037', margin: '0 0 4px', fontWeight: 600 }}>
-              {question.meaning}
-            </p>
-            <p
-              style={{
-                fontSize: '13px',
-                color: 'rgba(93,64,55,0.6)',
-                margin: 0,
-                fontStyle: 'italic',
-                fontFamily: "'Nunito', sans-serif",
-              }}
-            >
-              &ldquo;{question.sentence}&rdquo;
-            </p>
+                🔊
+              </button>
+            )}
           </div>
-        )}
+          <p className="game-feedback__meaning">
+            {question.meaning}
+          </p>
+          <p className="game-feedback__sentence">
+            &ldquo;{question.sentence}&rdquo;
+          </p>
+        </div>
+      )}
 
-        {/* Action button */}
-        {isWrongSecond && (
+      {isWrongSecond && (
+        <button
+          onClick={onNext}
+          className="btn-primary"
+          style={{ width: '100%', padding: '14px 16px', fontSize: '16px' }}
+        >
+          下一题
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// 字母拖拽/点选组件（用于 letter_match 和 word_spelling）
+// ============================================================================
+
+function LetterPuzzle({
+  letters,
+  correctWord,
+  onComplete,
+  onWrong,
+  disabled,
+  showMeaning,
+  image,
+}: {
+  letters: string[]
+  correctWord: string
+  onComplete: () => void
+  onWrong: () => void
+  disabled: boolean
+  showMeaning?: string
+  image?: string
+}) {
+  const { playSfx } = useAudio()
+  const [selected, setSelected] = useState<number[]>([])
+  const [availableLetters, setAvailableLetters] = useState(letters)
+  const [isWrong, setIsWrong] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  useEffect(() => {
+    setSelected([])
+    setAvailableLetters(letters)
+    setIsWrong(false)
+    setImgLoaded(false)
+  }, [letters])
+
+  const currentWord = selected.map((idx) => letters[idx]).join('')
+
+  const handleLetterClick = (index: number) => {
+    if (disabled || selected.includes(index)) return
+    playSfx('button-click')
+
+    const newSelected = [...selected, index]
+    setSelected(newSelected)
+
+    const newWord = newSelected.map((idx) => letters[idx]).join('')
+
+    // 检查是否完成
+    if (newWord.length === correctWord.length) {
+      if (newWord === correctWord) {
+        onComplete()
+      } else {
+        setIsWrong(true)
+        onWrong()
+        // 1 秒后重置
+        setTimeout(() => {
+          setSelected([])
+          setIsWrong(false)
+        }, 800)
+      }
+    }
+  }
+
+  const handleUndo = () => {
+    if (disabled || selected.length === 0) return
+    setSelected(selected.slice(0, -1))
+    setIsWrong(false)
+  }
+
+  return (
+    <div className="game-letter-layout" data-no-click-sfx>
+      {/* 配图 */}
+      {image && (
+        <div className={`game-letter-image ${imgLoaded ? 'game-letter-image--loaded' : ''}`}>
+          <img
+            src={image}
+            alt=""
+            className="game-letter-image__img"
+            onLoad={() => setImgLoaded(true)}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+          {!imgLoaded && (
+            <span className="game-letter-image__letter">
+              {correctWord.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* 含义提示 */}
+      {showMeaning && (
+        <p className="game-letter-meaning">
+          {showMeaning}
+        </p>
+      )}
+
+      {/* 已选区域（目标位） */}
+      <div className="game-letter-slots">
+        {correctWord.split('').map((_, idx) => {
+          const letter = selected[idx] !== undefined ? letters[selected[idx]] : ''
+          const slotClass = isWrong && currentWord.length === correctWord.length
+            ? 'letter-slot letter-slot--wrong'
+            : letter
+              ? 'letter-slot letter-slot--filled'
+              : 'letter-slot letter-slot--empty'
+          return (
+            <div
+              key={idx}
+              className={slotClass}
+            >
+              {letter}
+            </div>
+          )
+        })}
+
+        {/* 撤销按钮 */}
+        {selected.length > 0 && !disabled && (
           <button
-            onClick={onNext}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: '14px',
-              border: 'none',
-              backgroundColor: '#FFB840',
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#3D1F00',
-              cursor: 'pointer',
-              fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-              boxShadow: '0 3px 0 0 #D99A20',
-            }}
+            onClick={handleUndo}
+            className="game-undo-btn"
           >
-            下一题 →
+            <Icon icon="lucide:undo-2" style={{ width: 18, height: 18, color: '#8D6E63' }} />
           </button>
         )}
       </div>
 
-      {/* Keyframe animation */}
-      <style>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-      `}</style>
-    </>
+      {/* 可选字母区 */}
+      <div className="game-letter-pool">
+        {availableLetters.map((letter, idx) => {
+          const isUsed = selected.includes(idx)
+          return (
+            <button
+              key={`${letter}-${idx}`}
+              onClick={() => handleLetterClick(idx)}
+              disabled={disabled || isUsed}
+              className={`letter-btn ${isUsed ? 'letter-btn--used' : 'letter-btn--available'}`}
+            >
+              {letter}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -505,11 +372,28 @@ function Game() {
   const { chapterId: chapterIdParam, levelId: levelIdParam } = useParams()
   const { gameState, updateGameState } = useGameStore()
 
+  const { playSfx } = useAudio()
   const chapterId = Number(chapterIdParam ?? gameState.currentChapter)
   const levelId = Number(levelIdParam ?? gameState.currentLevel)
-  const chapterName = CHAPTER_NAME_MAP[chapterId] ?? `第${chapterId}章`
+  const chapterName = getChapterName(chapterId)
+  const currentDifficulty = gameState.adaptiveDifficulty.current
 
-  // Game state
+  // ── 动态生成题目（组件挂载时生成一次） ──
+  const [questions, setQuestions] = useState<GeneratedQuestion[]>([])
+
+  useEffect(() => {
+    const generated = generateQuestions({
+      chapterId,
+      levelId,
+      difficulty: currentDifficulty,
+      wordHistory: gameState.wordHistory,
+    })
+    setQuestions(generated)
+  }, [chapterId, levelId]) // 只在章节/关卡变化时重新生成
+
+  const TOTAL_QUESTIONS = questions.length || 10
+
+  // ── 答题状态 ──
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answerState, setAnswerState] = useState<AnswerState>('idle')
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
@@ -517,79 +401,142 @@ function Game() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [encourageText, setEncourageText] = useState('')
-  // Track correct count for completion screen
+  const [topImgLoaded, setTopImgLoaded] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
-  const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number }>>({})
+  const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number; firstCorrect: boolean }>>({})
 
-  const question = QUESTIONS[currentIndex]
+  // ── 自动朗读开关（答题页内，默认开启） ──
+  const [autoRead, setAutoRead] = useState(true)
+  const autoReadRef = useRef(true) // ref 同步，供回调函数读取最新值
 
-  // Get option style based on answer state
-  const getOptionStyle = useCallback(
+  /** 组件内 TTS：同时检查页面朗读开关和全局 ttsEnabled */
+  const speak = useCallback((word: string, sentence?: string) => {
+    if (!autoReadRef.current) return
+    _speakWord(word, { enabled: gameState.settings.ttsEnabled, sentence })
+  }, [gameState.settings.ttsEnabled])
+
+  // ── 题内实时微调追踪 ──
+  const recentResults = useRef<boolean[]>([]) // 最近 3 题结果
+  const sentenceLevelOverride = useRef<'basic' | 'advanced' | null>(null)
+
+  // ── LLM 难度变化提示（仅在难度确实发生变化且尚未展示时才弹出） ──
+  const [difficultyToast, setDifficultyToast] = useState<{
+    show: boolean
+    direction: 'up' | 'down' | 'same'
+    from: number
+    to: number
+  } | null>(null)
+
+  useEffect(() => {
+    const history = gameState.adaptiveDifficulty.levelHistory
+    if (history.length < 2) return
+
+    const prev = history[history.length - 2]
+    const curr = history[history.length - 1]
+    if (prev === curr) return // 难度没变，不提示
+
+    // 用 localStorage 记录上次已展示 Toast 时对应的 levelHistory 长度，
+    // 避免重复进入同一关时反复弹出同一条提示
+    const toastKey = 'wordpet_difficulty_toast_shown_at'
+    const lastShownAt = Number(localStorage.getItem(toastKey) || '0')
+    if (lastShownAt >= history.length) return // 这次变化已经展示过了
+
+    localStorage.setItem(toastKey, String(history.length))
+
+    setDifficultyToast({
+      show: true,
+      direction: curr > prev ? 'up' : 'down',
+      from: prev,
+      to: curr,
+    })
+    const timer = setTimeout(() => setDifficultyToast(null), 4000)
+    return () => clearTimeout(timer)
+  }, []) // 仅挂载时检查一次
+
+  const question = questions[currentIndex]
+
+  // ── 同步 autoRead ref ──
+  useEffect(() => {
+    autoReadRef.current = autoRead
+  }, [autoRead])
+
+  // ── 自动朗读：每道新题出现时自动朗读单词 ──
+  useEffect(() => {
+    if (question && autoRead && answerState === 'idle' && gameState.settings.ttsEnabled) {
+      const timer = setTimeout(() => {
+        _speakWord(question.word, { enabled: true })
+      }, 300) // 延迟 300ms 让卡片动画完成
+      return () => clearTimeout(timer)
+    }
+  }, [currentIndex, question?.word, autoRead, gameState.settings.ttsEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 难度指示器文字 ──
+  const DIFFICULTY_LABELS: Record<number, string> = { 1: '🐾 入门', 2: '🐾🐾 进阶', 3: '🐾🐾🐾 挑战', 4: '🐾🐾🐾🐾 大师' }
+  const difficultyLabel = useMemo(() => {
+    const labels: Record<number, string> = { 1: '🐾', 2: '🐾🐾', 3: '🐾🐾🐾', 4: '🐾🐾🐾🐾' }
+    return labels[currentDifficulty] ?? '🐾'
+  }, [currentDifficulty])
+
+  // ── 选项样式 ──
+  const getOptionClass = useCallback(
     (option: string) => {
-      const baseStyle = {
-        width: '100%',
-        padding: '14px 16px',
-        borderRadius: '14px',
-        border: 'none',
-        fontSize: '16px',
-        fontWeight: 700 as const,
-        textAlign: 'center' as const,
-        cursor: 'pointer',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        transition: 'background-color 100ms ease, color 100ms ease, box-shadow 100ms ease',
-      }
+      if (!question) return 'btn-option btn-option--idle'
 
-      if (answerState === 'idle') {
-        return {
-          ...baseStyle,
-          backgroundColor: '#FFF8E7',
-          color: '#5D4037',
-          boxShadow: '0 3px 0 0 #E8D5B0',
-        }
-      }
+      if (answerState === 'idle') return 'btn-option btn-option--idle'
 
-      // Correct answer highlight (on correct, or on second wrong attempt)
-      if (option === question.correctAnswer && (answerState === 'correct' || answerState === 'wrong_second')) {
-        return {
-          ...baseStyle,
-          backgroundColor: '#66BB6A',
-          color: 'white',
-          boxShadow: '0 3px 0 0 #4CAF50',
-        }
-      }
+      if (option === question.correctAnswer && (answerState === 'correct' || answerState === 'wrong_second'))
+        return 'btn-option btn-option--correct'
 
-      // Wrong selected option
-      if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second')) {
-        return {
-          ...baseStyle,
-          backgroundColor: answerState === 'wrong_second' ? '#FFEBEE' : '#EF5350',
-          color: answerState === 'wrong_second' ? '#C62828' : 'white',
-          boxShadow: answerState === 'wrong_second' ? '0 3px 0 0 #F8BBD0' : '0 3px 0 0 #D32F2F',
-        }
-      }
+      if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second'))
+        return `btn-option ${answerState === 'wrong_second' ? 'btn-option--wrong-reveal' : 'btn-option--wrong'}`
 
-      // Other options — dimmed
-      return {
-        ...baseStyle,
-        backgroundColor: '#FFF8E7',
-        color: '#5D4037',
-        boxShadow: '0 3px 0 0 #E8D5B0',
-        opacity: answerState === 'wrong_second' ? 0.4 : 0.5,
-      }
+      return `btn-option btn-option--idle ${answerState === 'wrong_second' ? 'btn-option--dimmed' : 'btn-option--semi-dimmed'}`
     },
     [answerState, selectedOption, question],
   )
 
-  // Determine if options are disabled
   const optionsDisabled = useMemo(
     () => answerState !== 'idle',
     [answerState],
   )
 
-  // Handle option click
+  // ── 记录答题结果并触发微调 ──
+  const recordAnswer = useCallback((word: string, isCorrect: boolean, attempts: number) => {
+    // 更新 recentResults
+    recentResults.current.push(isCorrect)
+    if (recentResults.current.length > 3) {
+      recentResults.current.shift()
+    }
+
+    // 每 3 题进行一次微调
+    if (recentResults.current.length >= 3) {
+      const recentAccuracy = recentResults.current.filter(Boolean).length / recentResults.current.length
+      const signal: AdaptiveSignal = {
+        recentAccuracy,
+        attemptCount: attempts,
+      }
+      const adjustment = adjustNextQuestion(signal)
+      sentenceLevelOverride.current = adjustment.sentenceLevel
+    }
+
+    // 更新 wordStats
+    setWordStats((prev) => {
+      const existing = prev[word] ?? { correct: 0, wrong: 0, firstCorrect: false }
+      return {
+        ...prev,
+        [word]: {
+          correct: existing.correct + (isCorrect ? 1 : 0),
+          wrong: existing.wrong + (isCorrect ? 0 : 1),
+          firstCorrect: isCorrect && attempts === 1,
+        },
+      }
+    })
+  }, [])
+
+  // ── 选项点击 ──
   const handleOptionClick = useCallback(
     (option: string) => {
-      if (optionsDisabled) return
+      if (optionsDisabled || !question) return
 
       setSelectedOption(option)
       const newAttemptCount = attemptCount + 1
@@ -599,54 +546,57 @@ function Game() {
         setAnswerState('correct')
         setEncourageText(getRandomEncourage(true))
         setCorrectCount((c) => c + 1)
-        setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
-          return {
-            ...prev,
-            [question.word]: {
-              correct: existing.correct + 1,
-              wrong: existing.wrong,
-            },
-          }
-        })
-        speakWord(question.word, gameState)
+        recordAnswer(question.word, true, newAttemptCount)
+        speak(question.word)
+        playSfx('correct')
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
         setAnswerState('wrong_first')
         setEncourageText(getRandomEncourage(false))
-        setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
-          return {
-            ...prev,
-            [question.word]: {
-              correct: existing.correct,
-              wrong: existing.wrong + 1,
-            },
-          }
-        })
+        recordAnswer(question.word, false, newAttemptCount)
+        playSfx('wrong')
         setShowFeedback(true)
       } else {
         setAnswerState('wrong_second')
         setEncourageText('正确答案是——')
-        setWordStats((prev) => {
-          const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
-          return {
-            ...prev,
-            [question.word]: {
-              correct: existing.correct,
-              wrong: existing.wrong + 1,
-            },
-          }
-        })
-        speakWord(question.correctAnswer, gameState, question.sentence)
+        recordAnswer(question.word, false, newAttemptCount)
+        speak(question.correctAnswer, question.sentence)
         setShowFeedback(true)
       }
     },
-    [optionsDisabled, attemptCount, question],
+    [optionsDisabled, attemptCount, question, speak, recordAnswer, playSfx],
   )
 
-  // Handle next question
+  // ── 字母拼写完成回调 ──
+  const handleSpellingComplete = useCallback(() => {
+    if (!question) return
+    setAnswerState('correct')
+    setEncourageText(getRandomEncourage(true))
+    setCorrectCount((c) => c + 1)
+    recordAnswer(question.word, true, 1)
+    speak(question.word)
+    playSfx('correct')
+    setShowFeedback(true)
+  }, [question, speak, recordAnswer, playSfx])
+
+  const handleSpellingWrong = useCallback(() => {
+    if (!question) return
+    const newAttemptCount = attemptCount + 1
+    setAttemptCount(newAttemptCount)
+
+    if (newAttemptCount >= 2) {
+      setAnswerState('wrong_second')
+      setEncourageText('正确答案是——')
+      recordAnswer(question.word, false, newAttemptCount)
+      speak(question.correctAnswer, question.sentence)
+      setShowFeedback(true)
+    } else {
+      recordAnswer(question.word, false, newAttemptCount)
+    }
+  }, [question, attemptCount, speak, recordAnswer])
+
+  // ── 下一题 ──
   const handleNext = useCallback(() => {
     setShowFeedback(false)
 
@@ -704,9 +654,21 @@ function Game() {
         }
       })
 
-      void navigate(`/chapter/${chapterId}/level/${levelId}/result`)
+      // 构建本关单词详情
+      const levelWordDetails = questions.map((q) => ({
+        word: q.word,
+        meaning: q.meaning,
+        sentence: q.sentence,
+        type: q.type,
+        stats: wordStats[q.word] ?? { correct: 0, wrong: 0, firstCorrect: false },
+      }))
 
-      adjustDifficulty(accuracy, gameState.adaptiveDifficulty.current, wordStats).then(
+      void navigate(`/chapter/${chapterId}/level/${levelId}/result`, {
+        state: { levelWordDetails, furnitureJustUnlocked: true },
+      })
+
+      // 关卡结束后 AI 大调整
+      adjustDifficultyViaLLM(accuracy, gameState.adaptiveDifficulty.current, wordStats).then(
         (newDifficulty) => {
           updateGameState((prev) => ({
             ...prev,
@@ -726,8 +688,10 @@ function Game() {
     setAnswerState('idle')
     setSelectedOption(null)
     setAttemptCount(0)
-  }, [chapterId, correctCount, currentIndex, gameState.adaptiveDifficulty.current, levelId, navigate, updateGameState, wordStats])
+    setTopImgLoaded(false)
+  }, [chapterId, correctCount, currentIndex, gameState.adaptiveDifficulty.current, levelId, navigate, questions, TOTAL_QUESTIONS, updateGameState, wordStats])
 
+  // ── 自动推进 ──
   useEffect(() => {
     if (!showFeedback) return
 
@@ -748,262 +712,188 @@ function Game() {
     }
   }, [answerState, handleNext, showFeedback])
 
-  // Handle exit
   const handleExitConfirm = useCallback(() => {
     void navigate(-1)
   }, [navigate])
 
+  // ── Loading / 无题目时 ──
+  if (!question || questions.length === 0) {
+    return (
+      <div className="game-loading">
+        <p className="game-loading__text">正在准备题目...</p>
+      </div>
+    )
+  }
+
+  // ── 判断是否为选项类题型 ──
+  const isChoiceType = question.type === 'multiple_choice' || question.type === 'fill_blank' || question.type === 'picture_matching'
+  const isSpellingType = question.type === 'letter_match' || question.type === 'word_spelling'
+
+  // ── 是否展示顶部配图 ──
+  // multiple_choice（看图选词）：需要大图 — 用户看图猜词
+  // letter_match（字母消消乐）：需要大图 — 给用户视觉提示
+  // fill_blank（填空题）：不需要 — 用户看例句选词
+  // picture_matching（图片配对）：不需要 — 用户看英文选中文
+  // word_spelling（看图拼出单词）：不需要顶部大图 — LetterPuzzle 内已有小图
+  const showImage = question.type === 'multiple_choice' || question.type === 'letter_match'
+
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        minHeight: '100vh',
-        backgroundColor: '#F5E6C8',
-        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
-        color: '#5D4037',
-      }}
-    >
+    <div className="game-page">
       {/* Bottom white gradient overlay */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '40vh',
-          background: 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
+      <div className="game-gradient" />
 
       {/* Top navigation bar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          paddingTop: '16px',
-          background: '#F5E6C8',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-          }}
-        >
-          {/* Back button */}
+      <div className="game-header">
+        <div className="game-header__inner">
           <button
             onClick={() => setShowExitConfirm(true)}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              backgroundColor: 'white',
-              border: '2px solid rgba(93,64,55,0.1)',
-              boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
+            className="game-header__exit-btn icon-btn--md"
           >
             <Icon icon="lucide:arrow-left" style={{ width: '20px', height: '20px', color: '#5D4037' }} />
           </button>
 
-          {/* Title */}
-          <span
-            style={{
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#5D4037',
-            }}
-          >
-            第 {levelId} 关 · {chapterName}
-          </span>
+          <div className="game-header__info">
+            <span className="game-header__title">
+              第 {levelId} 关 · {chapterName}
+            </span>
+            <span className="game-header__difficulty">
+              {difficultyLabel}
+            </span>
+          </div>
 
-          {/* Right spacer */}
-          <div style={{ width: '40px', height: '40px' }} />
+          {/* 自动朗读开关：全局 ttsEnabled 关闭时，视觉上也显示为关 */}
+          {(() => {
+            const ttsOn = gameState.settings.ttsEnabled
+            const active = autoRead && ttsOn
+            return (
+              <button
+                onClick={() => {
+                  if (!ttsOn) return
+                  setAutoRead((prev) => {
+                    const next = !prev
+                    autoReadRef.current = next
+                    if (!next && window.speechSynthesis) {
+                      window.speechSynthesis.cancel()
+                    }
+                    return next
+                  })
+                }}
+                className="game-header__tts-btn"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: active ? 'rgba(255,184,64,0.15)' : 'transparent',
+                  border: active ? '1.5px solid rgba(255,184,64,0.4)' : '1.5px solid rgba(93,64,55,0.3)',
+                  cursor: ttsOn ? 'pointer' : 'not-allowed',
+                  opacity: ttsOn ? 1 : 0.5,
+                }}
+              >
+                <Icon
+                  icon="lucide:mic"
+                  style={{ width: 18, height: 18, color: active ? '#FFB840' : 'rgba(93,64,55,0.3)' }}
+                />
+              </button>
+            )
+          })()}
         </div>
       </div>
 
       {/* Main content */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingTop: '80px',
-        }}
-      >
-        {question.type === 'multiple_choice' && (
-          <div
-            style={{
-              width: 160,
-              height: 160,
-              borderRadius: 16,
-              backgroundColor: 'rgba(255,184,64,0.2)',
-              border: '3px solid white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              position: 'relative',
-              marginBottom: -80,
-              zIndex: 2,
-            }}
-          >
-            {/* 🖼️ ASSET | 单词图片 | /assets/words/{word}.png */}
+      <div className="game-content">
+        {/* 配图区 */}
+        {showImage && (
+          <div className={`game-word-image ${topImgLoaded ? 'game-word-image--loaded' : ''}`}>
             <img
-              src={`/assets/words/${question.word}.png`}
+              src={question.image}
               alt={question.word}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+              className="game-word-image__img"
+              onLoad={() => setTopImgLoaded(true)}
               onError={(e) => {
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <span style={{ position: 'relative', zIndex: 1, fontSize: 48, color: 'rgba(93,64,55,0.3)' }}>
-              {question.word.charAt(0).toUpperCase()}
-            </span>
+            {!topImgLoaded && (
+              <span className="game-word-image__letter">
+                {question.word.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
         )}
 
         {/* White question card */}
         <div
+          className="game-question-card"
           style={{
-            position: 'relative',
-            zIndex: 1,
-            width: 'calc(100% - 32px)',
-            backgroundColor: 'white',
-            borderRadius: '20px',
-            paddingTop: question.type === 'multiple_choice' ? '80px' : '24px',
-            paddingBottom: '24px',
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-            marginTop: question.type === 'multiple_choice' ? 0 : 24,
+            paddingTop: showImage ? '68px' : '24px',
+            marginTop: showImage ? 0 : 16,
           }}
         >
-          {/* TTS speaker button */}
-          <button
-            onClick={() => speakWord(question.word, gameState)}
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255,184,64,0.12)',
-              border: '1.5px solid rgba(255,184,64,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              zIndex: 3,
-            }}
-          >
-            <Icon icon="lucide:volume-2" style={{ width: 16, height: 16, color: '#FFB840' }} />
-          </button>
-
           {/* Progress text */}
-          <p
-            style={{
-              textAlign: 'center',
-              fontSize: '13px',
-              color: 'rgba(93,64,55,0.5)',
-              margin: 0,
-            }}
-          >
+          <p className="game-progress-text">
             第 {currentIndex + 1} 题 · 共 {TOTAL_QUESTIONS} 题
           </p>
 
           {/* ── Type-dependent hint area ── */}
-          {question.type === 'picture_match' && (
-            <p
-              style={{
-                textAlign: 'center',
-                fontSize: 32,
-                fontWeight: 900,
-                color: '#FFB840',
-                margin: '12px 0 0',
-                lineHeight: 1.3,
-              }}
-            >
-              {question.meaning}
+          {question.type === 'picture_matching' && (
+            <p className="game-picture-word">
+              {question.word}
             </p>
           )}
 
           {question.type === 'fill_blank' && (
-            <p
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: '#5D4037',
-                margin: '12px 0 0',
-                lineHeight: 1.6,
-                fontFamily: "'Nunito', sans-serif",
-              }}
-            >
+            <p className="game-fill-sentence">
               {question.sentence.split('___').map((part, i, arr) => (
                 <span key={i}>
                   {part}
                   {i < arr.length - 1 && (
-                    <span style={{ color: '#FFB840', fontWeight: 900 }}>___</span>
+                    <span className="game-fill-blank-marker">___</span>
                   )}
                 </span>
               ))}
             </p>
           )}
 
-          {/* Question text (type-dependent) */}
-          <p
-            style={{
-              textAlign: 'center',
-              fontSize: '17px',
-              fontWeight: 700,
-              color: '#5D4037',
-              margin: '12px 0 16px',
-            }}
-          >
-            {question.type === 'fill_blank'
-              ? '选出划线处的单词'
-              : question.type === 'picture_match'
-                ? '选出对应的英文单词'
-                : '这张图对应哪个单词？'}
+          {/* Question hint */}
+          <p className="game-question-hint">
+            {QUESTION_TYPE_HINT[question.type] ?? '选出正确答案'}
           </p>
 
-          {/* Option buttons */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            {question.options.map((option) => (
-              <button
-                key={option}
-                onClick={() => handleOptionClick(option)}
-                disabled={optionsDisabled}
-                style={getOptionStyle(option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+          {/* ── 选项类题型 ── */}
+          {isChoiceType && (
+            <div className="game-options" data-no-click-sfx>
+              {question.options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => handleOptionClick(option)}
+                  disabled={optionsDisabled}
+                  className={getOptionClass(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── 拼写类题型 ── */}
+          {isSpellingType && question.letters && (
+            <LetterPuzzle
+              letters={question.letters}
+              correctWord={question.word}
+              onComplete={handleSpellingComplete}
+              onWrong={handleSpellingWrong}
+              disabled={answerState !== 'idle'}
+              showMeaning={question.meaning}
+              image={question.type === 'word_spelling' ? question.image : undefined}
+            />
+          )}
         </div>
 
         {/* Bottom spacer */}
-        <div style={{ height: '100px', flexShrink: 0 }} />
+        <div className="game-spacer" />
       </div>
 
       {/* Feedback sheet */}
@@ -1014,8 +904,8 @@ function Game() {
           encourageText={encourageText}
           onNext={handleNext}
           onSpeak={
-            answerState === 'wrong_second'
-              ? () => speakWord(question.correctAnswer, gameState, question.sentence)
+            answerState === 'wrong_second' && gameState.settings.ttsEnabled && autoRead
+              ? () => _speakWord(question.correctAnswer, { enabled: true, sentence: question.sentence })
               : undefined
           }
         />
@@ -1027,6 +917,44 @@ function Game() {
           onConfirm={handleExitConfirm}
           onCancel={() => setShowExitConfirm(false)}
         />
+      )}
+
+      {/* LLM 难度调整提示 Toast */}
+      {difficultyToast?.show && (
+        <div
+          className="game-difficulty-toast"
+          style={{
+            animation: 'diffToastIn 400ms ease-out, diffToastOut 400ms 3400ms ease-in forwards',
+          }}
+        >
+          <div
+            className="game-difficulty-toast__card"
+            style={{
+              backgroundColor: difficultyToast.direction === 'up' ? '#E8F5E9' : '#FFF3E0',
+              border: `2px solid ${difficultyToast.direction === 'up' ? 'rgba(102,187,106,0.3)' : 'rgba(255,184,64,0.3)'}`,
+            }}
+          >
+            <span className="game-difficulty-toast__emoji">
+              {difficultyToast.direction === 'up' ? '🚀' : '🌱'}
+            </span>
+            <div>
+              <div className="game-difficulty-toast__title">
+                {difficultyToast.direction === 'up' ? '难度提升！' : '难度调整'}
+              </div>
+              <div className="game-difficulty-toast__subtitle">
+                {difficultyToast.direction === 'up'
+                  ? `表现很棒！进入 ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`
+                  : `放慢节奏 → ${DIFFICULTY_LABELS[difficultyToast.to] ?? `Lv.${difficultyToast.to}`}`}
+              </div>
+            </div>
+            <button
+              onClick={() => setDifficultyToast(null)}
+              className="game-difficulty-toast__close"
+            >
+              <Icon icon="lucide:x" style={{ width: 12, height: 12, color: 'rgba(93,64,55,0.4)' }} />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

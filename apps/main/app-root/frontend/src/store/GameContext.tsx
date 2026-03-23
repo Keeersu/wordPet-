@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, useCallback, type ReactNode } from 'react'
 import { getGameState, saveGameState, type GameState } from './gameStore'
 
 interface GameContextValue {
@@ -11,20 +11,21 @@ const GameContext = createContext<GameContextValue | null>(null)
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, setGameState] = useState<GameState>(getGameState)
 
-  const updateGameState = (updater: (prev: GameState) => GameState) => {
+  const updateGameState = useCallback((updater: (prev: GameState) => GameState) => {
     setGameState((prev) => {
       const next = updater(prev)
+      // Save to localStorage (debounced 300ms in gameStore)
       saveGameState(next)
       return next
     })
-  }
+  }, [])
 
   const value = useMemo<GameContextValue>(
     () => ({
       gameState,
       updateGameState,
     }),
-    [gameState],
+    [gameState, updateGameState],
   )
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

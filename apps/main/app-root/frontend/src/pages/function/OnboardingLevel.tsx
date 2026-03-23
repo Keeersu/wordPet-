@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/store/GameContext'
 import type { DifficultyLevel } from '@/store/gameStore'
+import { AudioToggles } from '@/components/function/AudioToggles'
 
 type LevelOption = {
   id: 1 | 2 | 3 | 4
@@ -37,7 +38,8 @@ function OnboardingLevel() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] pt-[52px] px-5 pb-5">
+    <div className="min-h-screen bg-[#FFF8E7] pt-[52px] px-5 pb-5 relative">
+      <AudioToggles className="absolute top-4 right-5" />
       <div className="mx-auto w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-[22px] font-bold text-[#5D4037]">你的英语水平～</h1>
@@ -71,7 +73,7 @@ function OnboardingLevel() {
           onClick={handleStart}
           className="mt-8 h-[52px] w-full rounded-[26px] bg-[#FFB840] text-[17px] font-bold text-[#3D1F00] shadow-[0_4px_0_0_#A06800] active:translate-y-[2px] active:shadow-[0_2px_0_0_#A06800]"
         >
-          开始我的冒险 →
+          开始我的冒险
         </button>
       </div>
     </div>

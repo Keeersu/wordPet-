@@ -1,0 +1,152 @@
+/* ============================================================================
+ * 设计令牌 (Design Tokens)
+ * 所有颜色、字体、间距、圆角、阴影的唯一来源
+ * Paper Design 可直接修改此文件调整全局视觉风格
+ * ============================================================================ */
+
+:root {
+  /* ── 品牌色 / 主题色 ── */
+  --color-primary: #FFB840;
+  --color-primary-dark: #A06800;
+  --color-primary-light: #FFF8E7;
+  --color-primary-border: #F5C87A;
+  --color-primary-bg: rgba(255, 184, 64, 0.15);
+
+  /* ── 文字色 ── */
+  --color-text: #5D4037;
+  --color-text-dark: #3D1F00;
+  --color-text-secondary: rgba(93, 64, 55, 0.6);
+  --color-text-tertiary: rgba(93, 64, 55, 0.45);
+  --color-text-hint: rgba(93, 64, 55, 0.35);
+  --color-text-disabled: rgba(93, 64, 55, 0.3);
+
+  /* ── 语义色 ── */
+  --color-success: #66BB6A;
+  --color-success-dark: #4A9050;
+  --color-success-darker: #388E3C;
+  --color-success-light: #E8F5E9;
+  --color-success-bg: rgba(102, 187, 106, 0.12);
+  --color-success-border: rgba(102, 187, 106, 0.3);
+
+  --color-error: #EF5350;
+  --color-error-dark: #C62828;
+  --color-error-darker: #B71C1C;
+  --color-error-light: #FFEBEE;
+  --color-error-bg: rgba(239, 83, 80, 0.12);
+  --color-error-border: rgba(239, 83, 80, 0.35);
+
+  --color-warning: #FFB840;
+  --color-warning-bg: rgba(255, 184, 64, 0.12);
+  --color-warning-border: rgba(255, 184, 64, 0.3);
+
+  /* ── 背景色 ── */
+  --color-bg-warm: #FFF8E7;           /* 大多数页面背景 */
+  --color-bg-game: #F5E6C8;           /* 答题页背景 */
+  --color-bg-card: #FFFFFF;            /* 卡片背景 */
+  --color-bg-muted: rgba(93, 64, 55, 0.04);
+  --color-bg-subtle: rgba(93, 64, 55, 0.03);
+  --color-bg-scene: #C8E8C0;          /* 首页底部场景 */
+  --color-bg-icon: #FFF8E7;           /* 设置页图标背景 */
+
+  /* 首页天空渐变 */
+  --gradient-sky: linear-gradient(to bottom, #87CEEB, #D4EEC0);
+  /* 底部白色渐变遮罩 */
+  --gradient-white-bottom: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  /* 今日学习卡片 */
+  --gradient-today: linear-gradient(135deg, #FFF3DC 0%, #FFEDC2 100%);
+
+  /* ── 边框色 ── */
+  --color-border: rgba(93, 64, 55, 0.1);
+  --color-border-light: rgba(93, 64, 55, 0.06);
+  --color-border-medium: rgba(93, 64, 55, 0.12);
+  --color-border-strong: rgba(93, 64, 55, 0.15);
+
+  /* ── 遮罩层 ── */
+  --color-overlay: rgba(0, 0, 0, 0.4);
+
+  /* ── 字体 ── */
+  --font-main: 'Nunito', 'PingFang SC', sans-serif;
+  --font-mono: 'Nunito', sans-serif;
+
+  /* ── 字号 ── */
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 16px;
+  --text-xl: 17px;
+  --text-2xl: 18px;
+  --text-3xl: 20px;
+  --text-4xl: 22px;
+  --text-5xl: 24px;
+  --text-6xl: 28px;
+  --text-7xl: 32px;
+  --text-8xl: 48px;
+
+  /* ── 字重 ── */
+  --font-medium: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+
+  /* ── 圆角 ── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-3xl: 16px;
+  --radius-4xl: 20px;
+  --radius-full: 9999px;
+
+  /* ── 阴影 ── */
+  --shadow-card: 0 4px 0 0 rgba(93, 64, 55, 0.08);
+  --shadow-button: 0 3px 0 0 #E8D5B0;
+  --shadow-button-primary: 0 3px 0 0 #A06800;
+  --shadow-button-pressed: 0 1px 0 0;
+  --shadow-nav: 0 2px 0 0 rgba(93, 64, 55, 0.1);
+  --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.15);
+  --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 0 0 #A06800;
+
+  /* ── 间距 ── */
+  --space-xs: 4px;
+  --space-sm: 6px;
+  --space-md: 8px;
+  --space-lg: 10px;
+  --space-xl: 12px;
+  --space-2xl: 14px;
+  --space-3xl: 16px;
+  --space-4xl: 20px;
+  --space-5xl: 24px;
+  --space-6xl: 28px;
+  --space-7xl: 32px;
+
+  /* ── 动画 ── */
+  --transition-fast: 80ms ease;
+  --transition-normal: 150ms ease;
+  --transition-slow: 200ms ease;
+  --transition-slower: 300ms ease;
+  --transition-slowest: 400ms ease;
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── 层级 (z-index) ── */
+  --z-base: 0;
+  --z-content: 1;
+  --z-elevated: 10;
+  --z-sticky: 30;
+  --z-tabbar: 39;
+  --z-fab: 40;
+  --z-header: 50;
+  --z-toast: 60;
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-fullscreen: 999;
+
+  /* ── 布局 ── */
+  --header-height: 56px;
+  --tabbar-height: 52px;
+  --fab-size: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --scroll-safe-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}

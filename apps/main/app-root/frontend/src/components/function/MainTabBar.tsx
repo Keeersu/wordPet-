@@ -1,64 +1,43 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { pageLinks } from '../../pageLinks'
 
 const tabs = [
-  { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4' },
-  { id: 'practice', label: '练习', path: pageLinks.Practice(), color: '#FFB840' },
-  { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A' },
+  { id: 'collection', label: '图鉴', path: pageLinks.Collection(), color: '#4ECDC4', borderColor: '#9AE0DA' },
+  { id: 'practice', label: '复习', path: pageLinks.Practice(), color: '#FFB840', borderColor: '#F5C87A' },
+  { id: 'profile', label: '我的', path: pageLinks.Profile(), color: '#66BB6A', borderColor: '#A5D6A7' },
 ] as const
 
 export function MainTabBar() {
   const navigate = useNavigate()
+  const [loadedTabImages, setLoadedTabImages] = useState<Record<string, boolean>>({})
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
-        left: 20,
-        display: 'flex',
-        gap: 12,
-        zIndex: 39,
-      }}
-    >
+    <div className="main-tabbar">
       {tabs.map((tab) => (
         // 🖼️ ASSET | Tab图标 | PNG @3x | /assets/ui/icons/icon-{id}.png
         <button
           key={tab.id}
           onClick={() => navigate(tab.path)}
+          className={`tabbar-btn ${loadedTabImages[tab.id] ? 'tabbar-btn--image-only' : 'tabbar-btn--fallback-shell'}`}
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            backgroundColor: tab.color,
-            boxShadow: '0 4px 0 0 rgba(0,0,0,0.15)',
-            border: '3px solid white',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            position: 'relative',
-            transition: 'transform 80ms ease, box-shadow 80ms ease',
-          }}
-          onPointerDown={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(3px)'
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 0 0 rgba(0,0,0,0.15)'
-          }}
-          onPointerUp={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(0,0,0,0.15)'
-          }}
-          onPointerLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.transform = ''
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 0 0 rgba(0,0,0,0.15)'
+            ...(loadedTabImages[tab.id]
+              ? {}
+              : {
+                  backgroundColor: tab.color,
+                  border: `3px solid ${tab.borderColor}`,
+                }),
           }}
         >
           <img
             src={`/assets/ui/icons/icon-${tab.id}.png`}
             alt={tab.label}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+            className="tabbar-btn__img"
+            onLoad={() => {
+              setLoadedTabImages((prev) => ({ ...prev, [tab.id]: true }))
+            }}
             onError={(e) => {
+              setLoadedTabImages((prev) => ({ ...prev, [tab.id]: false }))
               ;(e.target as HTMLImageElement).style.display = 'none'
             }}
           />

@@ -1,8 +1,36 @@
+/* ============================================================================
+ * 全局样式入口
+ * 按顺序导入：令牌 → 公共组件 → 各页面样式 → Tailwind
+ * ============================================================================ */
+
+/* 设计令牌（颜色、字体、间距、圆角、阴影） */
+@import "./tokens.css";
+
+/* 公共组件（卡片、按钮、导航、弹窗） */
+@import "./components.css";
+
+/* 页面样式 */
+@import "./home.css";
+@import "./game.css";
+@import "./practice.css";
+@import "./collection.css";
+@import "./result.css";
+@import "./profile.css";
+@import "./settings.css";
+@import "./room.css";
+@import "./login.css";
+@import "./splash.css";
+@import "./transition.css";
+
+/* Tailwind (保留用于基础 reset 和少量 utility) */
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* 旧版占位（已迁移至独立 CSS 文件，保留引用以防万一） */
 @import "./default/function-desktop.css";
 @import "./default/function-mobile.css";
 
+/* 工具类 */
 @utility scrollbar-hidden {
   scrollbar-width: none;
   &::-webkit-scrollbar {

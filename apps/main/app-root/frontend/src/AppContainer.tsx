@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Toaster, toast } from '@/components/function/base/Toaster'
 import { useParaflowRouteInteceptor, HttpError, AuthRequiredError, ForbiddenError, FormError, NativeModalBlockedError } from '@paraflow-ai/frontend-libs'
 import { pageLinks } from './pageLinks'
+import { useAudioSystem } from '@/lib/audio/useAudio'
 
 function formatHttpErrorBody(body: string, status: number): string {
   if (!body) return `Error ${status}`
@@ -63,6 +64,7 @@ function handleNativeModalError(error: NativeModalBlockedError) {
 
 export function AppContainer() {
   useParaflowRouteInteceptor()
+  useAudioSystem()
   const navigate = useNavigate()
   const location = useLocation()
   const hasRedirected = useRef(false)
