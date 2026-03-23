@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAudio } from '@/lib/audio/useAudio'
 
 // ─── 样式常量 ─────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ interface FurnitureRevealProps {
   chapterId: number
   levelId: number
   onContinue: () => void
+  onGoToRoom?: () => void
 }
 
 export default function FurnitureReveal({
@@ -93,7 +95,9 @@ export default function FurnitureReveal({
   furnitureEmoji,
   furnitureImage,
   onContinue,
+  onGoToRoom,
 }: FurnitureRevealProps) {
+  const { playSfx, playBgm } = useAudio()
   const [phase, setPhase] = useState<'enter' | 'idle'>('enter')
   const [showButton, setShowButton] = useState(false)
   const [particles] = useState(() => generateParticles(24))
@@ -101,13 +105,16 @@ export default function FurnitureReveal({
   const [imgFailed, setImgFailed] = useState(false)
 
   useEffect(() => {
+    playBgm('entrance')
+    const sfxTimer = setTimeout(() => playSfx('furniture-unlock'), 200)
     const t1 = setTimeout(() => setPhase('idle'), ANIM_TOTAL_MS)
     const t2 = setTimeout(() => setShowButton(true), ANIM_TOTAL_MS + 200)
     return () => {
+      clearTimeout(sfxTimer)
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleContinue = useCallback(() => {
     onContinue()
@@ -204,7 +211,7 @@ export default function FurnitureReveal({
         </div>
       </div>
 
-      {/* ── 底部「太棒了！」按钮 ── */}
+      {/* ── 底部按钮区 ── */}
       <div
         className="furniture-reveal__btn-area"
         style={{
@@ -213,6 +220,14 @@ export default function FurnitureReveal({
           transition: 'opacity 500ms ease, transform 500ms ease',
         }}
       >
+        {onGoToRoom && (
+          <button
+            onClick={onGoToRoom}
+            className="furniture-reveal__room-btn"
+          >
+            回房间
+          </button>
+        )}
         <button
           onClick={handleContinue}
           className="btn-primary furniture-reveal__continue-btn"

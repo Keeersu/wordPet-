@@ -3,11 +3,72 @@ export type DifficultyLevel = 1 | 2 | 3 | 4
 export type CatGender = 'male' | 'female'
 export type CatPersonality = 'homebody' | 'lively' | 'mysterious' | 'sleepy'
 
+export type CatFurColor = 'orange' | 'white' | 'black' | 'gray' | 'calico' | 'tuxedo' | 'cream' | 'siamese'
+export type CatAccessory = 'none' | 'ribbon' | 'scarf' | 'beret' | 'glasses' | 'collar'
+
+export interface CatGenerationTags {
+  furColor: CatFurColor
+  accessory: CatAccessory
+}
+
+export interface GeneratedAppearance {
+  /** 基本形象照（去背景后，用于显示） */
+  imageUrl: string
+  /** 原始 CDN URL（未去背景，用于图生图的 image_urls 参考） */
+  rawImageUrl?: string
+  tags: CatGenerationTags
+  generatedAt: string
+  /** 各房间的全身动作图，key 为 chapterId (1-5) */
+  roomImages?: Record<number, string>
+}
+
 export interface CatProfile {
   name: string
   appearance: number
   gender: CatGender
   personality: CatPersonality
+  generatedAppearance?: GeneratedAppearance
+}
+
+function isTransientImageUrl(url?: string): boolean {
+  return typeof url === 'string' && url.startsWith('blob:')
+}
+
+function normalizeGeneratedAppearance(generatedAppearance?: GeneratedAppearance): GeneratedAppearance | undefined {
+  if (!generatedAppearance) return generatedAppearance
+
+  const normalizedImageUrl =
+    isTransientImageUrl(generatedAppearance.imageUrl) && generatedAppearance.rawImageUrl
+      ? generatedAppearance.rawImageUrl
+      : generatedAppearance.imageUrl
+
+  const filteredRoomImages = Object.entries(generatedAppearance.roomImages ?? {}).filter(([, url]) => !isTransientImageUrl(url))
+  const normalizedRoomImages = filteredRoomImages.length > 0
+    ? Object.fromEntries(filteredRoomImages) as Record<number, string>
+    : undefined
+
+  return {
+    ...generatedAppearance,
+    imageUrl: normalizedImageUrl,
+    roomImages: normalizedRoomImages,
+  }
+}
+
+export function getCatImageSrc(cat: CatProfile): string {
+  if (cat.generatedAppearance?.imageUrl) {
+    return cat.generatedAppearance.imageUrl
+  }
+  const g = cat.gender === 'female' ? 'f' : 'm'
+  return `/assets/cat/appearance_${cat.appearance}_${cat.personality}_${g}.png`
+}
+
+/**
+ * 获取猫咪在指定房间的动作图；若尚未生成则回退到基本形象照。
+ */
+export function getCatRoomImageSrc(cat: CatProfile, chapterId: number): string {
+  const roomImg = cat.generatedAppearance?.roomImages?.[chapterId]
+  if (roomImg) return roomImg
+  return getCatImageSrc(cat)
 }
 
 export interface AdaptiveDifficultyState {
@@ -130,6 +191,11 @@ export function getGameState(): GameState {
     // 迁移：旧版本可能缺少 ttsEnabled，默认为 true
     if (parsed.settings && parsed.settings.ttsEnabled === undefined) {
       parsed.settings.ttsEnabled = true
+    }
+
+    parsed.cat = {
+      ...parsed.cat,
+      generatedAppearance: normalizeGeneratedAppearance(parsed.cat?.generatedAppearance),
     }
 
     return parsed

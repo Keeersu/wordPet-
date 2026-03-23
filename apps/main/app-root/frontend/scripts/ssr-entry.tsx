@@ -13,6 +13,7 @@ import { queryClientAtom } from 'jotai-tanstack-query'
 import { QueryClient } from '@tanstack/query-core'
 import type { RouteObject } from 'react-router-dom'
 import { createRoutes } from '../src/routes'
+import { GameProvider } from '../src/store/GameContext'
 
 // Recursively strip all loaders and actions from routes (avoid API calls during SSR)
 function stripLoaders(routes: RouteObject[]): RouteObject[] {
@@ -96,7 +97,9 @@ export async function prerenderUrl(url: string): Promise<string> {
   return renderToString(
     createElement(StrictMode, null,
       createElement(Provider, { store },
-        createElement(StaticRouterProvider, { router, context })
+        createElement(GameProvider, null,
+          createElement(StaticRouterProvider, { router, context })
+        )
       )
     )
   )

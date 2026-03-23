@@ -53,22 +53,27 @@
  * </page-design>
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { MainTabBar } from '@/components/function/MainTabBar'
-import { pageLinks } from '../../pageLinks'
 import { useGameStore } from '@/store/GameContext'
-import type { GameState } from '@/store/gameStore'
+import { getCatImageSrc, getCatRoomImageSrc, type GameState } from '@/store/gameStore'
 import { CHAPTERS } from '@/data/chapters'
+import { preloadImages } from '@/lib/imageCache'
+import { useBackgroundRoomGen } from '@/lib/useBackgroundRoomGen'
 
-type RoomStatus = 'in_progress' | 'completed' | 'locked'
+const PAPER_FAB_FALLBACK_IMAGE_URL =
+  'https://workers.paper.design/file-assets/01KKNBS08ZA5774YRC17FK851S/01KM676Q1YAXV1MJ9VC50EBM6S.png'
+
+type RoomStatus = 'available' | 'in_progress' | 'completed' | 'locked'
 
 interface Room {
   id: number
   nameCn: string
   nameEn: string
   progress: string
+  stage: number
   status: RoomStatus
   themeColor: string
 }
@@ -77,15 +82,17 @@ interface Room {
 const chapterMeta = CHAPTERS
 
 const statusLabel: Record<RoomStatus, string> = {
+  available: '已开启',
   in_progress: '进行中',
   completed: '已完成',
   locked: '未解锁',
 }
 
 const statusBgColor: Record<RoomStatus, string> = {
-  in_progress: '#FFB840',
-  completed: '#4CAF50',
-  locked: '#9E9E9E',
+  available: 'var(--color-primary)',
+  in_progress: 'var(--color-primary)',
+  completed: 'var(--color-success)',
+  locked: 'var(--color-text-disabled)',
 }
 
 function getCompletedLevelCount(
@@ -104,6 +111,7 @@ function getCompletedLevelCount(
 function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
   const isLocked = room.status === 'locked'
   const isCompleted = room.status === 'completed'
+  const [bgLoaded, setBgLoaded] = useState(false)
 
   return (
     <div
@@ -114,11 +122,21 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
         opacity: isLocked ? 0.7 : 1,
       }}
     >
-      {/* 层1：房间背景色块，底部对齐 */}
+      {/* 层1：房间背景图 + 色块回退，底部对齐 */}
       <div
         className="home-room-card__bg"
-        style={{ backgroundColor: room.themeColor }}
+        style={{ backgroundColor: bgLoaded ? 'transparent' : room.themeColor }}
       >
+        <img
+          src={`/assets/rooms/ch${room.id}/progress/stage${room.stage}.jpg`}
+          alt={room.nameCn}
+          className="home-room-card__bg-img"
+          onLoad={() => setBgLoaded(true)}
+          onError={(e) => {
+            setBgLoaded(false)
+            ;(e.target as HTMLImageElement).style.display = 'none'
+          }}
+        />
         {isLocked && (
           <div className="home-room-card__lock">
             <span>🔒</span>
@@ -153,32 +171,62 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
 function Home() {
   const navigate = useNavigate()
   const { gameState, updateGameState } = useGameStore()
+  useBackgroundRoomGen()
   const [showSettings, setShowSettings] = useState(false)
+  const [fabImageSrc, setFabImageSrc] = useState('/assets/ui/buttons/btn-quick-start.png')
+  const [fabHasVisualAsset, setFabHasVisualAsset] = useState(true)
+  const [settingsBgLoaded, setSettingsBgLoaded] = useState(false)
 
   const rooms = useMemo<Room[]>(() => {
     return chapterMeta.map((chapter) => {
       const completedCount = getCompletedLevelCount(chapter.id, gameState.completedLevels)
+      const stage = Math.min(completedCount, 4)
       const status: RoomStatus =
         chapter.id > gameState.currentChapter
           ? 'locked'
           : completedCount >= 4
             ? 'completed'
-            : 'in_progress'
+            : completedCount > 0
+              ? 'in_progress'
+              : 'available'
 
       return {
         id: chapter.id,
         nameCn: chapter.nameCn,
         nameEn: chapter.nameEn,
-        progress: `${Math.min(completedCount, 4)}/4`,
+        progress: `${stage}/4`,
+        stage,
         status,
         themeColor: chapter.themeColor,
       }
     })
   }, [gameState.completedLevels, gameState.currentChapter])
 
-  const unlockedRoomCount = rooms.filter((room) => room.status !== 'locked').length
+  const scrollRef = useRef<HTMLDivElement>(null)
+
   const activeChapterId = gameState.currentChapter
   const activeLevelId = gameState.currentLevel
+
+  useEffect(() => {
+    const completedCount = getCompletedLevelCount(activeChapterId, gameState.completedLevels)
+    const stage = Math.min(completedCount, 4)
+    const srcs = [
+      `/assets/rooms/ch${activeChapterId}/progress/stage${stage}.jpg`,
+      getCatImageSrc(gameState.cat),
+      getCatRoomImageSrc(gameState.cat, activeChapterId),
+    ].filter(Boolean)
+    preloadImages(srcs)
+  }, [activeChapterId, gameState.cat, gameState.completedLevels])
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const target = container.querySelector<HTMLElement>(`[data-room-id="${activeChapterId}"]`)
+    if (!target) return
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ block: 'center' })
+    })
+  }, [])
 
   const handleRoomCardClick = (room: Room) => {
     if (room.status === 'locked') return
@@ -197,11 +245,7 @@ function Home() {
       {/* 2. Fixed top navigation bar */}
       <div className="home-header">
         <div className="home-header__inner">
-          {/* Left: house icon + unlocked room count */}
-          <div className="home-header__room-count">
-            <Icon icon="lucide:home" className="home-header__room-count-icon" />
-            <span className="home-header__room-count-text">{unlockedRoomCount}</span>
-          </div>
+          <div className="home-header__left" />
 
           {/* Right: settings gear */}
           <button
@@ -213,10 +257,12 @@ function Home() {
         </div>
       </div>
 
-      {/* 3. Scrollable room card list */}
-      <div className="home-scroll">
-        {rooms.map((room) => (
-          <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
+      {/* 3. Scrollable room card list — reversed so ch1 is at bottom (tower layout) */}
+      <div className="home-scroll" ref={scrollRef}>
+        {[...rooms].reverse().map((room) => (
+          <div key={room.id} data-room-id={room.id}>
+            <RoomCard room={room} onClick={() => handleRoomCardClick(room)} />
+          </div>
         ))}
 
         {/* 4. Bottom scene placeholder */}
@@ -230,15 +276,24 @@ function Home() {
 
       {/* 6. FAB — fixed bottom-right */}
       {/* 🖼️ ASSET | 快速开始按钮 | PNG @3x | /assets/ui/buttons/btn-quick-start.png */}
-      <button className="fab" onClick={handleFabClick}>
-        <img
-          className="fab__img"
-          src="/assets/ui/buttons/btn-quick-start.png"
+      <button
+        className={`fab ${fabHasVisualAsset ? 'fab--image-only' : 'fab--fallback-shell'}`}
+        onClick={handleFabClick}
+      >
+        {fabHasVisualAsset && (
+          <img
+            className="fab__img"
+            src={fabImageSrc}
           alt="Start"
           onError={(e) => {
-            ;(e.target as HTMLImageElement).style.display = 'none'
+            if (fabImageSrc === PAPER_FAB_FALLBACK_IMAGE_URL) {
+              setFabHasVisualAsset(false)
+              return
+            }
+            setFabImageSrc(PAPER_FAB_FALLBACK_IMAGE_URL)
           }}
-        />
+          />
+        )}
       </button>
 
       {/* 7. Settings Modal */}
@@ -253,69 +308,79 @@ function Home() {
               className="home-settings-popup__bg-img"
               src="/assets/ui/settings-bg.png"
               alt=""
+              onLoad={() => {
+                setSettingsBgLoaded(true)
+              }}
               onError={(e) => {
+                setSettingsBgLoaded(false)
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <div className="home-settings-popup__fallback-bg" />
+            {!settingsBgLoaded && <div className="home-settings-popup__fallback-bg" />}
 
             <div className="home-settings-popup__content">
-              {/* 橙色横幅标题 */}
-              <div className="home-settings-popup__banner">
-                ⚙️ 设置
-              </div>
-
               {/* 弹窗主体 */}
               <div className="home-settings-popup__body">
-                {/* 音乐 / 音效 / 朗读 三列 */}
-                <div className="home-settings-popup__grid">
-                  {/* 音乐 */}
-                  <div>
-                    <div className="home-settings-popup__grid-label">音乐</div>
-                    <button
-                      className={`settings-toggle-btn ${gameState.settings.musicEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
-                      onClick={() =>
-                        updateGameState((prev) => ({
-                          ...prev,
-                          settings: { ...prev.settings, musicEnabled: !prev.settings.musicEnabled },
-                        }))
-                      }
-                    >
-                      🎵 {gameState.settings.musicEnabled ? '开' : '关'}
-                    </button>
-                  </div>
+                {/* 声音 & 震动 */}
+                <div className="home-settings-popup__section-label">声音 &amp; 震动</div>
 
-                  {/* 音效 */}
-                  <div>
-                    <div className="home-settings-popup__grid-label">音效</div>
-                    <button
-                      className={`settings-toggle-btn ${gameState.settings.soundEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
-                      onClick={() =>
-                        updateGameState((prev) => ({
-                          ...prev,
-                          settings: { ...prev.settings, soundEnabled: !prev.settings.soundEnabled },
-                        }))
-                      }
-                    >
-                      🔊 {gameState.settings.soundEnabled ? '开' : '关'}
-                    </button>
-                  </div>
-
-                  {/* 朗读 */}
-                  <div>
-                    <div className="home-settings-popup__grid-label">朗读</div>
-                    <button
-                      className={`settings-toggle-btn ${gameState.settings.ttsEnabled ? 'settings-toggle-btn--on' : 'settings-toggle-btn--off'}`}
-                      onClick={() =>
-                        updateGameState((prev) => ({
-                          ...prev,
-                          settings: { ...prev.settings, ttsEnabled: !prev.settings.ttsEnabled },
-                        }))
-                      }
-                    >
-                      🗣️ {gameState.settings.ttsEnabled ? '开' : '关'}
-                    </button>
-                  </div>
+                {/* 音乐 / 音效 / 朗读 三格 */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                  {([
+                    { key: 'musicEnabled' as const, icon: 'lucide:music', label: '音乐' },
+                    { key: 'soundEnabled' as const, icon: 'lucide:volume-2', label: '音效' },
+                    { key: 'ttsEnabled' as const, icon: 'lucide:mic', label: '朗读' },
+                  ]).map(({ key, icon, label }) => {
+                    const on = gameState.settings[key]
+                    return (
+                      <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                        <button
+                          onClick={() =>
+                            updateGameState((prev) => ({
+                              ...prev,
+                              settings: { ...prev.settings, [key]: !prev.settings[key] },
+                            }))
+                          }
+                          style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: 14,
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            backgroundColor: on ? '#4ECDC4' : 'rgba(93,64,55,0.1)',
+                            boxShadow: on ? '0 4px 0 0 #3BA89F' : '0 4px 0 0 rgba(93,64,55,0.06)',
+                            transition: 'transform 80ms ease, box-shadow 80ms ease',
+                          }}
+                          onPointerDown={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = 'translateY(3px)'
+                            el.style.boxShadow = on ? '0 1px 0 0 #3BA89F' : '0 1px 0 0 rgba(93,64,55,0.06)'
+                          }}
+                          onPointerUp={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = ''
+                            el.style.boxShadow = ''
+                          }}
+                          onPointerLeave={(e) => {
+                            const el = e.currentTarget
+                            el.style.transform = ''
+                            el.style.boxShadow = ''
+                          }}
+                        >
+                          <Icon
+                            icon={icon}
+                            style={{ width: 26, height: 26, color: on ? '#FFFFFF' : 'rgba(93,64,55,0.3)' }}
+                          />
+                        </button>
+                        <span style={{ fontSize: 11, color: 'rgba(93,64,55,0.45)', fontWeight: 600 }}>
+                          {label}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* 分割线 */}

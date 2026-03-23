@@ -206,7 +206,7 @@
 
 .profile-weak__word {
   font-weight: var(--font-extrabold);
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-md);
   color: var(--color-text);
 }
 

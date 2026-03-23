@@ -172,7 +172,7 @@
 }
 
 .game-question__title {
-  font-size: var(--text-5xl);
+  font-size: var(--text-6xl);
   font-weight: var(--font-black);
   color: var(--color-text-dark);
   text-align: center;
@@ -188,7 +188,7 @@
 }
 
 .game-question__sentence {
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   font-weight: var(--font-medium);
   color: var(--color-text);
   text-align: center;
@@ -229,7 +229,7 @@
   padding: var(--space-2xl) var(--space-3xl);
   border-radius: var(--radius-2xl);
   border: none;
-  font-size: var(--text-lg);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   font-family: var(--font-main);
   text-align: center;
@@ -293,12 +293,12 @@
   border-radius: var(--radius-2xl);
   border: 2.5px solid var(--color-border-strong);
   background-color: var(--color-bg-card);
-  font-size: var(--text-3xl);
+  font-size: var(--text-5xl);
   font-weight: var(--font-extrabold);
   font-family: var(--font-mono);
   color: var(--color-text-dark);
   text-align: center;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   outline: none;
   transition: border-color var(--transition-normal);
 }
@@ -354,13 +354,13 @@
 }
 
 .game-letter-slot {
-  width: 40px;
-  height: 48px;
+  width: 44px;
+  height: 52px;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-3xl);
+  font-size: var(--text-5xl);
   font-weight: var(--font-extrabold);
   font-family: var(--font-mono);
   color: var(--color-text);
@@ -406,11 +406,11 @@
 }
 
 .game-letter-btn {
-  width: 44px;
-  height: 52px;
+  width: 48px;
+  height: 56px;
   border-radius: var(--radius-xl);
   border: none;
-  font-size: var(--text-3xl);
+  font-size: var(--text-5xl);
   font-weight: var(--font-extrabold);
   font-family: var(--font-mono);
   cursor: pointer;
@@ -572,7 +572,7 @@
 }
 
 .game-feedback__answer {
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: var(--font-medium);
   line-height: 1.5;
 }
@@ -620,18 +620,6 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-3xl);
-  border-radius: var(--radius-full);
-  background-color: var(--color-bg-card);
-  border: 2px solid var(--color-border);
-  box-shadow: var(--shadow-elevated);
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-  color: var(--color-text);
-  white-space: nowrap;
   animation: diffToastIn var(--transition-slower) ease forwards;
 }
 
@@ -876,12 +864,32 @@
   flex-shrink: 0;
 }
 
+.game-word-image--loaded {
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  max-height: 160px;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
 .game-word-image__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   position: absolute;
   inset: 0;
+}
+
+.game-word-image--loaded .game-word-image__img {
+  position: static;
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  max-height: 160px;
+  object-fit: contain;
 }
 
 .game-word-image__letter {
@@ -915,7 +923,7 @@
 /* ── Picture Word (for picture_matching) ── */
 .game-picture-word {
   text-align: center;
-  font-size: 28px;
+  font-size: var(--text-7xl);
   font-weight: var(--font-black);
   color: var(--color-primary);
   margin: var(--space-xl) 0 0;
@@ -926,7 +934,7 @@
 /* ── Fill Sentence (fill_blank sentence display) ── */
 .game-fill-sentence {
   text-align: center;
-  font-size: var(--text-lg);
+  font-size: var(--text-2xl);
   color: var(--color-text);
   margin: var(--space-xl) 0 0;
   line-height: 1.6;
@@ -941,7 +949,7 @@
 /* ── Question Hint ── */
 .game-question-hint {
   text-align: center;
-  font-size: var(--text-lg);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: var(--color-text);
   margin: var(--space-sm) 0 var(--space-xl);
@@ -982,6 +990,25 @@
   position: relative;
 }
 
+.game-letter-image--loaded {
+  width: auto;
+  height: auto;
+  max-width: 120px;
+  max-height: 120px;
+  background-color: transparent;
+  border-color: transparent;
+  overflow: visible;
+}
+
+.game-letter-image--loaded .game-letter-image__img {
+  position: static;
+  width: auto;
+  height: auto;
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+}
+
 .game-letter-image__img {
   width: 100%;
   height: 100%;
@@ -993,14 +1020,14 @@
 .game-letter-image__letter {
   position: relative;
   z-index: 1;
-  font-size: 36px;
+  font-size: 40px;
   color: rgba(93, 64, 55, 0.25);
 }
 
 /* ── Letter Puzzle Meaning Hint ── */
 .game-letter-meaning {
   margin: 0;
-  font-size: var(--text-lg);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: var(--color-primary);
 }
@@ -1009,7 +1036,7 @@
 .game-letter-slots {
   display: flex;
   gap: var(--space-sm);
-  min-height: 48px;
+  min-height: 52px;
 }
 
 /* ── Letter Pool (available letters) ── */
@@ -1046,14 +1073,14 @@
 }
 
 .game-feedback__answer-word {
-  font-size: var(--text-lg);
+  font-size: var(--text-3xl);
   font-weight: var(--font-extrabold);
   color: var(--color-success);
   font-family: var(--font-mono);
 }
 
 .game-feedback__meaning {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   color: var(--color-text);
   margin: 0 0 var(--space-xs);
   font-weight: var(--font-medium);

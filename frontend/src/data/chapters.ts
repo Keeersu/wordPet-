@@ -15,11 +15,11 @@ export interface ChapterMeta {
 
 /** 章节列表（顺序与关卡编号一一对应） */
 export const CHAPTERS: ChapterMeta[] = [
-  { id: 1, nameCn: '街角流浪', nameEn: 'Street Corner', emoji: '🏙️', themeColor: '#F5E6C8' },
-  { id: 2, nameCn: '温暖新家', nameEn: 'Warm Home',     emoji: '🏠', themeColor: '#C8E8F5' },
-  { id: 3, nameCn: '幼儿园',   nameEn: 'Kindergarten',   emoji: '🎒', themeColor: '#D8F0FF' },
-  { id: 4, nameCn: '公园探险', nameEn: 'Park Adventure', emoji: '🌳', themeColor: '#E5F4D8' },
-  { id: 5, nameCn: '厨房美食', nameEn: 'Kitchen Feast',  emoji: '🍳', themeColor: '#FFF0D9' },
+  { id: 1, nameCn: '流浪街角', nameEn: 'Street Corner',    emoji: '🏙️', themeColor: '#F5E6C8' },
+  { id: 2, nameCn: '温馨小家', nameEn: 'Cozy Home',        emoji: '🏠', themeColor: '#C8E8F5' },
+  { id: 3, nameCn: '厨房冒险', nameEn: 'Kitchen Adventure', emoji: '🍳', themeColor: '#FFF0D9' },
+  { id: 4, nameCn: '趣味乐园', nameEn: 'Fun Playground',   emoji: '🎠', themeColor: '#D8F0FF' },
+  { id: 5, nameCn: '阳光书房', nameEn: 'Sunny Study',      emoji: '📖', themeColor: '#E5F4D8' },
 ]
 
 /** 按 id 快速索引 */

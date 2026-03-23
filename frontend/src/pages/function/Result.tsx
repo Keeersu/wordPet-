@@ -28,6 +28,7 @@ import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
 import FurnitureReveal from './FurnitureReveal'
 import { speakWord as _speakWord } from '@/lib/utils/tts'
+import { useAudio } from '@/lib/audio/useAudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -50,19 +51,19 @@ function speakWord(word: string, sentence?: string) {
 // ─── 家具名映射 ──────────────────────────────────────────────────────────────
 
 const chapterFurnitureMap: Record<number, [string, string, string, string]> = {
-  1: ['纸箱小窝', '旧报纸被', '流浪猫碗', '街角路灯'],
-  2: ['柔软沙发', '温暖地毯', '小书架', '落地灯'],
-  3: ['小课桌', '彩色书包', '黑板', '积木玩具'],
-  4: ['公园长椅', '小喷泉', '花圃', '路边秋千'],
-  5: ['小餐桌', '料理台', '香料架', '小冰箱'],
+  1: ['纸箱', '自行车', '垫子', '垃圾桶'],
+  2: ['钟表', '抱枕', '地毯', '茶几'],
+  3: ['锅', '手套', '胡萝卜', '纸巾'],
+  4: ['挂画', '书架', '书桌', '椅子'],
+  5: ['沙发', '落地灯', '植物', '窗帘'],
 }
 
 const chapterFurnitureEmoji: Record<number, [string, string, string, string]> = {
-  1: ['📦', '📰', '🥣', '🏮'],
-  2: ['🛋️', '🧶', '📚', '🪔'],
-  3: ['🪑', '🎒', '📝', '🧩'],
-  4: ['🪵', '⛲', '🌺', '🎠'],
-  5: ['🍽️', '🔪', '🧂', '🧊'],
+  1: ['📦', '🚲', '🛏️', '🗑️'],
+  2: ['🕰️', '🛋️', '🧶', '☕'],
+  3: ['🍳', '🧤', '🥕', '🧻'],
+  4: ['🖼️', '📚', '🪑', '💺'],
+  5: ['🛋️', '🪔', '🌿', '🪟'],
 }
 
 // ─── 掌握度工具函数 ──────────────────────────────────────────────────────────
@@ -78,27 +79,27 @@ function getMasteryConfig(level: MasteryLevel) {
     case 'mastered':
       return {
         label: '已掌握',
-        color: '#66BB6A',
-        bgColor: 'rgba(102,187,106,0.08)',
-        borderColor: 'rgba(102,187,106,0.3)',
+        color: 'var(--color-success)',
+        bgColor: 'var(--color-success-bg)',
+        borderColor: 'var(--color-success-border)',
         icon: 'lucide:circle-check',
         sortOrder: 2,
       }
     case 'weak':
       return {
         label: '需复习',
-        color: '#FFB840',
-        bgColor: 'rgba(255,184,64,0.08)',
-        borderColor: 'rgba(255,184,64,0.3)',
+        color: 'var(--color-accent-dark)',
+        bgColor: 'var(--color-accent-bg)',
+        borderColor: 'var(--color-accent-border)',
         icon: 'lucide:alert-circle',
         sortOrder: 1,
       }
     case 'failed':
       return {
         label: '待掌握',
-        color: '#EF5350',
-        bgColor: 'rgba(239,83,80,0.06)',
-        borderColor: 'rgba(239,83,80,0.35)',
+        color: 'var(--color-error)',
+        bgColor: 'var(--color-error-bg)',
+        borderColor: 'var(--color-error-border)',
         icon: 'lucide:circle-x',
         sortOrder: 0,
       }
@@ -152,7 +153,7 @@ function WordCard({ detail }: { detail: LevelWordDetail }) {
             speakWord(detail.word, expanded ? detail.sentence : undefined)
           }}
         >
-          <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: '#FFB840' }} />
+          <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: 'var(--color-primary)' }} />
         </button>
 
         {/* 展开/收起指示 */}
@@ -181,16 +182,16 @@ function WordCard({ detail }: { detail: LevelWordDetail }) {
           {/* 答题统计 */}
           <div className="result-word-card__stats">
             <div className="result-word-card__stat-item">
-              <Icon icon="lucide:check" style={{ width: 13, height: 13, color: '#66BB6A' }} />
+              <Icon icon="lucide:check" style={{ width: 13, height: 13, color: 'var(--color-success)' }} />
               <span className="result-word-card__stat-correct">答对 {detail.stats.correct} 次</span>
             </div>
             <div className="result-word-card__stat-item">
-              <Icon icon="lucide:x" style={{ width: 13, height: 13, color: '#EF5350' }} />
+              <Icon icon="lucide:x" style={{ width: 13, height: 13, color: 'var(--color-error)' }} />
               <span className="result-word-card__stat-wrong">答错 {detail.stats.wrong} 次</span>
             </div>
             {detail.stats.firstCorrect && (
               <div className="result-word-card__stat-item">
-                <Icon icon="lucide:zap" style={{ width: 13, height: 13, color: '#FFB840' }} />
+                <Icon icon="lucide:zap" style={{ width: 13, height: 13, color: 'var(--color-primary)' }} />
                 <span className="result-word-card__stat-first">一次通过</span>
               </div>
             )}
@@ -224,9 +225,10 @@ function Result() {
   const furnitureUnlocked = gameState.unlockedFurniture.includes(furnitureKey)
   const furnitureImage = `/assets/rooms/ch${chapterId}/furniture/lv${levelId}/full.png`
 
-  // 从路由 state 获取本关单词详情
-  const routeState = location.state as { levelWordDetails?: LevelWordDetail[] } | null
+  // 从路由 state 获取本关单词详情 + 家具是否刚刚解锁
+  const routeState = location.state as { levelWordDetails?: LevelWordDetail[]; furnitureJustUnlocked?: boolean } | null
   const levelWordDetails: LevelWordDetail[] = routeState?.levelWordDetails ?? []
+  const furnitureJustUnlocked = routeState?.furnitureJustUnlocked === true
 
   // 判断家具是否已展示过（避免"再来一遍"时重复弹出）
   const revealShownKey = `furniture_revealed_ch${chapterId}_lv${levelId}`
@@ -247,22 +249,29 @@ function Result() {
   }
 
   // ── 页面阶段：reveal（家具解锁动画） → detail（结算详情）
-  // 如果家具已解锁 且 之前没展示过 → 先展示动画；否则直接显示详情
-  const shouldShowReveal = furnitureUnlocked && !alreadyRevealed
+  // 优先使用 route state 判断（避免 context 状态延迟），回退到 context 判断
+  const { playBgm } = useAudio()
+
+  const shouldShowReveal = (furnitureJustUnlocked || furnitureUnlocked) && !alreadyRevealed
   const [stage, setStage] = useState<'reveal' | 'detail'>(
     shouldShowReveal ? 'reveal' : 'detail'
   )
   const [detailVisible, setDetailVisible] = useState(stage === 'detail')
 
+  useEffect(() => {
+    if (stage === 'detail') {
+      playBgm('home')
+    }
+  }, [stage, playBgm])
+
   const handleRevealContinue = useCallback(() => {
-    // 标记已展示过，后续"再来一遍"不会重复弹出
     sessionStorage.setItem(revealShownKey, '1')
     setStage('detail')
     setTimeout(() => setDetailVisible(true), 50)
   }, [revealShownKey])
 
   // 正确率颜色 & 鼓励文案
-  const rateColor = accuracyPct >= 80 ? '#66BB6A' : accuracyPct >= 60 ? '#FFB840' : '#EF5350'
+  const rateColor = accuracyPct >= 80 ? 'var(--color-success)' : accuracyPct >= 60 ? 'var(--color-accent-dark)' : 'var(--color-error)'
   const encourageText =
     accuracyPct >= 80
       ? '太棒了！继续保持'
@@ -293,6 +302,7 @@ function Result() {
         chapterId={chapterId}
         levelId={levelId}
         onContinue={handleRevealContinue}
+        onGoToRoom={() => navigate(`/rooms/${chapterId}`)}
       />
     )
   }
@@ -304,6 +314,13 @@ function Result() {
     >
       {/* ── 顶部导航 ── */}
       <div className="result-header">
+        <button
+          onClick={() => navigate(`/rooms/${chapterId}`)}
+          className="back-btn result-header__back"
+        >
+          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+          返回
+        </button>
         <div className="result-header__title">
           第 {levelId} 关完成！
         </div>
@@ -392,6 +409,13 @@ function Result() {
               <div className="result-words__title">
                 本关单词
               </div>
+              <button
+                className="btn-secondary icon-btn result-words__replay-btn"
+                onClick={handleReplay}
+                title="再来一遍"
+              >
+                <Icon icon="lucide:rotate-ccw" style={{ width: 15, height: 15 }} />
+              </button>
               <div className="result-words__hint">
                 点击展开详情
               </div>
@@ -432,18 +456,18 @@ function Result() {
       <div className="result-actions result-anim-slide-4">
         {/* 返回首页 */}
         <button
-          className="btn-secondary icon-btn--lg result-actions__home"
+          className="btn-secondary icon-btn icon-btn--lg result-actions__home"
           onClick={() => navigate('/')}
         >
           <Icon icon="lucide:home" style={{ width: 20, height: 20 }} />
         </button>
 
-        {/* 再来一遍 */}
+        {/* 回房间 */}
         <button
           className="btn-secondary result-actions__replay"
-          onClick={handleReplay}
+          onClick={() => navigate(`/rooms/${chapterId}`)}
         >
-          再来一遍
+          回房间
         </button>
 
         {/* 下一关 */}

@@ -15,13 +15,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/store/GameContext'
+import { useAudio } from '@/lib/audio/useAudio'
 
 function Splash() {
   const navigate = useNavigate()
   const { gameState } = useGameStore()
+  const { playBgm } = useAudio()
   const [fading, setFading] = useState(false)
+  const [logoLoaded, setLogoLoaded] = useState(false)
 
   useEffect(() => {
+    playBgm('entrance')
     const fadeTimer = setTimeout(() => setFading(true), 1700)
     const navTimer = setTimeout(() => {
       navigate(gameState.onboardingDone ? '/' : '/onboarding/level', { replace: true })
@@ -30,7 +34,7 @@ function Splash() {
       clearTimeout(fadeTimer)
       clearTimeout(navTimer)
     }
-  }, [gameState.onboardingDone, navigate])
+  }, [gameState.onboardingDone, navigate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`splash-page ${fading ? 'splash-page--fading' : ''}`}>
@@ -41,11 +45,15 @@ function Splash() {
           src="/assets/ui/logo.png"
           alt="WordPet"
           className="splash-logo__img"
+          onLoad={() => {
+            setLogoLoaded(true)
+          }}
           onError={(e) => {
+            setLogoLoaded(false)
             ;(e.target as HTMLImageElement).style.display = 'none'
           }}
         />
-        <span className="splash-logo__emoji">🐱</span>
+        {!logoLoaded && <span className="splash-logo__emoji">🐱</span>}
       </div>
 
       <div className="splash-title">WordPet</div>

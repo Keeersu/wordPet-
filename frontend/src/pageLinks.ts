@@ -17,6 +17,7 @@ export const pageLinks = {
   Profile: () => '/profile',
   Settings: () => '/settings',
   Onboarding: () => '/onboarding',
+  OnboardingTransition: () => '/onboarding/transition',
   OnboardingLevel: () => '/onboarding/level',
   Splash: () => '/splash',
   Home: () => '/',

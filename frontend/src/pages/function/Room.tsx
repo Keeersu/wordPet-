@@ -18,97 +18,102 @@
  * </page-design>
  */
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import type { GameState } from '@/store/gameStore'
+import { generateRoomCatImage, incrementDailyCount, getDailyGenerationCount, MAX_DAILY_GENERATIONS } from '@/lib/catGeneration'
+import { getRoomCatStyle } from '@/lib/catStyleSpec'
+import { preloadImages } from '@/lib/imageCache'
+import { useResolvedCatImage } from '@/lib/useResolvedCatImage'
 
 // ─── 章节元数据 ───────────────────────────────────────────────────────────────
 
 const chapterMeta = [
   {
     id: 1,
-    nameCn: '街角流浪',
+    nameCn: '流浪街角',
     nameEn: 'Street Corner',
     themeColor: '#F5E6C8',
     bgColor: '#E8D5A3',
-    furnitureName: '纸箱小窝',
-    furnitureNameEn: 'Cardboard Box Nest',
+    furnitureName: '纸箱',
+    furnitureNameEn: 'Cardboard Box',
     furnitureEmoji: '📦',
     words: [
       { word: 'cat', meaning: '猫', emoji: '🐱' },
-      { word: 'box', meaning: '箱子', emoji: '📦' },
-      { word: 'rain', meaning: '雨', emoji: '🌧️' },
-      { word: 'door', meaning: '门', emoji: '🚪' },
-      { word: 'bag', meaning: '袋子', emoji: '👜' },
+      { word: 'box', meaning: '纸箱', emoji: '📦' },
+      { word: 'bike', meaning: '自行车', emoji: '🚲' },
+      { word: 'mat', meaning: '垫子', emoji: '🛏️' },
+      { word: 'bin', meaning: '垃圾桶', emoji: '🗑️' },
     ],
   },
   {
     id: 2,
-    nameCn: '温暖新家',
-    nameEn: 'Warm Home',
+    nameCn: '温馨小家',
+    nameEn: 'Cozy Home',
     themeColor: '#C8E8F5',
     bgColor: '#A0CCE8',
-    furnitureName: '柔软沙发',
-    furnitureNameEn: 'Cozy Sofa',
-    furnitureEmoji: '🛋️',
+    furnitureName: '钟表',
+    furnitureNameEn: 'Clock',
+    furnitureEmoji: '🕰️',
     words: [
-      { word: 'sofa', meaning: '沙发', emoji: '🛋️' },
-      { word: 'lamp', meaning: '台灯', emoji: '💡' },
-      { word: 'book', meaning: '书', emoji: '📚' },
-      { word: 'cup', meaning: '杯子', emoji: '☕' },
-      { word: 'mat', meaning: '垫子', emoji: '🪆' },
+      { word: 'clock', meaning: '钟表', emoji: '🕰️' },
+      { word: 'pillow', meaning: '抱枕', emoji: '🛋️' },
+      { word: 'carpet', meaning: '地毯', emoji: '🧶' },
+      { word: 'table', meaning: '茶几', emoji: '☕' },
+      { word: 'bed', meaning: '床', emoji: '🛏️' },
     ],
   },
   {
     id: 3,
-    nameCn: '幼儿园',
-    nameEn: 'Kindergarten',
-    themeColor: '#D8F0FF',
-    bgColor: '#B0D8F0',
-    furnitureName: '小课桌',
-    furnitureNameEn: 'Little Desk',
-    furnitureEmoji: '🪑',
+    nameCn: '厨房冒险',
+    nameEn: 'Kitchen Adventure',
+    themeColor: '#FFF0D9',
+    bgColor: '#F0D8A8',
+    furnitureName: '锅',
+    furnitureNameEn: 'Pot',
+    furnitureEmoji: '🍳',
     words: [
-      { word: 'desk', meaning: '桌子', emoji: '🪑' },
-      { word: 'pen', meaning: '笔', emoji: '✏️' },
-      { word: 'rule', meaning: '尺子', emoji: '📏' },
-      { word: 'ball', meaning: '球', emoji: '⚽' },
-      { word: 'cake', meaning: '蛋糕', emoji: '🎂' },
+      { word: 'pot', meaning: '锅', emoji: '🍳' },
+      { word: 'glove', meaning: '手套', emoji: '🧤' },
+      { word: 'carrot', meaning: '胡萝卜', emoji: '🥕' },
+      { word: 'napkin', meaning: '纸巾', emoji: '🧻' },
+      { word: 'cook', meaning: '烹饪', emoji: '👨‍🍳' },
     ],
   },
   {
     id: 4,
-    nameCn: '公园探险',
-    nameEn: 'Park Adventure',
-    themeColor: '#E5F4D8',
-    bgColor: '#C0DCA0',
-    furnitureName: '公园长椅',
-    furnitureNameEn: 'Park Bench',
-    furnitureEmoji: '🪵',
+    nameCn: '趣味乐园',
+    nameEn: 'Fun Playground',
+    themeColor: '#D8F0FF',
+    bgColor: '#B0D8F0',
+    furnitureName: '挂画',
+    furnitureNameEn: 'Wall Painting',
+    furnitureEmoji: '🖼️',
     words: [
-      { word: 'tree', meaning: '树', emoji: '🌳' },
-      { word: 'duck', meaning: '鸭子', emoji: '🦆' },
-      { word: 'park', meaning: '公园', emoji: '🏞️' },
-      { word: 'friend', meaning: '朋友', emoji: '👫' },
-      { word: 'happy', meaning: '快乐', emoji: '😊' },
+      { word: 'picture', meaning: '挂画', emoji: '🖼️' },
+      { word: 'shelf', meaning: '书架', emoji: '📚' },
+      { word: 'desk', meaning: '书桌', emoji: '🪑' },
+      { word: 'chair', meaning: '椅子', emoji: '💺' },
+      { word: 'play', meaning: '玩', emoji: '🎮' },
     ],
   },
   {
     id: 5,
-    nameCn: '厨房美食',
-    nameEn: 'Kitchen Feast',
-    themeColor: '#FFF0D9',
-    bgColor: '#F0D8A8',
-    furnitureName: '小餐桌',
-    furnitureNameEn: 'Dining Table',
-    furnitureEmoji: '🍽️',
+    nameCn: '阳光书房',
+    nameEn: 'Sunny Study',
+    themeColor: '#E5F4D8',
+    bgColor: '#C0DCA0',
+    furnitureName: '沙发',
+    furnitureNameEn: 'Sofa',
+    furnitureEmoji: '🛋️',
     words: [
-      { word: 'cook', meaning: '烹饪', emoji: '👨‍🍳' },
-      { word: 'rice', meaning: '米饭', emoji: '🍚' },
-      { word: 'bread', meaning: '面包', emoji: '🍞' },
-      { word: 'knife', meaning: '刀', emoji: '🔪' },
-      { word: 'taste', meaning: '味道', emoji: '😋' },
+      { word: 'sofa', meaning: '沙发', emoji: '🛋️' },
+      { word: 'lamp', meaning: '灯', emoji: '💡' },
+      { word: 'plant', meaning: '植物', emoji: '🌿' },
+      { word: 'curtain', meaning: '窗帘', emoji: '🪟' },
+      { word: 'book', meaning: '书', emoji: '📚' },
     ],
   },
 ] as const
@@ -116,11 +121,11 @@ const chapterMeta = [
 type ChapterMeta = (typeof chapterMeta)[number]
 
 const chapterFurnitureMap: Record<number, [string, string, string, string]> = {
-  1: ['纸箱小窝', '旧报纸被', '流浪猫碗', '街角路灯'],
-  2: ['柔软沙发', '温暖地毯', '小书架', '落地灯'],
-  3: ['小课桌', '彩色书包', '黑板', '积木玩具'],
-  4: ['公园长椅', '小喷泉', '花圃', '路边秋千'],
-  5: ['小餐桌', '料理台', '香料架', '小冰箱'],
+  1: ['纸箱', '自行车', '垫子', '垃圾桶'],
+  2: ['钟表', '抱枕', '地毯', '茶几'],
+  3: ['锅', '手套', '胡萝卜', '纸巾'],
+  4: ['挂画', '书架', '书桌', '椅子'],
+  5: ['沙发', '落地灯', '植物', '窗帘'],
 }
 
 // ─── 工具函数 ─────────────────────────────────────────────────────────────────
@@ -129,47 +134,95 @@ function getLevelKey(chapterId: number, levelId: number) {
   return `${chapterId}-${levelId}`
 }
 
+function getRoomStage(completedCount: number) {
+  return Math.max(0, Math.min(completedCount, 4))
+}
+
 // ─── 子组件：房间背景占位 ─────────────────────────────────────────────────────
 
-function RoomBackground({ chapter, furnitureUnlocked }: { chapter: ChapterMeta; furnitureUnlocked: boolean }) {
+function RoomBackground({ chapter, completedCount, gameState, onRoomImageReady }: {
+  chapter: ChapterMeta
+  completedCount: number
+  gameState: GameState
+  onRoomImageReady?: (chapterId: number, imageUrl: string) => void
+}) {
+  const [bgLoaded, setBgLoaded] = useState(false)
+  const isGenerated = !!gameState.cat.generatedAppearance?.imageUrl
+  const hasRoomImage = !!gameState.cat.generatedAppearance?.roomImages?.[chapter.id]
+  const resolvedCatSrc = useResolvedCatImage(gameState.cat, chapter.id)
+  const [generating, setGenerating] = useState(false)
+  const stage = getRoomStage(completedCount)
+  const bgSrc = `/assets/rooms/ch${chapter.id}/progress/stage${stage}.jpg`
+  const catSrc = isGenerated && !hasRoomImage ? '' : resolvedCatSrc
+
+  useEffect(() => {
+    preloadImages([bgSrc])
+  }, [bgSrc])
+
+  useEffect(() => {
+    if (!isGenerated || hasRoomImage || generating) return
+    const appearance = gameState.cat.generatedAppearance
+    if (!appearance?.tags) return
+    if (getDailyGenerationCount() >= MAX_DAILY_GENERATIONS) return
+
+    let cancelled = false
+    setGenerating(true)
+    generateRoomCatImage(appearance.tags, chapter.id, appearance.rawImageUrl, gameState.cat.personality)
+      .then(({ rawImageUrl }) => {
+        if (cancelled) return
+        incrementDailyCount()
+        onRoomImageReady?.(chapter.id, rawImageUrl)
+      })
+      .catch((e) => {
+        console.error('[Room] generateRoomCatImage failed:', e)
+      })
+      .finally(() => {
+        if (!cancelled) setGenerating(false)
+      })
+    return () => { cancelled = true }
+  }, [isGenerated, hasRoomImage, chapter.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const catPositionStyle = getRoomCatStyle(chapter.id)
+
   return (
-    <div className="room-bg" style={{ backgroundColor: chapter.bgColor }}>
-      {/* 🖼️ ASSET | 房间背景图 | JPG @3x | /assets/rooms/ch{id}/bg.jpg */}
+    <div
+      className={`room-bg ${bgLoaded ? 'room-bg--image-only' : ''}`}
+      style={{ backgroundColor: bgLoaded ? 'transparent' : chapter.bgColor }}
+    >
       <img
-        src={`/assets/rooms/ch${chapter.id}/bg.jpg`}
+        src={bgSrc}
         alt={chapter.nameCn}
         className="room-bg__img"
-        onError={(e) => {
-          ;(e.target as HTMLImageElement).style.display = 'none'
-        }}
+        fetchPriority="high"
+        decoding="async"
+        onLoad={() => { setBgLoaded(true) }}
+        onError={(e) => { setBgLoaded(false); (e.target as HTMLImageElement).style.display = 'none' }}
       />
 
-      {/* 占位文字（图片未上传时显示） */}
-      <div className="room-bg__placeholder">
-        <span className="room-bg__placeholder-icon">🏠</span>
-        <span>房间背景图占位</span>
-      </div>
-
-      {/* 已解锁家具（完整图叠加） */}
-      {furnitureUnlocked && (
-        <div className="room-bg__furniture">
-          <img
-            src={`/assets/rooms/ch${chapter.id}/furniture/lv1/full.png`}
-            alt={chapter.furnitureName}
-            className="room-bg__furniture-img"
-            onError={(e) => {
-              ;(e.target as HTMLImageElement).style.display = 'none'
-              const parent = (e.target as HTMLImageElement).parentElement
-              if (parent) {
-                parent.innerHTML = `<span class="room-bg__furniture-emoji">${chapter.furnitureEmoji}</span>`
-              }
-            }}
-          />
+      {!bgLoaded && (
+        <div className="room-bg__placeholder">
+          <span className="room-bg__placeholder-icon">🏠</span>
+          <span>房间背景图占位</span>
         </div>
       )}
 
-      {/* 猫咪（占位） */}
-      <div className="room-bg__cat">🐱</div>
+      <div className="room-bg__cat" style={catPositionStyle}>
+        {catSrc ? (
+          <img
+            src={catSrc}
+            alt={gameState.cat.name}
+            className="h-full w-full object-contain"
+            decoding="async"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐱' }}
+          />
+        ) : generating ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#FFB840] border-t-transparent" />
+          </div>
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-2xl">🐱</span>
+        )}
+      </div>
     </div>
   )
 }
@@ -197,6 +250,7 @@ function LevelRow({
 }) {
   const isLocked = status === 'locked'
   const isCompleted = status === 'completed'
+  const [furnitureLoaded, setFurnitureLoaded] = useState(false)
 
   const statusClass = isCompleted ? 'room-level--completed' : status === 'current' ? 'room-level--current' : 'room-level--locked'
 
@@ -224,24 +278,31 @@ function LevelRow({
 
       {/* 右侧：家具 */}
       <div className="room-level__furniture">
-        <div className="room-level__furniture-box">
+        <div
+          className={`room-level__furniture-box ${
+            furnitureUnlocked && furnitureLoaded ? 'room-level__furniture-box--image-only' : ''
+          }`}
+        >
           {furnitureUnlocked ? (
-            <img
-              src={`/assets/rooms/ch${chapterId}/furniture/lv${levelId}/full.png`}
-              alt={furnitureName}
-              className="room-level__furniture-img"
-              onError={(e) => {
-                ;(e.target as HTMLImageElement).style.display = 'none'
-                const parent = (e.target as HTMLImageElement).parentElement
-                if (parent && !parent.querySelector('[data-fallback="true"]')) {
-                  const fb = document.createElement('span')
-                  fb.textContent = furnitureName.charAt(0)
-                  fb.setAttribute('data-fallback', 'true')
-                  fb.style.cssText = 'font-size:18px;font-weight:900;color:rgba(93,64,55,0.5)'
-                  parent.appendChild(fb)
-                }
-              }}
-            />
+            <>
+              <img
+                src={`/assets/rooms/ch${chapterId}/furniture/lv${levelId}/full.png`}
+                alt={furnitureName}
+                className="room-level__furniture-img"
+                loading="lazy"
+                decoding="async"
+                onLoad={() => {
+                  setFurnitureLoaded(true)
+                }}
+                onError={(e) => {
+                  setFurnitureLoaded(false)
+                  ;(e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
+              {!furnitureLoaded && (
+                <span className="room-level__furniture-fallback">{furnitureName.charAt(0)}</span>
+              )}
+            </>
           ) : (
             <span className="room-level__furniture-placeholder">❓</span>
           )}
@@ -262,7 +323,7 @@ function LevelRow({
 function Room() {
   const { chapterId: chapterIdParam } = useParams()
   const navigate = useNavigate()
-  const { gameState } = useGameStore()
+  const { gameState, updateGameState } = useGameStore()
 
   const chapterId = Number(chapterIdParam ?? 1)
   const chapter = chapterMeta.find((c) => c.id === chapterId) ?? chapterMeta[0]
@@ -289,6 +350,12 @@ function Room() {
   const furnitureUnlocked = gameState.unlockedFurniture.includes(furnitureId) || completedCount >= 4
   const nextLevelId = levelStatuses.find((l) => l.status === 'current')?.levelId ?? null
   const allCompleted = completedCount >= 4
+  const avatarSrc = useResolvedCatImage(gameState.cat)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0)
+  }, [chapterId])
 
   const handleLevelClick = (levelId: number) => {
     navigate(`/chapter/${chapterId}/level/${levelId}`)
@@ -298,6 +365,23 @@ function Room() {
     if (nextLevelId) {
       navigate(`/chapter/${chapterId}/level/${nextLevelId}`)
     }
+  }
+
+  const handleRoomImageReady = (chId: number, imageUrl: string) => {
+    updateGameState((prev) => {
+      if (!prev.cat.generatedAppearance) return prev
+      const existing = prev.cat.generatedAppearance.roomImages ?? {}
+      return {
+        ...prev,
+        cat: {
+          ...prev.cat,
+          generatedAppearance: {
+            ...prev.cat.generatedAppearance,
+            roomImages: { ...existing, [chId]: imageUrl },
+          },
+        },
+      }
+    })
   }
 
   return (
@@ -311,13 +395,21 @@ function Room() {
       </div>
 
       {/* ── 可滚动内容区 ── */}
-      <div className="room-scroll">
-        <RoomBackground chapter={chapter} furnitureUnlocked={furnitureUnlocked} />
+      <div className="room-scroll" ref={scrollRef}>
+        <RoomBackground chapter={chapter} completedCount={completedCount} gameState={gameState} onRoomImageReady={handleRoomImageReady} />
 
         {/* 信息卡 */}
         <div className="room-section">
           <div className="room-info-card">
-            <span className="room-info-card__avatar">🐱</span>
+            <span className="room-info-card__avatar">
+              <img
+                src={avatarSrc}
+                alt={gameState.cat.name}
+                className="h-full w-full rounded-full object-contain"
+                decoding="async"
+                onError={(e) => { (e.target as HTMLImageElement).replaceWith(document.createTextNode('🐱')) }}
+              />
+            </span>
             <div className="room-info-card__text">
               <div className="room-info-card__name">
                 {gameState.cat.name} · {chapter.nameCn}

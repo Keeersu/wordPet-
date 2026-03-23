@@ -1,6 +1,7 @@
 /**
- * 第 1 章：街角流浪 (Street Corner)
+ * 第 1 章：流浪街角 (Street Corner)
  * 主题：户外、街道、天气相关的基础词汇
+ * 家具词：box(纸箱) / bike(自行车) / mat(垫子) / bin(垃圾桶)
  */
 import type { WordConfig } from './types'
 
@@ -32,6 +33,45 @@ export const chapter1Words: WordConfig[] = [
     semanticDistractors: ['case', 'crate', 'chest'],
   },
   {
+    word: 'bike',
+    meaning: 'n. 自行车',
+    pos: 'n.',
+    image: '/assets/words/bike.png',
+    sentences: {
+      basic: { en: 'I ride a ___.', zh: '我骑自行车。' },
+      advanced: { en: 'An old rusty ___ was leaning against the wall at the street corner.', zh: '一辆生锈的旧自行车靠在街角的墙上。' },
+    },
+    categoryDistractors: ['car', 'bus', 'train'],
+    spellingDistractors: ['bite', 'bake', 'like'],
+    semanticDistractors: ['cycle', 'scooter', 'tricycle'],
+  },
+  {
+    word: 'mat',
+    meaning: 'n. 垫子',
+    pos: 'n.',
+    image: '/assets/words/mat.png',
+    sentences: {
+      basic: { en: 'The cat sits on the ___.', zh: '猫坐在垫子上。' },
+      advanced: { en: 'She placed a soft ___ near the heater for the cat to rest.', zh: '她在暖气旁放了一块柔软的垫子给猫休息。' },
+    },
+    categoryDistractors: ['rug', 'pad', 'bed'],
+    spellingDistractors: ['map', 'man', 'mad'],
+    semanticDistractors: ['rug', 'carpet', 'cushion'],
+  },
+  {
+    word: 'bin',
+    meaning: 'n. 垃圾桶',
+    pos: 'n.',
+    image: '/assets/words/bin.png',
+    sentences: {
+      basic: { en: 'Put it in the ___.', zh: '把它放进垃圾桶。' },
+      advanced: { en: 'The stray cat knocked over the ___ looking for food scraps.', zh: '流浪猫翻倒了垃圾桶寻找食物残渣。' },
+    },
+    categoryDistractors: ['box', 'bag', 'jar'],
+    spellingDistractors: ['big', 'bit', 'ban'],
+    semanticDistractors: ['trash', 'can', 'bucket'],
+  },
+  {
     word: 'rain',
     meaning: 'n. 雨；v. 下雨',
     pos: 'n./v.',
@@ -43,32 +83,6 @@ export const chapter1Words: WordConfig[] = [
     categoryDistractors: ['snow', 'wind', 'sun'],
     spellingDistractors: ['rail', 'rein', 'main'],
     semanticDistractors: ['shower', 'storm', 'drizzle'],
-  },
-  {
-    word: 'door',
-    meaning: 'n. 门',
-    pos: 'n.',
-    image: '/assets/words/door.png',
-    sentences: {
-      basic: { en: 'Open the ___.', zh: '打开门。' },
-      advanced: { en: 'She knocked on every ___ in the neighborhood looking for the lost kitten.', zh: '她敲遍了附近每一扇门，寻找丢失的小猫。' },
-    },
-    categoryDistractors: ['wall', 'roof', 'gate'],
-    spellingDistractors: ['deer', 'doom', 'dorm'],
-    semanticDistractors: ['entrance', 'exit', 'gateway'],
-  },
-  {
-    word: 'bag',
-    meaning: 'n. 袋子；包',
-    pos: 'n.',
-    image: '/assets/words/bag.png',
-    sentences: {
-      basic: { en: 'This is my ___.', zh: '这是我的包。' },
-      advanced: { en: 'She packed some food in a paper ___ for the stray cat.', zh: '她在纸袋里装了些食物给流浪猫。' },
-    },
-    categoryDistractors: ['box', 'jar', 'cup'],
-    spellingDistractors: ['bad', 'bat', 'big'],
-    semanticDistractors: ['sack', 'pouch', 'pack'],
   },
   {
     word: 'cold',
@@ -173,19 +187,6 @@ export const chapter1Words: WordConfig[] = [
     categoryDistractors: ['glad', 'mad', 'shy'],
     spellingDistractors: ['sat', 'say', 'sag'],
     semanticDistractors: ['unhappy', 'gloomy', 'lonely'],
-  },
-  {
-    word: 'hand',
-    meaning: 'n. 手',
-    pos: 'n.',
-    image: '/assets/words/hand.png',
-    sentences: {
-      basic: { en: 'Give me your ___.', zh: '把你的手给我。' },
-      advanced: { en: 'She gently reached out her ___ and the cat slowly came closer.', zh: '她轻轻伸出手，猫慢慢靠近了。' },
-    },
-    categoryDistractors: ['foot', 'head', 'arm'],
-    spellingDistractors: ['sand', 'band', 'land'],
-    semanticDistractors: ['palm', 'fist', 'grip'],
   },
   {
     word: 'home',

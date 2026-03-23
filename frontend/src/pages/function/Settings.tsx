@@ -171,7 +171,9 @@ function Settings() {
             {/* 背景音乐 */}
             <div className="settings-item">
               <div className="settings-item__left">
-                <div className="settings-item__icon">🎵</div>
+                <div className="settings-item__icon">
+                  <Icon icon="lucide:music" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                </div>
                 <p className="settings-item__title">背景音乐</p>
               </div>
               <button
@@ -187,7 +189,9 @@ function Settings() {
             {/* 音效 */}
             <div className="settings-item">
               <div className="settings-item__left">
-                <div className="settings-item__icon">🔊</div>
+                <div className="settings-item__icon">
+                  <Icon icon="lucide:volume-2" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                </div>
                 <div>
                   <p className="settings-item__title">音效</p>
                   <p className="settings-item__subtitle">答题音效反馈</p>
@@ -206,7 +210,9 @@ function Settings() {
             {/* 朗读 */}
             <div className="settings-item">
               <div className="settings-item__left">
-                <div className="settings-item__icon">🗣️</div>
+                <div className="settings-item__icon">
+                  <Icon icon="lucide:mic" style={{ width: 20, height: 20, color: '#FFB840' }} />
+                </div>
                 <div>
                   <p className="settings-item__title">朗读</p>
                   <p className="settings-item__subtitle">TTS 单词朗读</p>

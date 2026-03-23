@@ -1,5 +1,5 @@
 /**
- * 第 2 章：温暖新家 (Warm Home)
+ * 第 2 章：温馨小家 (Cozy Home)
  * 主题：家具、家居用品相关词汇
  */
 import type { WordConfig } from './types'

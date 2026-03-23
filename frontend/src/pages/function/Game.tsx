@@ -39,6 +39,7 @@ import type { DifficultyLevel } from '@/data/words/types'
 import { speakWord as _speakWord } from '@/lib/utils/tts'
 import { getRandomEncourage } from '@/lib/utils/encouragements'
 import { getChapterName } from '@/data/chapters'
+import { useAudio } from '@/lib/audio/useAudio'
 
 // ── TTS 工具函数已移入组件内部（speak），同时检查页面朗读开关 + 全局 ttsEnabled ──
 
@@ -239,20 +240,24 @@ function LetterPuzzle({
   showMeaning?: string
   image?: string
 }) {
+  const { playSfx } = useAudio()
   const [selected, setSelected] = useState<number[]>([])
   const [availableLetters, setAvailableLetters] = useState(letters)
   const [isWrong, setIsWrong] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   useEffect(() => {
     setSelected([])
     setAvailableLetters(letters)
     setIsWrong(false)
+    setImgLoaded(false)
   }, [letters])
 
   const currentWord = selected.map((idx) => letters[idx]).join('')
 
   const handleLetterClick = (index: number) => {
     if (disabled || selected.includes(index)) return
+    playSfx('button-click')
 
     const newSelected = [...selected, index]
     setSelected(newSelected)
@@ -282,19 +287,22 @@ function LetterPuzzle({
   }
 
   return (
-    <div className="game-letter-layout">
+    <div className="game-letter-layout" data-no-click-sfx>
       {/* 配图 */}
       {image && (
-        <div className="game-letter-image">
+        <div className={`game-letter-image ${imgLoaded ? 'game-letter-image--loaded' : ''}`}>
           <img
             src={image}
             alt=""
             className="game-letter-image__img"
+            onLoad={() => setImgLoaded(true)}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-          <span className="game-letter-image__letter">
-            {correctWord.charAt(0).toUpperCase()}
-          </span>
+          {!imgLoaded && (
+            <span className="game-letter-image__letter">
+              {correctWord.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
       )}
 
@@ -364,6 +372,7 @@ function Game() {
   const { chapterId: chapterIdParam, levelId: levelIdParam } = useParams()
   const { gameState, updateGameState } = useGameStore()
 
+  const { playSfx } = useAudio()
   const chapterId = Number(chapterIdParam ?? gameState.currentChapter)
   const levelId = Number(levelIdParam ?? gameState.currentLevel)
   const chapterName = getChapterName(chapterId)
@@ -392,6 +401,7 @@ function Game() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [encourageText, setEncourageText] = useState('')
+  const [topImgLoaded, setTopImgLoaded] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [wordStats, setWordStats] = useState<Record<string, { correct: number; wrong: number; firstCorrect: boolean }>>({})
 
@@ -538,12 +548,14 @@ function Game() {
         setCorrectCount((c) => c + 1)
         recordAnswer(question.word, true, newAttemptCount)
         speak(question.word)
+        playSfx('correct')
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
         setAnswerState('wrong_first')
         setEncourageText(getRandomEncourage(false))
         recordAnswer(question.word, false, newAttemptCount)
+        playSfx('wrong')
         setShowFeedback(true)
       } else {
         setAnswerState('wrong_second')
@@ -553,7 +565,7 @@ function Game() {
         setShowFeedback(true)
       }
     },
-    [optionsDisabled, attemptCount, question, speak, recordAnswer],
+    [optionsDisabled, attemptCount, question, speak, recordAnswer, playSfx],
   )
 
   // ── 字母拼写完成回调 ──
@@ -564,8 +576,9 @@ function Game() {
     setCorrectCount((c) => c + 1)
     recordAnswer(question.word, true, 1)
     speak(question.word)
+    playSfx('correct')
     setShowFeedback(true)
-  }, [question, speak, recordAnswer])
+  }, [question, speak, recordAnswer, playSfx])
 
   const handleSpellingWrong = useCallback(() => {
     if (!question) return
@@ -651,7 +664,7 @@ function Game() {
       }))
 
       void navigate(`/chapter/${chapterId}/level/${levelId}/result`, {
-        state: { levelWordDetails },
+        state: { levelWordDetails, furnitureJustUnlocked: true },
       })
 
       // 关卡结束后 AI 大调整
@@ -675,6 +688,7 @@ function Game() {
     setAnswerState('idle')
     setSelectedOption(null)
     setAttemptCount(0)
+    setTopImgLoaded(false)
   }, [chapterId, correctCount, currentIndex, gameState.adaptiveDifficulty.current, levelId, navigate, questions, TOTAL_QUESTIONS, updateGameState, wordStats])
 
   // ── 自动推进 ──
@@ -754,11 +768,10 @@ function Game() {
             return (
               <button
                 onClick={() => {
-                  if (!ttsOn) return // 全局朗读已关闭，按钮不可操作
+                  if (!ttsOn) return
                   setAutoRead((prev) => {
                     const next = !prev
                     autoReadRef.current = next
-                    // 关闭时立刻停止正在播放的语音
                     if (!next && window.speechSynthesis) {
                       window.speechSynthesis.cancel()
                     }
@@ -767,19 +780,21 @@ function Game() {
                 }}
                 className="game-header__tts-btn"
                 style={{
-                  backgroundColor: active ? 'rgba(255,184,64,0.15)' : 'white',
-                  border: active ? '2px solid rgba(255,184,64,0.4)' : '2px solid rgba(93,64,55,0.1)',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: active ? 'rgba(255,184,64,0.15)' : 'transparent',
+                  border: active ? '1.5px solid rgba(255,184,64,0.4)' : '1.5px solid rgba(93,64,55,0.3)',
                   cursor: ttsOn ? 'pointer' : 'not-allowed',
                   opacity: ttsOn ? 1 : 0.5,
                 }}
               >
                 <Icon
-                  icon={active ? 'lucide:volume-2' : 'lucide:volume-x'}
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    color: active ? '#FFB840' : 'rgba(93,64,55,0.35)',
-                  }}
+                  icon="lucide:mic"
+                  style={{ width: 18, height: 18, color: active ? '#FFB840' : 'rgba(93,64,55,0.3)' }}
                 />
               </button>
             )
@@ -791,18 +806,21 @@ function Game() {
       <div className="game-content">
         {/* 配图区 */}
         {showImage && (
-          <div className="game-word-image">
+          <div className={`game-word-image ${topImgLoaded ? 'game-word-image--loaded' : ''}`}>
             <img
               src={question.image}
               alt={question.word}
               className="game-word-image__img"
+              onLoad={() => setTopImgLoaded(true)}
               onError={(e) => {
                 ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-            <span className="game-word-image__letter">
-              {question.word.charAt(0).toUpperCase()}
-            </span>
+            {!topImgLoaded && (
+              <span className="game-word-image__letter">
+                {question.word.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
         )}
 
@@ -846,7 +864,7 @@ function Game() {
 
           {/* ── 选项类题型 ── */}
           {isChoiceType && (
-            <div className="game-options">
+            <div className="game-options" data-no-click-sfx>
               {question.options.map((option) => (
                 <button
                   key={option}

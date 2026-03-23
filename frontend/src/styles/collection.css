@@ -179,7 +179,7 @@
 
 .collection-word__name {
   font-weight: var(--font-extrabold);
-  font-size: var(--text-md);
+  font-size: var(--text-xl);
   color: var(--color-text);
 }
 
@@ -190,7 +190,7 @@
 }
 
 .collection-word__meaning {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   margin-top: 2px;
   white-space: nowrap;

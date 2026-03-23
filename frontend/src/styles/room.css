@@ -19,14 +19,14 @@
   position: fixed;
   top: var(--space-3xl);
   left: var(--space-3xl);
-  z-index: 50;
+  z-index: var(--z-header);
 }
 
 /* ── 可滚动内容区 ── */
 .room-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 100px;
+  padding-bottom: var(--scroll-safe-bottom);
 }
 
 /* ── 房间背景区 ── */
@@ -38,6 +38,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.room-bg--image-only {
+  background-color: transparent;
 }
 
 .room-bg__img {
@@ -59,7 +63,7 @@
   color: var(--color-text-hint);
   font-weight: var(--font-bold);
   font-size: var(--text-base);
-  z-index: 0;
+  z-index: var(--z-base);
 }
 
 .room-bg__placeholder-icon {
@@ -75,7 +79,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: furnitureDrop 600ms var(--ease-bounce) forwards;
+  animation: furnitureDrop 600ms var(--ease-out-quart) forwards;
 }
 
 .room-bg__furniture-img {
@@ -88,14 +92,14 @@
   font-size: 52px;
 }
 
-/* 猫咪占位 */
+/* 猫咪（位置和尺寸由 inline style 按房间动态设置） */
 .room-bg__cat {
   position: absolute;
-  bottom: 8%;
-  left: 10%;
   z-index: 3;
   font-size: 40px;
+  transition: left 0.4s ease, right 0.4s ease, bottom 0.4s ease;
 }
+
 
 /* ── 信息卡 ── */
 .room-section {
@@ -114,11 +118,22 @@
 }
 
 .room-info-card__avatar {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: var(--space-xs);
+  overflow: hidden;
+  background: rgba(120, 120, 120, 0.12);
   font-size: var(--text-7xl);
 }
 
 .room-info-card__text {
   flex: 1;
+  min-width: 0;
 }
 
 .room-info-card__name {
@@ -180,7 +195,7 @@
 }
 
 .room-level--completed {
-  background-color: #F0FBF0;
+  background-color: var(--color-success-light);
   border-color: var(--color-success);
   box-shadow: 0 3px 0 0 var(--color-success-dark);
 }
@@ -190,7 +205,7 @@
 }
 
 .room-level--current {
-  background-color: #FFFBF0;
+  background-color: var(--color-primary-light);
   border-color: var(--color-primary);
   box-shadow: 0 3px 0 0 var(--color-primary-dark);
   cursor: pointer;
@@ -201,7 +216,7 @@
 }
 
 .room-level--locked {
-  background-color: #F5F0EA;
+  background-color: var(--color-bg-muted);
   border-color: var(--color-border);
   box-shadow: 0 3px 0 0 rgba(93, 64, 55, 0.1);
   opacity: 0.5;
@@ -281,14 +296,24 @@
   overflow: hidden;
 }
 
+.room-level__furniture-box--image-only {
+  background-color: transparent;
+}
+
 .room-level__furniture-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
+.room-level__furniture-fallback {
+  font-size: var(--text-2xl);
+  font-weight: 900;
+  color: rgba(93, 64, 55, 0.5);
+}
+
 .room-level__furniture-placeholder {
-  font-size: 22px;
+  font-size: var(--text-4xl);
   opacity: 0.4;
 }
 
@@ -354,12 +379,12 @@
 
 .room-word-item__word {
   font-weight: var(--font-extrabold);
-  font-size: 13px;
+  font-size: var(--text-base);
   color: var(--color-text);
 }
 
 .room-word-item__meaning {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
@@ -378,7 +403,7 @@
   right: 0;
   padding: var(--space-xl) var(--space-4xl) calc(var(--space-xl) + var(--safe-bottom));
   background: linear-gradient(to top, rgba(255, 248, 231, 1) 70%, rgba(255, 248, 231, 0));
-  z-index: 40;
+  z-index: var(--z-fab);
 }
 
 .room-start-btn {
@@ -407,7 +432,7 @@
   padding: var(--space-2xl);
   border-radius: var(--radius-3xl);
   border: 2.5px solid var(--color-success);
-  background-color: rgba(102, 187, 106, 0.1);
+  background-color: var(--color-success-bg);
   color: var(--color-success-darker);
   font-weight: var(--font-black);
   font-size: var(--text-lg);

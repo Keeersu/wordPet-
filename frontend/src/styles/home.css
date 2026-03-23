@@ -24,7 +24,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: var(--z-header);
   padding-top: var(--space-3xl);
   background: transparent;
 }
@@ -77,7 +77,14 @@
   border: 2px solid var(--color-border);
   box-shadow: var(--shadow-nav);
   cursor: pointer;
+  position: relative;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.home-header__settings-btn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
 }
 
 .home-header__settings-btn:active {
@@ -249,7 +256,7 @@
 /* ── FAB (Play / Start Game Button) ── */
 .home-fab {
   position: fixed;
-  z-index: 40;
+  z-index: var(--z-fab);
   bottom: calc(20px + var(--safe-bottom));
   right: 20px;
 }
@@ -281,7 +288,7 @@
 .settings-popup {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -310,7 +317,7 @@
   padding: var(--space-5xl);
   box-shadow: var(--shadow-modal);
   font-family: var(--font-main);
-  animation: settingsCardIn var(--transition-slower) var(--ease-bounce);
+  animation: settingsCardIn var(--transition-slower) var(--ease-out-quart);
 }
 
 @keyframes settingsCardIn {
@@ -403,7 +410,7 @@
   top: calc(var(--header-height) + var(--space-xl));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 90;
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -414,7 +421,7 @@
   box-shadow: var(--shadow-elevated);
   font-family: var(--font-main);
   white-space: nowrap;
-  animation: diffToastIn var(--transition-slower) var(--ease-bounce);
+  animation: diffToastIn var(--transition-slower) var(--ease-out-quart);
 }
 
 .difficulty-toast--exit {
@@ -456,14 +463,14 @@
   position: fixed;
   bottom: calc(20px + var(--safe-bottom));
   left: 20px;
-  z-index: 39;
+  z-index: var(--z-tabbar);
 }
 
 /* ── Fixed Gradient Background ── */
 .home-bg {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--z-base);
   background: var(--gradient-sky);
 }
 
@@ -475,43 +482,27 @@
   padding: var(--space-xl) var(--space-3xl);
 }
 
-/* ── Room Count Pill ── */
-.home-header__room-count {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-xl);
-  border-radius: var(--radius-xl);
-  background-color: var(--color-bg-card);
-  border: 2px solid var(--color-border);
-  box-shadow: var(--shadow-nav);
-}
-
-.home-header__room-count-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--color-primary);
-}
-
-.home-header__room-count-text {
-  font-weight: var(--font-black);
-  font-size: var(--text-lg);
-}
 
 /* ── Scrollable Room List ── */
 .home-scroll {
   position: relative;
-  z-index: 10;
+  z-index: var(--z-content);
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-3xl);
-  padding-top: 84px;
-  padding-bottom: 90px;
+  padding-top: calc(var(--header-height) + var(--space-7xl));
+  padding-bottom: var(--scroll-safe-bottom);
   overflow-y: auto;
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* IE / Edge */
+}
+
+/* Paper fine-tune: raise floating controls to overlap card 3 */
+.home-page .main-tabbar,
+.home-page .fab {
+  bottom: calc(60px + var(--safe-bottom));
 }
 
 .home-scroll::-webkit-scrollbar {
@@ -539,6 +530,16 @@
   width: 311px;
   height: 169px;
   border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.home-room-card__bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: var(--z-base);
 }
 
 .home-room-card__lock {
@@ -554,7 +555,7 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 311px;
+  width: 100%;
   height: 210px;
   border: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: var(--radius-3xl);
@@ -632,33 +633,32 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0;
+  z-index: var(--z-base);
 }
 
 .home-settings-popup__fallback-bg {
   position: absolute;
   inset: 0;
-  background-color: #FFE8A0;
+  background-color: var(--color-primary-light);
   z-index: -1;
 }
 
 .home-settings-popup__content {
   position: relative;
-  z-index: 1;
-}
-
-.home-settings-popup__banner {
-  background-color: var(--color-primary);
-  padding: var(--space-2xl);
-  text-align: center;
-  font-size: var(--text-2xl);
-  font-weight: var(--font-black);
-  color: white;
+  z-index: var(--z-content);
 }
 
 .home-settings-popup__body {
   background-color: transparent;
   padding: var(--space-4xl) var(--space-5xl) var(--space-5xl);
+}
+
+.home-settings-popup__section-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: rgba(93, 64, 55, 0.4);
+  text-align: center;
+  margin-bottom: var(--space-xl);
 }
 
 .home-settings-popup__grid {
@@ -681,13 +681,13 @@
 }
 
 .home-settings-popup__team {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: rgba(93, 64, 55, 0.5);
   text-align: center;
 }
 
 .home-settings-popup__version {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: rgba(93, 64, 55, 0.3);
   text-align: center;
   margin-top: var(--space-sm);

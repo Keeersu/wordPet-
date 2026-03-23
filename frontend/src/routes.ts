@@ -21,6 +21,7 @@ import Room from './pages/function/Room'
 import Onboarding from './pages/function/Onboarding'
 import OnboardingLevel from './pages/function/OnboardingLevel'
 import Splash from './pages/function/Splash'
+import TransitionCutscene from './pages/function/TransitionCutscene'
 // Login page removed — app uses auto-login (browser prototype mode)
 
 
@@ -49,6 +50,7 @@ function createBusinessRoutes(store: Store): RouteObject[] {
     { path: pageLinks.Settings(), element: createElement(Settings) },
     { path: pageLinks.OnboardingLevel(), element: createElement(OnboardingLevel) },
     { path: pageLinks.Onboarding(), element: createElement(Onboarding) },
+    { path: pageLinks.OnboardingTransition(), element: createElement(TransitionCutscene) },
     { path: pageLinks.Game(), element: createElement(Game) },
     { path: pageLinks.Result(), element: createElement(Result) },
     { path: pageLinks.Room(), element: createElement(Room) },

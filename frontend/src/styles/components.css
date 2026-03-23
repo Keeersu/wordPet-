@@ -441,13 +441,13 @@
 
 /* ── 字母拼写组件 ── */
 .letter-slot {
-  width: 40px;
-  height: 48px;
+  width: 44px;
+  height: 52px;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-3xl);
+  font-size: var(--text-5xl);
   font-weight: var(--font-extrabold);
   color: var(--color-text);
   font-family: var(--font-mono);
@@ -470,11 +470,11 @@
 }
 
 .letter-btn {
-  width: 44px;
-  height: 52px;
+  width: 48px;
+  height: 56px;
   border-radius: var(--radius-xl);
   border: none;
-  font-size: var(--text-3xl);
+  font-size: var(--text-5xl);
   font-weight: var(--font-extrabold);
   font-family: var(--font-mono);
   cursor: pointer;
@@ -518,6 +518,17 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.tabbar-btn--fallback-shell {
+  border-radius: 50%;
+}
+
+.tabbar-btn--image-only {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0;
+}
+
 .tabbar-btn:active {
   transform: translateY(3px);
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
@@ -549,6 +560,20 @@
   overflow: hidden;
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fab--image-only {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.fab--fallback-shell {
+  background-color: var(--color-primary);
+  border: 3px solid var(--color-primary-border);
+  box-shadow: var(--shadow-fab);
+  border-radius: 50%;
 }
 
 .fab:active {
@@ -622,6 +647,10 @@
   cursor: pointer;
   font-family: var(--font-main);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .settings-toggle-btn:active {

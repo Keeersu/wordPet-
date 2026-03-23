@@ -20,6 +20,7 @@
 @import "./room.css";
 @import "./login.css";
 @import "./splash.css";
+@import "./transition.css";
 
 /* Tailwind (保留用于基础 reset 和少量 utility) */
 @import "tailwindcss";
