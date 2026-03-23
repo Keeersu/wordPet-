@@ -6,45 +6,92 @@
  * Design for: Mobile
  * </base-info>
  * <page-design>
- * ## Features & Interactions
- * - 按房间主题筛选已学单词
- * - 查看单词释义、发音及关联的猫猫插画
- * - 导航：首页 (Tab)、练习 (Tab)、我的 (Tab)
- * 
- * ## Basic Layout
- * Tab-based: Header + Main + Tab Bar
- * 
- * ## Reuse Components
- * - `MainTabBar`
- * 
  * ## Page Layout
- * `h-screen flex flex-col`
- * 
- * **Header**: nav-bar - 居中标题 "图鉴"，右侧搜索图标
- * 
- * **Main** `flex-1 flex flex-col overflow-hidden`:
- * 1. **主题切换**: horizontal-scroll `segment-tabs` (房间列表：街角、小屋等)
- * 2. **统计栏**: stats-row `px-4 py-2` - 收集总数 / 掌握度
- * 3. **图鉴网格** `flex-1 overflow-y-auto px-4`: grid-3col
- *    - 卡片类型: Vertical No-container
- *    - 内容: 单词插画 (正方形) + 英文单词主体 + 中文小字
- * 
- * **Bottom**: Reuse `MainTabBar`, activeKey="collection"
- * 
- * ## Mock Data
- * 分类：全部、街角流浪、温馨小屋。
- * 统计：已收集 42/150 词。
- * 单词卡片：apple, tree, bench, cat, bowl (带有解锁和未解锁的剪影状态)。
- * 
- * ## Reference
- * - site-map.md
+ * 顶部标题，居中占位文案，底部 MainTabBar
  * </page-design>
  */
 
-import { PagePlaceholder } from '@/components/function/base/PagePlaceholder'
+import { useNavigate } from 'react-router-dom'
+import { Icon } from '@iconify/react'
+import { MainTabBar } from '@/components/function/MainTabBar'
 
 function Collection() {
-  return <PagePlaceholder title="Collection" />
+  const navigate = useNavigate()
+
+  return (
+    <div
+      style={{
+        height: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#FFF8E7',
+        fontFamily: "'Nunito', 'PingFang SC', sans-serif",
+        color: '#5D4037',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 16px 12px',
+          background: 'rgba(255,248,231,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(93,64,55,0.08)',
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 12px',
+            borderRadius: 10,
+            border: '2px solid rgba(93,64,55,0.12)',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 0 0 rgba(93,64,55,0.1)',
+            cursor: 'pointer',
+            color: '#5D4037',
+            fontWeight: 700,
+            fontSize: 14,
+            fontFamily: 'inherit',
+          }}
+        >
+          <Icon icon="lucide:arrow-left" style={{ width: 16, height: 16 }} />
+          返回
+        </button>
+
+        <div style={{ fontWeight: 900, fontSize: 16, letterSpacing: 0.5 }}>图鉴</div>
+
+        <div style={{ width: 68 }} />
+      </div>
+
+      {/* Content */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          paddingBottom: 100,
+        }}
+      >
+        <span style={{ fontSize: 48 }}>📚</span>
+        <p style={{ fontSize: 20, fontWeight: 900, margin: 0 }}>图鉴</p>
+        <p style={{ fontSize: 14, color: 'rgba(93,64,55,0.5)', margin: 0 }}>敬请期待 🐾</p>
+      </div>
+
+      <MainTabBar />
+    </div>
+  )
 }
 
 export default Collection

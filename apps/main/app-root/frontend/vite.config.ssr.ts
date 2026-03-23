@@ -3,8 +3,8 @@ import baseConfigFn from './vite.config'
 import * as path from 'path'
 
 /**
- * SSR build configuration for prerendering.
- * Extends the base vite.config.ts and overrides SSR-specific settings.
+ * SSR/prerender is disabled for this project.
+ * This config is kept only to avoid breaking references.
  */
 export default defineConfig((env) => {
   const baseConfig = baseConfigFn(env)
@@ -12,7 +12,7 @@ export default defineConfig((env) => {
   return mergeConfig(baseConfig, {
     build: {
       outDir: path.resolve(__dirname, '../dist/ssr'),
-      ssr: true,
+      ssr: false,
       rollupOptions: {
         input: path.resolve(__dirname, 'scripts/ssr-entry.tsx'),
         output: {
@@ -26,11 +26,5 @@ export default defineConfig((env) => {
     },
     // SSR doesn't need dev server config
     server: undefined,
-    ssr: {
-      // Bundle everything except Node.js built-ins
-      noExternal: true,
-      // These are Node.js built-in or have native dependencies
-      external: ['jsdom'],
-    },
   })
 })

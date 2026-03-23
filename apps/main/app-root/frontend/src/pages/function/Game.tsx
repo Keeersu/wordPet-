@@ -41,16 +41,78 @@
  * </page-design>
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
+import type { GameState } from '@/store/gameStore'
+
+// ============================================================================
+// TTS
+// ============================================================================
+
+function speakWord(word: string, gameState: GameState, sentence?: string) {
+  if (!gameState.settings.soundEnabled) return
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+
+  const text = sentence ? `${word}. ${sentence}` : word
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.lang = 'en-US'
+  utter.rate = 0.85
+  utter.pitch = 1
+  window.speechSynthesis.speak(utter)
+}
+
+// ============================================================================
+// LLM Adaptive Difficulty
+// ============================================================================
+
+const LLM_API_URL = 'https://ai-platform-test.zhenguanyu.com/litellm/v1/chat/completions'
+const LLM_API_KEY = 'sk-ZDolX3RGKGtyyWiaP0zXOQ'
+
+async function adjustDifficulty(
+  accuracy: number,
+  currentDifficulty: number,
+  stats: Record<string, { correct: number; wrong: number }>,
+): Promise<1 | 2 | 3 | 4> {
+  try {
+    const wrongWords = Object.entries(stats)
+      .filter(([, s]) => s.wrong > 0)
+      .map(([w]) => w)
+
+    const response = await fetch(LLM_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${LLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'doubao-seed-1.8',
+        max_tokens: 10,
+        messages: [
+          {
+            role: 'user',
+            content: `你是英语学习难度调整助手。当前难度${currentDifficulty}（1=最简单,4=最难），本关正确率${Math.round(accuracy * 100)}%，答错单词：${wrongWords.join(',') || '无'}。请只返回1到4之间的一个数字作为下一关难度，不要说其他任何内容。`,
+          },
+        ],
+      }),
+    })
+    const data = await response.json()
+    const result = parseInt(data.choices?.[0]?.message?.content?.trim())
+    if (result >= 1 && result <= 4) return result as 1 | 2 | 3 | 4
+    return currentDifficulty as 1 | 2 | 3 | 4
+  } catch {
+    return currentDifficulty as 1 | 2 | 3 | 4
+  }
+}
 
 // ============================================================================
 // Mock Data
 // ============================================================================
 
 interface Question {
+  type: 'multiple_choice' | 'fill_blank' | 'picture_match'
   word: string
   meaning: string
   sentence: string
@@ -59,7 +121,9 @@ interface Question {
 }
 
 const QUESTIONS: Question[] = [
+  // ── multiple_choice (4) ──
   {
+    type: 'multiple_choice',
     word: 'sofa',
     meaning: 'n. 沙发；长沙发',
     sentence: 'Come sit on the sofa.',
@@ -67,6 +131,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'sofa',
   },
   {
+    type: 'multiple_choice',
     word: 'lamp',
     meaning: 'n. 灯；台灯',
     sentence: 'Turn on the lamp, please.',
@@ -74,6 +139,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'lamp',
   },
   {
+    type: 'multiple_choice',
     word: 'chair',
     meaning: 'n. 椅子',
     sentence: 'Please sit in the chair.',
@@ -81,34 +147,41 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'chair',
   },
   {
+    type: 'multiple_choice',
     word: 'table',
     meaning: 'n. 桌子',
     sentence: 'Put it on the table.',
     options: ['desk', 'table', 'floor', 'wall'],
     correctAnswer: 'table',
   },
+  // ── fill_blank (3) ──
   {
+    type: 'fill_blank',
     word: 'clock',
     meaning: 'n. 时钟',
-    sentence: 'The clock shows three.',
+    sentence: 'The ___ shows three.',
     options: ['watch', 'phone', 'clock', 'bell'],
     correctAnswer: 'clock',
   },
   {
+    type: 'fill_blank',
     word: 'window',
     meaning: 'n. 窗户',
-    sentence: 'Open the window for fresh air.',
+    sentence: 'Open the ___ for fresh air.',
     options: ['window', 'mirror', 'door', 'wall'],
     correctAnswer: 'window',
   },
   {
+    type: 'fill_blank',
     word: 'pillow',
     meaning: 'n. 枕头',
-    sentence: 'Rest your head on the pillow.',
+    sentence: 'Rest your head on the ___.',
     options: ['blanket', 'sheet', 'pillow', 'towel'],
     correctAnswer: 'pillow',
   },
+  // ── picture_match (3) ──
   {
+    type: 'picture_match',
     word: 'carpet',
     meaning: 'n. 地毯',
     sentence: 'The cat sleeps on the carpet.',
@@ -116,6 +189,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'carpet',
   },
   {
+    type: 'picture_match',
     word: 'shelf',
     meaning: 'n. 架子；搁板',
     sentence: 'Put the books on the shelf.',
@@ -123,6 +197,7 @@ const QUESTIONS: Question[] = [
     correctAnswer: 'shelf',
   },
   {
+    type: 'picture_match',
     word: 'mirror',
     meaning: 'n. 镜子',
     sentence: 'Look at yourself in the mirror.',
@@ -267,17 +342,17 @@ function FeedbackSheet({
   question,
   encourageText,
   onNext,
-  onRetry,
+  onSpeak,
 }: {
   answerState: 'correct' | 'wrong_first' | 'wrong_second'
   question: Question
   encourageText: string
   onNext: () => void
-  onRetry: () => void
+  onSpeak?: () => void
 }) {
   const isCorrect = answerState === 'correct'
   const isWrongSecond = answerState === 'wrong_second'
-  const isWrongFirst = answerState === 'wrong_first'
+  const headerText = isWrongSecond ? '正确答案是——' : encourageText
 
   return (
     <>
@@ -319,7 +394,7 @@ function FeedbackSheet({
             />
           </div>
           <span style={{ fontSize: '17px', fontWeight: 700, color: '#5D4037' }}>
-            {encourageText}
+            {headerText}
           </span>
         </div>
 
@@ -347,6 +422,28 @@ function FeedbackSheet({
               >
                 {question.correctAnswer}
               </span>
+              {onSpeak && (
+                <button
+                  onClick={onSpeak}
+                  style={{
+                    marginLeft: 'auto',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255,184,64,0.15)',
+                    border: '1.5px solid #FFB840',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    fontSize: 20,
+                    lineHeight: 1,
+                  }}
+                >
+                  🔊
+                </button>
+              )}
             </div>
             <p style={{ fontSize: '14px', color: '#5D4037', margin: '0 0 4px', fontWeight: 600 }}>
               {question.meaning}
@@ -366,9 +463,9 @@ function FeedbackSheet({
         )}
 
         {/* Action button */}
-        {(isCorrect || isWrongFirst || isWrongSecond) && (
+        {isWrongSecond && (
           <button
-            onClick={isWrongFirst ? onRetry : onNext}
+            onClick={onNext}
             style={{
               width: '100%',
               padding: '14px',
@@ -383,7 +480,7 @@ function FeedbackSheet({
               boxShadow: '0 3px 0 0 #D99A20',
             }}
           >
-            {isWrongFirst ? '再试一次 ↩' : '下一题 →'}
+            下一题 →
           </button>
         )}
       </div>
@@ -465,9 +562,9 @@ function Game() {
       if (option === selectedOption && (answerState === 'wrong_first' || answerState === 'wrong_second')) {
         return {
           ...baseStyle,
-          backgroundColor: '#EF5350',
-          color: 'white',
-          boxShadow: '0 3px 0 0 #D32F2F',
+          backgroundColor: answerState === 'wrong_second' ? '#FFEBEE' : '#EF5350',
+          color: answerState === 'wrong_second' ? '#C62828' : 'white',
+          boxShadow: answerState === 'wrong_second' ? '0 3px 0 0 #F8BBD0' : '0 3px 0 0 #D32F2F',
         }
       }
 
@@ -477,7 +574,7 @@ function Game() {
         backgroundColor: '#FFF8E7',
         color: '#5D4037',
         boxShadow: '0 3px 0 0 #E8D5B0',
-        opacity: 0.5,
+        opacity: answerState === 'wrong_second' ? 0.4 : 0.5,
       }
     },
     [answerState, selectedOption, question],
@@ -512,6 +609,7 @@ function Game() {
             },
           }
         })
+        speakWord(question.word, gameState)
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
@@ -530,7 +628,7 @@ function Game() {
         setShowFeedback(true)
       } else {
         setAnswerState('wrong_second')
-        setEncourageText(getRandomEncourage(false))
+        setEncourageText('正确答案是——')
         setWordStats((prev) => {
           const existing = prev[question.word] ?? { correct: 0, wrong: 0 }
           return {
@@ -541,6 +639,7 @@ function Game() {
             },
           }
         })
+        speakWord(question.correctAnswer, gameState, question.sentence)
         setShowFeedback(true)
       }
     },
@@ -557,6 +656,10 @@ function Game() {
 
       updateGameState((prev) => {
         const completedKey = `${chapterId}-${levelId}`
+        const furnitureId = `furniture_ch${chapterId}_lv${levelId}`
+        const nextUnlockedFurniture = prev.unlockedFurniture.includes(furnitureId)
+          ? prev.unlockedFurniture
+          : [...prev.unlockedFurniture, furnitureId]
         const nextWordHistory = { ...prev.wordHistory }
 
         for (const [word, stats] of Object.entries(wordStats)) {
@@ -582,6 +685,7 @@ function Game() {
               completedAt,
             },
           },
+          unlockedFurniture: nextUnlockedFurniture,
           wordHistory: nextWordHistory,
         }
 
@@ -601,6 +705,20 @@ function Game() {
       })
 
       void navigate(`/chapter/${chapterId}/level/${levelId}/result`)
+
+      adjustDifficulty(accuracy, gameState.adaptiveDifficulty.current, wordStats).then(
+        (newDifficulty) => {
+          updateGameState((prev) => ({
+            ...prev,
+            difficulty: newDifficulty,
+            adaptiveDifficulty: {
+              ...prev.adaptiveDifficulty,
+              current: newDifficulty,
+              levelHistory: [...prev.adaptiveDifficulty.levelHistory, newDifficulty],
+            },
+          }))
+        },
+      )
       return
     }
 
@@ -608,13 +726,27 @@ function Game() {
     setAnswerState('idle')
     setSelectedOption(null)
     setAttemptCount(0)
-  }, [chapterId, correctCount, currentIndex, levelId, navigate, updateGameState, wordStats])
+  }, [chapterId, correctCount, currentIndex, gameState.adaptiveDifficulty.current, levelId, navigate, updateGameState, wordStats])
 
-  const handleRetry = useCallback(() => {
-    setShowFeedback(false)
-    setAnswerState('idle')
-    setSelectedOption(null)
-  }, [])
+  useEffect(() => {
+    if (!showFeedback) return
+
+    if (answerState === 'wrong_first') {
+      const timer = setTimeout(() => {
+        setShowFeedback(false)
+        setAnswerState('idle')
+        setSelectedOption(null)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+
+    if (answerState === 'correct') {
+      const timer = setTimeout(() => {
+        handleNext()
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+  }, [answerState, handleNext, showFeedback])
 
   // Handle exit
   const handleExitConfirm = useCallback(() => {
@@ -649,11 +781,13 @@ function Game() {
       {/* Top navigation bar */}
       <div
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
-          zIndex: 20,
-          paddingTop: '52px',
-          background: 'transparent',
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          paddingTop: '16px',
+          background: '#F5E6C8',
         }}
       >
         <div
@@ -707,30 +841,40 @@ function Game() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          paddingTop: '24px',
+          paddingTop: '80px',
         }}
       >
-        {/* Word illustration placeholder */}
-        <div
-          style={{
-            width: '160px',
-            height: '160px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,184,64,0.3)',
-            border: '3px solid white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '28px',
-            color: 'rgba(93,64,55,0.4)',
-            fontWeight: 700,
-            textAlign: 'center',
-            marginBottom: '-80px',
-            zIndex: 2,
-          }}
-        >
-          {question.word.charAt(0).toUpperCase()}
-        </div>
+        {question.type === 'multiple_choice' && (
+          <div
+            style={{
+              width: 160,
+              height: 160,
+              borderRadius: 16,
+              backgroundColor: 'rgba(255,184,64,0.2)',
+              border: '3px solid white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+              marginBottom: -80,
+              zIndex: 2,
+            }}
+          >
+            {/* 🖼️ ASSET | 单词图片 | /assets/words/{word}.png */}
+            <img
+              src={`/assets/words/${question.word}.png`}
+              alt={question.word}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+            <span style={{ position: 'relative', zIndex: 1, fontSize: 48, color: 'rgba(93,64,55,0.3)' }}>
+              {question.word.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
 
         {/* White question card */}
         <div
@@ -740,13 +884,36 @@ function Game() {
             width: 'calc(100% - 32px)',
             backgroundColor: 'white',
             borderRadius: '20px',
-            paddingTop: '80px',
+            paddingTop: question.type === 'multiple_choice' ? '80px' : '24px',
             paddingBottom: '24px',
             paddingLeft: '20px',
             paddingRight: '20px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            marginTop: question.type === 'multiple_choice' ? 0 : 24,
           }}
         >
+          {/* TTS speaker button */}
+          <button
+            onClick={() => speakWord(question.word, gameState)}
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255,184,64,0.12)',
+              border: '1.5px solid rgba(255,184,64,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 3,
+            }}
+          >
+            <Icon icon="lucide:volume-2" style={{ width: 16, height: 16, color: '#FFB840' }} />
+          </button>
+
           {/* Progress text */}
           <p
             style={{
@@ -759,17 +926,59 @@ function Game() {
             第 {currentIndex + 1} 题 · 共 {TOTAL_QUESTIONS} 题
           </p>
 
-          {/* Question text */}
+          {/* ── Type-dependent hint area ── */}
+          {question.type === 'picture_match' && (
+            <p
+              style={{
+                textAlign: 'center',
+                fontSize: 32,
+                fontWeight: 900,
+                color: '#FFB840',
+                margin: '12px 0 0',
+                lineHeight: 1.3,
+              }}
+            >
+              {question.meaning}
+            </p>
+          )}
+
+          {question.type === 'fill_blank' && (
+            <p
+              style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: '#5D4037',
+                margin: '12px 0 0',
+                lineHeight: 1.6,
+                fontFamily: "'Nunito', sans-serif",
+              }}
+            >
+              {question.sentence.split('___').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span style={{ color: '#FFB840', fontWeight: 900 }}>___</span>
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
+
+          {/* Question text (type-dependent) */}
           <p
             style={{
               textAlign: 'center',
               fontSize: '17px',
               fontWeight: 700,
               color: '#5D4037',
-              margin: '16px 0',
+              margin: '12px 0 16px',
             }}
           >
-            选出正确的单词
+            {question.type === 'fill_blank'
+              ? '选出划线处的单词'
+              : question.type === 'picture_match'
+                ? '选出对应的英文单词'
+                : '这张图对应哪个单词？'}
           </p>
 
           {/* Option buttons */}
@@ -804,7 +1013,11 @@ function Game() {
           question={question}
           encourageText={encourageText}
           onNext={handleNext}
-          onRetry={handleRetry}
+          onSpeak={
+            answerState === 'wrong_second'
+              ? () => speakWord(question.correctAnswer, gameState, question.sentence)
+              : undefined
+          }
         />
       )}
 
