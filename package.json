@@ -24,6 +24,8 @@
   },
   "packageManager": "pnpm@9.15.1",
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "postcss": "^8.5.8",
     "tsx": "^4.21.0",
     "wrangler": "^4.70.0"
   },
