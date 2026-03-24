@@ -23,7 +23,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
 import type { GameState } from '@/store/gameStore'
-import { generateRoomCatImage, incrementDailyCount, getDailyGenerationCount, MAX_DAILY_GENERATIONS } from '@/lib/catGeneration'
 import { getRoomCatStyle } from '@/lib/catStyleSpec'
 import { preloadImages } from '@/lib/imageCache'
 import { useResolvedCatImage } from '@/lib/useResolvedCatImage'
@@ -128,6 +127,43 @@ const chapterFurnitureMap: Record<number, [string, string, string, string]> = {
   5: ['沙发', '落地灯', '植物', '窗帘'],
 }
 
+// ─── 猫咪性格 × 房间心理活动 ─────────────────────────────────────────────────
+
+const roomThoughts: Record<string, Record<number, string>> = {
+  homebody: {
+    1: '好冷…这里有纸箱可以窝着吗？',
+    2: '沙发好软，哪儿也不想去~',
+    3: '厨房好暖和，适合打个盹…',
+    4: '外面好吵…还是窝在角落看看就好',
+    5: '阳光晒着书本，最完美的午睡地点！',
+  },
+  lively: {
+    1: '哇！街角好多新奇的东西！',
+    2: '新家！先把每个角落探索一遍！',
+    3: '什么味道这么香？让我看看！',
+    4: '太好玩啦！每个玩具都想试试！',
+    5: '书可以拨来拨去，太有趣了！',
+  },
+  mysterious: {
+    1: '夜色正好…这条街的秘密由我来守护',
+    2: '嗯…这个家藏着有趣的气息',
+    3: '冰箱后面…似乎隐藏着什么',
+    4: '有些玩具的来历…你不会想知道的',
+    5: '古老的书页间，藏着被遗忘的咒语…',
+  },
+  sleepy: {
+    1: '好困…纸箱里好适合睡觉 zzZ',
+    2: '这张床…五分钟后叫我…zzZ',
+    3: '闻到香味了…但好困…先睡会儿…',
+    4: '玩具什么的…明天再说…zzZ',
+    5: '阳光+书本=完美催眠曲…zzZ',
+  },
+}
+
+function getCatThought(personality: string, chapterId: number): string {
+  return roomThoughts[personality]?.[chapterId] ?? '喵~'
+}
+
 // ─── 工具函数 ─────────────────────────────────────────────────────────────────
 
 function getLevelKey(chapterId: number, levelId: number) {
@@ -140,47 +176,20 @@ function getRoomStage(completedCount: number) {
 
 // ─── 子组件：房间背景占位 ─────────────────────────────────────────────────────
 
-function RoomBackground({ chapter, completedCount, gameState, onRoomImageReady }: {
+function RoomBackground({ chapter, completedCount, gameState }: {
   chapter: ChapterMeta
   completedCount: number
   gameState: GameState
-  onRoomImageReady?: (chapterId: number, imageUrl: string) => void
 }) {
   const [bgLoaded, setBgLoaded] = useState(false)
-  const isGenerated = !!gameState.cat.generatedAppearance?.imageUrl
   const hasRoomImage = !!gameState.cat.generatedAppearance?.roomImages?.[chapter.id]
   const resolvedCatSrc = useResolvedCatImage(gameState.cat, chapter.id)
-  const [generating, setGenerating] = useState(false)
   const stage = getRoomStage(completedCount)
   const bgSrc = `/assets/rooms/ch${chapter.id}/progress/stage${stage}.jpg`
-  const catSrc = isGenerated && !hasRoomImage ? '' : resolvedCatSrc
 
   useEffect(() => {
     preloadImages([bgSrc])
   }, [bgSrc])
-
-  useEffect(() => {
-    if (!isGenerated || hasRoomImage || generating) return
-    const appearance = gameState.cat.generatedAppearance
-    if (!appearance?.tags) return
-    if (getDailyGenerationCount() >= MAX_DAILY_GENERATIONS) return
-
-    let cancelled = false
-    setGenerating(true)
-    generateRoomCatImage(appearance.tags, chapter.id, appearance.rawImageUrl, gameState.cat.personality)
-      .then(({ rawImageUrl }) => {
-        if (cancelled) return
-        incrementDailyCount()
-        onRoomImageReady?.(chapter.id, rawImageUrl)
-      })
-      .catch((e) => {
-        console.error('[Room] generateRoomCatImage failed:', e)
-      })
-      .finally(() => {
-        if (!cancelled) setGenerating(false)
-      })
-    return () => { cancelled = true }
-  }, [isGenerated, hasRoomImage, chapter.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const catPositionStyle = getRoomCatStyle(chapter.id)
 
@@ -207,20 +216,19 @@ function RoomBackground({ chapter, completedCount, gameState, onRoomImageReady }
       )}
 
       <div className="room-bg__cat" style={catPositionStyle}>
-        {catSrc ? (
+        {hasRoomImage ? (
           <img
-            src={catSrc}
+            src={resolvedCatSrc}
             alt={gameState.cat.name}
             className="h-full w-full object-contain"
             decoding="async"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐱' }}
           />
-        ) : generating ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#2ABFBF] border-t-transparent" />
-          </div>
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-2xl">🐱</span>
+          <div className="room-bg__cat-loading">
+            <div className="room-bg__cat-spinner" />
+            <span className="room-bg__cat-loading-text">猫咪加载中</span>
+          </div>
         )}
       </div>
     </div>
@@ -354,7 +362,9 @@ function Room() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    scrollRef.current?.scrollTo(0, 0)
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ top: 0 })
+    })
   }, [chapterId])
 
   const handleLevelClick = (levelId: number) => {
@@ -365,23 +375,6 @@ function Room() {
     if (nextLevelId) {
       navigate(`/chapter/${chapterId}/level/${nextLevelId}`)
     }
-  }
-
-  const handleRoomImageReady = (chId: number, imageUrl: string) => {
-    updateGameState((prev) => {
-      if (!prev.cat.generatedAppearance) return prev
-      const existing = prev.cat.generatedAppearance.roomImages ?? {}
-      return {
-        ...prev,
-        cat: {
-          ...prev.cat,
-          generatedAppearance: {
-            ...prev.cat.generatedAppearance,
-            roomImages: { ...existing, [chId]: imageUrl },
-          },
-        },
-      }
-    })
   }
 
   return (
@@ -396,7 +389,7 @@ function Room() {
 
       {/* ── 可滚动内容区 ── */}
       <div className="room-scroll" ref={scrollRef}>
-        <RoomBackground chapter={chapter} completedCount={completedCount} gameState={gameState} onRoomImageReady={handleRoomImageReady} />
+        <RoomBackground chapter={chapter} completedCount={completedCount} gameState={gameState} />
 
         {/* 信息卡 */}
         <div className="room-section">
@@ -415,7 +408,7 @@ function Room() {
                 {gameState.cat.name} · {chapter.nameCn}
               </div>
               <div className="room-info-card__sub">
-                {chapter.nameEn} · {completedCount}/4 关已完成
+                "{getCatThought(gameState.cat.personality, chapterId)}"
               </div>
             </div>
             <div className={`room-info-card__badge ${completedCount >= 4 ? 'room-info-card__badge--done' : 'room-info-card__badge--progress'}`}>
@@ -483,8 +476,17 @@ function Room() {
 
       {allCompleted && (
         <div className="room-bottom-bar">
-          <div className="room-complete-banner">
-            ✓ 本章已全部完成！{chapter.furnitureEmoji} 家具已解锁
+          <div className="room-complete-banner">✓ 本章家具已全部解锁</div>
+          <div className="room-bottom-actions">
+            <button
+              onClick={() => navigate(`/chapter/${chapterId}/level/1`)}
+              className="room-review-btn btn"
+            >
+              复习本章
+            </button>
+            <button onClick={() => navigate('/')} className="room-start-btn btn">
+              返回首页
+            </button>
           </div>
         </div>
       )}

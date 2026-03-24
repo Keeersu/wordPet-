@@ -1,13 +1,14 @@
 /*
  * DO NOT DELETE — base-info and page-design tags are consumed by project-snapshot tooling for quick page overview. Always update them to reflect actual page content.
  * <base-info>
- * Description: 启动页，显示 Logo + 产品名 + 加载动画，2 秒后自动跳转。
+ * Description: 启动页，显示 Logo + 标题图片 + 加载动画，2 秒后自动跳转。
  * Style referenceFiles: styles/splash.css
  * Design for: Mobile
  * </base-info>
  * <page-design>
  * ## Page Layout
- * 全屏橙色背景，垂直居中：Logo → 产品名 → slogan → 三圆点加载动画
+ * 全屏 #00BCFF→#CAF7FD 渐变背景 + 旋转30°滚动格子底纹
+ * 垂直居中：Logo → 标题图片 → slogan → 三圆点加载动画
  * 2 秒后淡出并跳转（onboardingDone ? / : /onboarding/level）
  * </page-design>
  */
@@ -38,6 +39,9 @@ function Splash() {
 
   return (
     <div className={`splash-page ${fading ? 'splash-page--fading' : ''}`}>
+      {/* 格子底纹 */}
+      <div className="splash-grid" />
+
       {/* Logo */}
       <div className="splash-logo">
         {/* 🖼️ ASSET | App Logo | PNG @3x | /assets/ui/logo.png */}
@@ -56,7 +60,12 @@ function Splash() {
         {!logoLoaded && <span className="splash-logo__emoji">🐱</span>}
       </div>
 
-      <div className="splash-title">WordPet</div>
+      {/* 🖼️ ASSET | Splash Title | PNG @3x | /assets/ui/splash-title.png */}
+      <img
+        src="/assets/ui/splash-title.png"
+        alt="WordPet"
+        className="splash-title-img"
+      />
       <div className="splash-slogan">Learn, play, purr.</div>
 
       {/* Loading dots */}

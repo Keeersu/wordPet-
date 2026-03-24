@@ -24,13 +24,14 @@
 }
 
 .login-title {
-  font-size: var(--text-5xl);
+  font-size: var(--text-6xl);
   font-weight: var(--font-black);
+  color: var(--color-text-dark);
   margin-bottom: var(--space-xs);
 }
 
 .login-subtitle {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   color: var(--color-text-secondary);
   margin-bottom: var(--space-5xl);
   font-weight: var(--font-semibold);
@@ -85,7 +86,7 @@
   border-radius: var(--radius-2xl);
   border: 2px solid rgba(93, 64, 55, 0.15);
   background-color: white;
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: var(--font-semibold);
   color: var(--color-text);
   font-family: var(--font-main);
@@ -108,7 +109,7 @@
   border-radius: var(--radius-lg);
   background-color: var(--color-error-bg);
   color: var(--color-error);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: var(--font-bold);
   text-align: center;
 }
@@ -146,7 +147,7 @@
   border: none;
   background-color: transparent;
   color: var(--color-text-hint);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: var(--font-bold);
   cursor: pointer;
   font-family: var(--font-main);

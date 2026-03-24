@@ -360,6 +360,24 @@ export async function generateRoomCatImage(
   return { imageUrl, rawImageUrl: rawUrl, model }
 }
 
+// ─── 房间猫图生成锁（防止同一章节并发多次生成） ─────────────────────────────
+
+const _roomGenInFlight = new Set<number>()
+
+export function isRoomGenInFlight(chapterId: number): boolean {
+  return _roomGenInFlight.has(chapterId)
+}
+
+export function markRoomGenStart(chapterId: number): boolean {
+  if (_roomGenInFlight.has(chapterId)) return false
+  _roomGenInFlight.add(chapterId)
+  return true
+}
+
+export function markRoomGenEnd(chapterId: number): void {
+  _roomGenInFlight.delete(chapterId)
+}
+
 // ─── 每日限额 ──────────────────────────────────────────────────────────────
 
 const DAILY_LIMIT_KEY = 'wordpet_cat_gen_count'

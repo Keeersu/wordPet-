@@ -91,7 +91,7 @@ export const ROOM_CAT_POSES: Record<number, RoomCatPose> = {
       '睁大眼睛，好奇兴奋的表情',
       '耳朵竖直，注意力集中',
     ],
-    position: { bottom: '10%', left: '20%' },
+    position: { bottom: '5%', right: '8%' },
     size: { width: '95px', height: '105px' },
   },
   4: {
@@ -113,7 +113,7 @@ export const ROOM_CAT_POSES: Record<number, RoomCatPose> = {
       '闭眼陶醉地嗅闻，开心流口水的表情',
       '尾巴摇摆，踮脚姿势',
     ],
-    position: { bottom: '8%', right: '10%' },
+    position: { bottom: '0%', left: '28%' },
     size: { width: '90px', height: '115px' },
   },
 }

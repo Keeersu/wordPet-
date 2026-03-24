@@ -1,13 +1,14 @@
 /* ============================================================================
  * 启动页 (Splash) 样式
- * Logo + 产品名 + 加载动画，2s 淡出跳转
+ * Logo + 标题图片 + 加载动画，2s 淡出跳转
+ * 背景：#00BCFF → #CAF7FD 渐变 + 旋转30°滚动格子底纹
  * ============================================================================ */
 
 /* ── 页面容器 ── */
 .splash-page {
   position: fixed;
   inset: 0;
-  background-color: var(--color-primary);
+  background: linear-gradient(180deg, #00BCFF 0%, #CAF7FD 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,10 +16,38 @@
   font-family: var(--font-main);
   z-index: 200;
   transition: opacity 300ms ease;
+  overflow: hidden;
 }
 
 .splash-page--fading {
   opacity: 0;
+}
+
+/* ── 格纹底纹层 (gingham) ── */
+.splash-grid {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 50%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 50%
+    );
+  background-size: 44px 44px;
+  transform: rotate(30deg);
+  animation: splashGridScroll 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes splashGridScroll {
+  0%   { transform: rotate(30deg) translate(0, 0); }
+  100% { transform: rotate(30deg) translate(44px, 44px); }
 }
 
 /* ── Logo 区 ── */
@@ -29,12 +58,22 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  z-index: 1;
 }
 
 .splash-logo__img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  filter: drop-shadow(0 0 0 white)
+          drop-shadow(2px 0 0 white)
+          drop-shadow(-2px 0 0 white)
+          drop-shadow(0 2px 0 white)
+          drop-shadow(0 -2px 0 white)
+          drop-shadow(1.4px 1.4px 0 white)
+          drop-shadow(-1.4px 1.4px 0 white)
+          drop-shadow(1.4px -1.4px 0 white)
+          drop-shadow(-1.4px -1.4px 0 white);
 }
 
 .splash-logo__emoji {
@@ -43,20 +82,23 @@
   line-height: 1;
 }
 
-/* ── 文字区 ── */
-.splash-title {
-  font-size: 36px;
-  font-weight: var(--font-black);
-  color: white;
-  letter-spacing: 2px;
+/* ── 标题图片区（替代文字） ── */
+.splash-title-img {
   margin-top: var(--space-3xl);
+  height: 48px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
 }
 
 .splash-slogan {
-  font-size: var(--text-lg);
-  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold, 700);
+  color: rgba(255, 255, 255, 0.82);
   margin-top: var(--space-md);
-  font-style: italic;
+  font-style: normal;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── 加载圆点 ── */
@@ -64,6 +106,8 @@
   display: flex;
   gap: var(--space-md);
   margin-top: var(--space-7xl);
+  position: relative;
+  z-index: 1;
 }
 
 .splash-dot {

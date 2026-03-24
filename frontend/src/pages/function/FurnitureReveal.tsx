@@ -97,7 +97,7 @@ export default function FurnitureReveal({
   onContinue,
   onGoToRoom,
 }: FurnitureRevealProps) {
-  const { playSfx, playBgm } = useAudio()
+  const { playSfx } = useAudio()
   const [phase, setPhase] = useState<'enter' | 'idle'>('enter')
   const [showButton, setShowButton] = useState(false)
   const [particles] = useState(() => generateParticles(24))
@@ -105,7 +105,6 @@ export default function FurnitureReveal({
   const [imgFailed, setImgFailed] = useState(false)
 
   useEffect(() => {
-    playBgm('entrance')
     const sfxTimer = setTimeout(() => playSfx('furniture-unlock'), 200)
     const t1 = setTimeout(() => setPhase('idle'), ANIM_TOTAL_MS)
     const t2 = setTimeout(() => setShowButton(true), ANIM_TOTAL_MS + 200)

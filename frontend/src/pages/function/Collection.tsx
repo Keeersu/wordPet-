@@ -21,7 +21,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { MainTabBar } from '@/components/function/MainTabBar'
 import { useGameStore } from '@/store/GameContext'
 import { chapterWordsMap } from '@/data/words'
 import type { WordConfig } from '@/data/words'
@@ -189,7 +188,7 @@ function Collection() {
           返回
         </button>
 
-        <div className="page-header__title page-header__title--sm">单词图鉴</div>
+        <div className="page-header__title">单词图鉴</div>
 
         <div className="page-header__spacer" />
       </div>
@@ -235,7 +234,6 @@ function Collection() {
         )}
       </div>
 
-      <MainTabBar />
     </div>
   )
 }

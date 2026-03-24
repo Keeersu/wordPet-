@@ -3,6 +3,7 @@ import { StrictMode } from "react"
 import { type createStore, Provider } from "jotai"
 import { createRoutes } from "./routes"
 import { GameProvider } from "./store/GameContext"
+import { useBackgroundRoomGen } from "./lib/useBackgroundRoomGen"
 
 /**
  * AuthRequiredError (401) is an expected flow-control signal (redirect to login),
@@ -35,11 +36,17 @@ export function createApp(store: Store) {
 
   // Error handling is done at route level via RouteErrorBoundary (see routes.ts errorElement)
   // This handles AuthRequiredError (401 -> login redirect) and ForbiddenError (403 -> Access Denied)
+  function BackgroundTasks() {
+    useBackgroundRoomGen()
+    return null
+  }
+
   return function App() {
     return (
       <StrictMode>
         <Provider store={store}>
           <GameProvider>
+            <BackgroundTasks />
             <RouterProvider router={router} onError={onRouterError} />
           </GameProvider>
         </Provider>

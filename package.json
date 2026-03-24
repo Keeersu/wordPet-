@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter frontend dev",
+    "dev:restart": "sh -c 'kill -9 $(lsof -ti :8000) 2>/dev/null || true; pnpm --filter frontend dev'",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
     "test": "pnpm --filter bdd-test test",

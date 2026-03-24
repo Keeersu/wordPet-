@@ -22,7 +22,7 @@
  * </page-design>
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useGameStore } from '@/store/GameContext'
@@ -152,8 +152,9 @@ function WordCard({ detail }: { detail: LevelWordDetail }) {
             e.stopPropagation()
             speakWord(detail.word, expanded ? detail.sentence : undefined)
           }}
+          style={{ backgroundColor: config.bgColor, borderColor: config.borderColor }}
         >
-          <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: 'var(--color-primary)' }} />
+          <Icon icon="lucide:volume-2" style={{ width: 15, height: 15, color: config.color }} />
         </button>
 
         {/* 展开/收起指示 */}
@@ -259,6 +260,11 @@ function Result() {
   const [detailVisible, setDetailVisible] = useState(stage === 'detail')
 
   useEffect(() => {
+    setStage(shouldShowReveal ? 'reveal' : 'detail')
+    setDetailVisible(!shouldShowReveal)
+  }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (stage === 'detail') {
       playBgm('home')
     }
@@ -288,8 +294,13 @@ function Result() {
   const nextChapter = levelId >= LEVELS_PER_CHAPTER ? chapterId + 1 : chapterId
   const nextLevel = levelId >= LEVELS_PER_CHAPTER ? 1 : levelId + 1
 
+  const isChapterComplete = levelId >= LEVELS_PER_CHAPTER
   const handleNextLevel = () => {
-    navigate(`/chapter/${nextChapter}/level/${nextLevel}`)
+    if (isChapterComplete) {
+      navigate(`/rooms/${nextChapter}`)
+    } else {
+      navigate(`/chapter/${nextChapter}/level/${nextLevel}`)
+    }
   }
 
   // ── Reveal 阶段 ──
@@ -343,20 +354,20 @@ function Result() {
             {levelWordDetails.length > 0 && (
               <div className="result-mastery-summary">
                 {masteryCount.mastered > 0 && (
-                  <span className="result-mastery-item result-mastery-item--mastered">
-                    <Icon icon="lucide:circle-check" style={{ width: 13, height: 13 }} />
+                  <span className="mastery-tag mastery-tag--mastered">
+                    <Icon icon="lucide:circle-check" style={{ width: 11, height: 11 }} />
                     已掌握 {masteryCount.mastered}
                   </span>
                 )}
                 {masteryCount.weak > 0 && (
-                  <span className="result-mastery-item result-mastery-item--weak">
-                    <Icon icon="lucide:alert-circle" style={{ width: 13, height: 13 }} />
+                  <span className="mastery-tag mastery-tag--weak">
+                    <Icon icon="lucide:alert-circle" style={{ width: 11, height: 11 }} />
                     需复习 {masteryCount.weak}
                   </span>
                 )}
                 {masteryCount.failed > 0 && (
-                  <span className="result-mastery-item result-mastery-item--failed">
-                    <Icon icon="lucide:circle-x" style={{ width: 13, height: 13 }} />
+                  <span className="mastery-tag mastery-tag--failed">
+                    <Icon icon="lucide:circle-x" style={{ width: 11, height: 11 }} />
                     待掌握 {masteryCount.failed}
                   </span>
                 )}
@@ -410,15 +421,12 @@ function Result() {
                 本关单词
               </div>
               <button
-                className="btn-secondary icon-btn result-words__replay-btn"
+                className="result-words__replay-btn"
                 onClick={handleReplay}
-                title="再来一遍"
               >
-                <Icon icon="lucide:rotate-ccw" style={{ width: 15, height: 15 }} />
+                <Icon icon="lucide:rotate-ccw" style={{ width: 13, height: 13 }} />
+                再来一遍
               </button>
-              <div className="result-words__hint">
-                点击展开详情
-              </div>
             </div>
 
             {sortedWords.length > 0 ? (
@@ -476,7 +484,7 @@ function Result() {
             className="btn-primary result-actions__next"
             onClick={handleNextLevel}
           >
-            下一关
+            {isChapterComplete ? '解锁下个房间' : '下一关'}
             <Icon icon="lucide:arrow-right" style={{ width: 16, height: 16 }} />
           </button>
         ) : (

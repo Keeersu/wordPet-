@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { pageLinks } from '../../pageLinks'
 
 const tabs = [
@@ -9,8 +9,13 @@ const tabs = [
 ] as const
 
 export function MainTabBar() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [loadedTabImages, setLoadedTabImages] = useState<Record<string, boolean>>({})
+
+  if (location.pathname !== pageLinks.Home()) {
+    return null
+  }
 
   return (
     <div className="main-tabbar">

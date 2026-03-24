@@ -58,7 +58,7 @@ function OnboardingLevel() {
               className={`onboarding-level-card${isSelected ? ' onboarding-level-card--selected' : ''}`}
             >
               <span className="onboarding-level-card__emoji" aria-hidden="true">{option.emoji}</span>
-              <span>
+              <span className="onboarding-level-card__text">
                 <span className="onboarding-level-card__title">{option.title}</span>
                 <span className="onboarding-level-card__subtitle">{option.subtitle}</span>
               </span>

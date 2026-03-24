@@ -7,6 +7,8 @@ import {
   incrementDailyCount,
   getDailyGenerationCount,
   MAX_DAILY_GENERATIONS,
+  markRoomGenStart,
+  markRoomGenEnd,
 } from '@/lib/catGeneration'
 import { useResolvedCatImage } from '@/lib/useResolvedCatImage'
 
@@ -55,6 +57,7 @@ function TransitionCutscene() {
     if (!appearance?.tags) return
     if (appearance.roomImages?.[1]) return
     if (getDailyGenerationCount() >= MAX_DAILY_GENERATIONS) return
+    if (!markRoomGenStart(1)) return
 
     generationStarted.current = true
 
@@ -78,6 +81,9 @@ function TransitionCutscene() {
       })
       .catch((e) => {
         console.error('[TransitionCutscene] generateRoomCatImage failed:', e)
+      })
+      .finally(() => {
+        markRoomGenEnd(1)
       })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -17,7 +17,7 @@ export const chapter1Words: WordConfig[] = [
     },
     categoryDistractors: ['dog', 'bird', 'fish'],
     spellingDistractors: ['cap', 'car', 'bat'],
-    semanticDistractors: ['kitten', 'pet', 'paw'],
+    semanticDistractors: ['kitten', 'feline', 'tabby'],
   },
   {
     word: 'box',
@@ -69,7 +69,7 @@ export const chapter1Words: WordConfig[] = [
     },
     categoryDistractors: ['box', 'bag', 'jar'],
     spellingDistractors: ['big', 'bit', 'ban'],
-    semanticDistractors: ['trash', 'can', 'bucket'],
+    semanticDistractors: ['can', 'container', 'dumpster'],
   },
   {
     word: 'rain',
@@ -103,7 +103,7 @@ export const chapter1Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/food.png',
     sentences: {
-      basic: { en: 'I like this ___.', zh: '我喜欢这个食物。' },
+      basic: { en: 'The cat needs ___.', zh: '猫需要食物。' },
       advanced: { en: 'The kind woman left some ___ outside her shop for the stray animals.', zh: '善良的女人在店外留了些食物给流浪动物。' },
     },
     categoryDistractors: ['milk', 'meat', 'rice'],

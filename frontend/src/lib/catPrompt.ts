@@ -27,9 +27,10 @@ const ACCESSORY_PROMPTS: Record<CatAccessory, string> = {
 }
 
 const PERSONALITY_PROMPTS: Partial<Record<CatPersonality, string>> = {
-  lively: '活泼',
-  mysterious: '神秘',
-  sleepy: '慵懒',
+  lively: '超级活泼的表情',
+  mysterious: '超级讨厌高冷的表情',
+  sleepy: '晕头转向智商低的表情',
+  homebody: '贱贱的邪恶的表情',
 }
 
 function buildCharacterDesc(tags: CatGenerationTags, personality?: CatPersonality): string {
@@ -84,7 +85,7 @@ export const ACCESSORY_OPTIONS: TagOption<CatAccessory>[] = [
   { id: 'scarf', label: '围巾' },
   { id: 'beret', label: '贝雷帽' },
   { id: 'glasses', label: '圆眼镜' },
-  { id: 'collar', label: '铃铛项圈' },
+  { id: 'collar', label: '铃铛' },
 ]
 
 export function randomizeTags(locked?: Partial<CatGenerationTags>): CatGenerationTags {

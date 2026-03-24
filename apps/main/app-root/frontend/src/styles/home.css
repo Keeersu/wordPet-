@@ -25,7 +25,6 @@
   left: 0;
   right: 0;
   z-index: var(--z-header);
-  padding-top: var(--space-3xl);
   background: transparent;
 }
 
@@ -47,7 +46,7 @@
 }
 
 .home-header__chapter {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: var(--font-black);
   color: var(--color-text-dark);
   line-height: 1.3;
@@ -61,7 +60,7 @@
 .home-header__subtitle {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   line-height: 1.3;
   text-align: center;
 }
@@ -479,9 +478,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-xl) var(--space-3xl);
+  padding: var(--page-top-safe-offset) var(--page-padding-x) var(--space-xl);
 }
 
+
+/* ── Top Blue Gradient (behind top scene, extends to empty room) ── */
+.home-top-gradient {
+  width: 100%;
+  height: calc(100vw * 0.8 / 311 * 169 * 2);
+  flex-shrink: 0;
+  background: linear-gradient(to bottom, #00BCFF, transparent);
+  pointer-events: none;
+}
+
+.home-scene-placeholder--top {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(100vw * 0.8 / 311 * 169 * -1);
+}
 
 /* ── Scrollable Room List ── */
 .home-scroll {
@@ -492,7 +506,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0;
-  padding-top: calc(var(--header-height) + var(--space-7xl));
+  padding-top: 0;
   padding-bottom: 0;
   overflow-y: auto;
   scrollbar-width: none;          /* Firefox */
@@ -549,13 +563,20 @@
   display: block;
 }
 
-.home-room-card__lock {
+.home-room-card__locked-cover {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
+  border-radius: 5vw;
+  overflow: hidden;
+  z-index: 1;
+  transition: opacity var(--transition-slower);
+}
+
+.home-room-card__locked-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* 层2：边框 + 文案组（高度与卡片一致，宽度由边框图决定，居中，不受卡片宽度限制） */
@@ -625,7 +646,7 @@
   pointer-events: none;
 }
 
-/* ── Bottom Scene Placeholder ── */
+/* ── Scene Placeholders (top & bottom) ── */
 .home-scene-placeholder {
   width: 100%;
   flex-shrink: 0;
@@ -633,9 +654,203 @@
   background: #FDD0CA;
 }
 
+.home-scene-placeholder--top {
+  background: transparent;
+  overflow: visible;
+}
+
+.home-roof-birds {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.home-roof-bird {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  transform-origin: center center;
+}
+
+.home-roof-bird--yellow {
+  color: #FACC15; /* yellow-400 */
+}
+
+.home-roof-bird--cyan {
+  color: #22D3EE; /* cyan-400 */
+}
+
+.home-roof-bird__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.home-roof-bird__wing {
+  transform-origin: 12.5px 10px;
+  animation: birdFlap 0.12s ease-in-out infinite alternate;
+}
+
+@keyframes birdFlap {
+  0% { transform: rotate(0deg) scaleY(1); }
+  100% { transform: rotate(-40deg) scaleY(0.6); }
+}
+
+.home-roof-bird--red-path {
+  animation: roofBirdRedPath 12s linear infinite;
+}
+
+.home-roof-bird--red-path-partner {
+  animation: roofBirdRedPath 12s linear infinite;
+  animation-delay: 0.4s;
+}
+
+.home-roof-bird--green-path {
+  animation: roofBirdGreenPath 12s linear infinite;
+}
+
+.home-roof-bird--green-path-partner {
+  animation: roofBirdGreenPath 12s linear infinite;
+  animation-delay: 0.4s;
+}
+
+.home-chimney-smoke {
+  position: absolute;
+  top: -24%;
+  right: 11%;
+  width: 18%;
+  height: 30%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.home-chimney-smoke__puff {
+  position: absolute;
+  right: 18%;
+  bottom: 4%;
+  width: 48%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 40% 38%, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92) 48%, rgba(255, 255, 255, 0.35) 70%, rgba(255, 255, 255, 0) 84%);
+  filter: blur(1.8px);
+  opacity: 0;
+  transform-origin: center;
+  animation: chimneySmokeFloat 4s ease-out infinite;
+}
+
+.home-chimney-smoke__puff--1 {
+  animation-delay: 0s;
+}
+
+.home-chimney-smoke__puff--2 {
+  right: 0;
+  width: 54%;
+  animation-delay: 1.2s;
+}
+
+.home-chimney-smoke__puff--3 {
+  right: 26%;
+  width: 42%;
+  animation-delay: 2.4s;
+}
+
+.home-chimney-smoke__puff--big {
+  right: 6%;
+  bottom: 8%;
+  width: 78%;
+  background:
+    radial-gradient(circle at 42% 40%, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.16) 72%, rgba(255, 255, 255, 0) 86%);
+  filter: blur(3.6px);
+  animation: chimneySmokeFloatLarge 5.8s ease-out infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes chimneySmokeFloat {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10%, 0) scale(0.36);
+  }
+
+  15% {
+    opacity: 0.9;
+    transform: translate3d(-3%, -18%, 0) scale(0.74);
+  }
+
+  52% {
+    opacity: 0.68;
+    transform: translate3d(12%, -92%, 0) scale(1.14);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-16%, -178%, 0) scale(1.5);
+  }
+}
+
+@keyframes chimneySmokeFloatLarge {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16%, 0) scale(0.48);
+  }
+
+  18% {
+    opacity: 0.42;
+    transform: translate3d(4%, -28%, 0) scale(0.92);
+  }
+
+  56% {
+    opacity: 0.24;
+    transform: translate3d(-10%, -122%, 0) scale(1.36);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(10%, -220%, 0) scale(1.82);
+  }
+}
+
+@keyframes roofBirdRedPath {
+  0% { left: -20%; top: 0%; transform: scaleX(1) rotate(15deg); opacity: 0; }
+  1% { left: -20%; top: 0%; transform: scaleX(1) rotate(15deg); opacity: 1; }
+  10% { left: 25%; top: 24%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  12% { left: 25%; top: 24%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  14% { left: 31%; top: 19%; transform: scaleX(1) rotate(-10deg); opacity: 1; }
+  16% { left: 35%; top: 23%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  19% { left: 35%; top: 23%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  21% { left: 41%; top: 18%; transform: scaleX(1) rotate(-10deg); opacity: 1; }
+  23% { left: 45%; top: 22%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  28% { left: 45%; top: 22%; transform: scaleX(1) rotate(0deg); opacity: 1; }
+  38% { left: 120%; top: -15%; transform: scaleX(1) rotate(-15deg); opacity: 1; }
+  39% { left: 120%; top: -15%; transform: scaleX(1) rotate(-15deg); opacity: 0; }
+  100% { left: 120%; top: -15%; transform: scaleX(1) rotate(-15deg); opacity: 0; }
+}
+
+@keyframes roofBirdGreenPath {
+  0% { left: 120%; top: 0%; transform: scaleX(-1) rotate(15deg); opacity: 0; }
+  49% { left: 120%; top: 0%; transform: scaleX(-1) rotate(15deg); opacity: 0; }
+  50% { left: 120%; top: 0%; transform: scaleX(-1) rotate(15deg); opacity: 1; }
+  59% { left: 55%; top: 23%; transform: scaleX(-1) rotate(0deg); opacity: 1; }
+  61% { left: 55%; top: 23%; transform: scaleX(-1) rotate(0deg); opacity: 1; }
+  63% { left: 49%; top: 19%; transform: scaleX(-1) rotate(-10deg); opacity: 1; }
+  65% { left: 45%; top: 22%; transform: scaleX(-1) rotate(0deg); opacity: 1; }
+  72% { left: 45%; top: 22%; transform: scaleX(-1) rotate(0deg); opacity: 1; }
+  82% { left: -20%; top: -15%; transform: scaleX(-1) rotate(-15deg); opacity: 1; }
+  83% { left: -20%; top: -15%; transform: scaleX(-1) rotate(-15deg); opacity: 0; }
+  100% { left: -20%; top: -15%; transform: scaleX(-1) rotate(-15deg); opacity: 0; }
+}
+
 .home-scene-placeholder__img {
   width: 100%;
   display: block;
+}
+
+/* ── Empty Room ── */
+.home-room-card--empty {
+  cursor: default;
 }
 
 /* ── Settings Popup ── */
@@ -679,7 +894,7 @@
 .home-settings-popup__section-label {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: rgba(93, 64, 55, 0.4);
+  color: var(--color-text-tertiary);
   text-align: center;
   margin-bottom: var(--space-xl);
 }
@@ -692,7 +907,7 @@
 
 .home-settings-popup__grid-label {
   font-size: var(--text-sm);
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--color-text-secondary);
   margin-bottom: var(--space-sm);
   text-align: center;
 }
@@ -705,13 +920,13 @@
 
 .home-settings-popup__team {
   font-size: var(--text-sm);
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--color-text-secondary);
   text-align: center;
 }
 
 .home-settings-popup__version {
   font-size: var(--text-xs);
-  color: rgba(93, 64, 55, 0.3);
+  color: var(--color-text-disabled);
   text-align: center;
   margin-top: var(--space-sm);
 }

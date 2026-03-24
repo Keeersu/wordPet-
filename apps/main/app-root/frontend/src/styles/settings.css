@@ -13,7 +13,7 @@
 
 /* ── 内容区 ── */
 .settings-content {
-  padding: var(--space-4xl) var(--space-3xl);
+  padding: var(--page-section-gap-top) var(--page-padding-x);
 }
 
 /* ── 设置分组 ── */
@@ -22,7 +22,7 @@
 }
 
 .settings-section__label {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: var(--font-bold);
   color: var(--color-text-tertiary);
   margin: 0 0 var(--space-lg) var(--space-xs);
@@ -73,14 +73,16 @@
 
 .settings-item__title {
   margin: 0;
-  font-size: var(--text-md);
-  font-weight: var(--font-bold);
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-dark);
 }
 
 .settings-item__subtitle {
   margin: 2px 0 0;
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
+  line-height: 1.4;
 }
 
 .settings-item__right {
@@ -92,7 +94,7 @@
 }
 
 .settings-item__value {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: var(--font-medium);
   color: var(--color-accent-dark);
   text-align: right;
@@ -146,7 +148,7 @@
 }
 
 .settings-level-option__title {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: var(--font-bold);
 }
 
@@ -155,7 +157,7 @@
 }
 
 .settings-level-option__title--unselected {
-  color: rgba(93, 64, 55, 0.7);
+  color: var(--color-text-secondary);
 }
 
 .settings-level-option__subtitle {
@@ -177,12 +179,14 @@
 
 .settings-about__title {
   margin: 0;
-  font-size: var(--text-md);
-  font-weight: var(--font-bold);
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-dark);
 }
 
 .settings-about__subtitle {
   margin: 2px 0 0;
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
+  line-height: 1.4;
 }

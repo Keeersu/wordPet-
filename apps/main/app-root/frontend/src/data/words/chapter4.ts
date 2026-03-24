@@ -38,7 +38,7 @@ export const chapter4Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/desk.png',
     sentences: {
-      basic: { en: 'This is my ___.', zh: '这是我的书桌。' },
+      basic: { en: 'Sit at the ___.', zh: '坐到书桌前。' },
       advanced: { en: 'The teacher placed a small plant on each ___ to brighten the classroom.', zh: '老师在每张课桌上放了一盆小植物来美化教室。' },
     },
     categoryDistractors: ['table', 'bench', 'shelf'],
@@ -90,7 +90,7 @@ export const chapter4Words: WordConfig[] = [
     pos: 'v.',
     image: '/assets/words/draw.png',
     sentences: {
-      basic: { en: 'I like to ___.', zh: '我喜欢画画。' },
+      basic: { en: 'Let\'s ___ a cat.', zh: '我们来画一只猫吧。' },
       advanced: { en: 'The teacher asked the students to ___ their favorite animal.', zh: '老师让学生们画出他们最喜欢的动物。' },
     },
     categoryDistractors: ['paint', 'write', 'read'],
@@ -147,7 +147,7 @@ export const chapter4Words: WordConfig[] = [
     },
     categoryDistractors: ['moon', 'sun', 'cloud'],
     spellingDistractors: ['stir', 'scar', 'stay'],
-    semanticDistractors: ['sparkle', 'twinkle', 'gem'],
+    semanticDistractors: ['comet', 'meteor', 'asteroid'],
   },
   {
     word: 'name',
@@ -186,7 +186,7 @@ export const chapter4Words: WordConfig[] = [
     },
     categoryDistractors: ['toy', 'bear', 'kite'],
     spellingDistractors: ['dull', 'dome', 'dose'],
-    semanticDistractors: ['toy', 'figurine', 'puppet'],
+    semanticDistractors: ['figurine', 'puppet', 'mannequin'],
   },
   {
     word: 'milk',
@@ -194,7 +194,7 @@ export const chapter4Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/milk.png',
     sentences: {
-      basic: { en: 'I drink ___.', zh: '我喝牛奶。' },
+      basic: { en: 'The cat loves ___.', zh: '猫喜欢牛奶。' },
       advanced: { en: 'Every student received a small carton of ___ during snack time.', zh: '在零食时间，每个学生都收到了一小盒牛奶。' },
     },
     categoryDistractors: ['juice', 'water', 'tea'],

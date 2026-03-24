@@ -73,6 +73,11 @@ function Profile() {
 
   const activeChapterId = gameState.currentChapter
   const activeLevelId = gameState.currentLevel
+  const todayRateToneClass = todayStats.rate >= 80
+    ? 'profile-today__value--success'
+    : todayStats.rate >= 60
+      ? 'profile-today__value--accent'
+      : 'profile-today__value--error'
 
   return (
     <div className="profile-page">
@@ -91,7 +96,7 @@ function Profile() {
       {/* ── 可滚动内容区 ── */}
       <div className="profile-content">
         {/* 1. 今日学习概览 */}
-        <div className="card card--padded profile-today">
+        <div className="card card--padded profile-card profile-today">
           <div className="profile-today__title">
             ☀️ 今日学习
           </div>
@@ -105,12 +110,7 @@ function Profile() {
               </div>
             </div>
             <div className="profile-today__stat">
-              <div
-                className="profile-today__value"
-                style={{
-                  color: todayStats.rate >= 80 ? '#66BB6A' : todayStats.rate >= 60 ? '#1A8F8F' : '#EF5350',
-                }}
-              >
+              <div className={`profile-today__value ${todayRateToneClass}`}>
                 {todayStats.words > 0 ? `${todayStats.rate}%` : '--'}
               </div>
               <div className="profile-today__label">
@@ -121,7 +121,7 @@ function Profile() {
         </div>
 
         {/* 2. 核心统计卡 */}
-        <div className="card card--padded">
+        <div className="card card--padded profile-card profile-card--stats">
           <div className="profile-stats__title">📊 学习统计</div>
           <div className="profile-stats__grid">
             {[
@@ -142,7 +142,7 @@ function Profile() {
         </div>
 
         {/* 3. 冒险进度 + 继续冒险 */}
-        <div className="card card--padded">
+        <div className="card card--padded profile-card profile-card--progress">
           <div className="profile-progress__header">
             <div className="profile-progress__title">🗺️ 冒险进度</div>
             <div className="profile-progress__chapter">
@@ -151,11 +151,8 @@ function Profile() {
           </div>
           <div className="profile-progress__bar">
             <div
-              className="profile-progress__fill"
-              style={{
-                width: `${progressPct}%`,
-                backgroundColor: progressPct >= 100 ? '#66BB6A' : '#2ABFBF',
-              }}
+              className={`profile-progress__fill ${progressPct >= 100 ? 'profile-progress__fill--complete' : 'profile-progress__fill--active'}`}
+              style={{ width: `${progressPct}%` }}
             />
           </div>
           <div className="profile-progress__footer">
@@ -173,7 +170,7 @@ function Profile() {
         </div>
 
         {/* 4. 薄弱单词提醒 */}
-        <div className="card card--padded">
+        <div className="card card--padded profile-card profile-card--weak">
           <div className="profile-weak__header">
             <div className="profile-weak__title">⚡ 薄弱单词</div>
             {weakWords.length > 0 && (

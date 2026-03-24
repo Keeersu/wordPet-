@@ -16,11 +16,12 @@
 | `Home` | 设置弹窗背景 | `/assets/ui/settings-bg.png` | 图片失败时显示黄色底图 | `src/pages/function/Home.tsx` |
 | `MainTabBar` | 底部 3 个 tab 图标 | `/assets/ui/icons/icon-{id}.png` | 图片失败时保留彩色圆形按钮占位 | `src/components/function/MainTabBar.tsx` |
 | `Splash` | App Logo | `/assets/ui/logo.png` | 图片失败时显示 `🐱` | `src/pages/function/Splash.tsx` |
+| `Splash` | 标题图片（替代 WordPet 文字） | `/assets/ui/splash-title.png` | — | `src/pages/function/Splash.tsx` |
 | `Room` | 房间背景图 | `/assets/rooms/ch{id}/bg.jpg` | 图片失败时显示房间背景色 + “房间背景图占位” | `src/pages/function/Room.tsx` |
 | `Room` | 房间主家具图 | `/assets/rooms/ch{id}/furniture/lv1/full.png` | 图片失败时显示家具 emoji | `src/pages/function/Room.tsx` |
 | `Room` | 关卡右侧家具图 | `/assets/rooms/ch{id}/furniture/lv{levelId}/full.png` | 图片失败时显示家具名称首字占位；未解锁时显示 `❓` | `src/pages/function/Room.tsx` |
-| `Onboarding` | 猫咪大预览 | `/assets/cat/appearance_{appearance}_{personality}_{m|f}.png` | 图片失败时显示橙色圆底 + `🐱` | `src/pages/function/Onboarding.tsx` |
-| `Onboarding` | 外观选项缩略图 | `/assets/onboarding/cat/appearance_{id}.png` | 图片失败时显示色块占位 | `src/pages/function/Onboarding.tsx` |
+| `Onboarding` | 猫咪大预览 | `/assets/cat/appearance_{appearance}_{personality}.png` | 图片失败时显示橙色圆底 + `🐱` | `src/pages/function/Onboarding.tsx` |
+| `Onboarding` | 外观选项缩略图 | 已改为复用 `/assets/cat/appearance_{appearance}_{personality}.png` | 图片失败时显示色块占位 | `src/pages/function/Onboarding.tsx` |
 
 ## 代码中已声明但仍建议继续关注的位置
 
@@ -39,6 +40,7 @@ frontend/
     assets/
       ui/
         logo.png
+        splash-title.png
         settings-bg.png
         buttons/
           btn-quick-start.png
@@ -79,5 +81,6 @@ frontend/
 - 刷新首页，确认 `FAB` 不再显示橙色占位壳
 - 检查 `MainTabBar` 三个按钮是否都进入纯图片模式
 - 检查 `Splash` 页 Logo 是否替代 `🐱`
+- 检查 `Splash` 页标题图片 `splash-title.png` 是否正常显示
 - 检查 `Room` 页背景图、家具图是否不再出现占位文案/emoji
 - 检查 `Onboarding` 页预览与外观缩略图是否均显示真实图片

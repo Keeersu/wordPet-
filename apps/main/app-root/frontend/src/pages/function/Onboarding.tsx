@@ -8,7 +8,7 @@
  * <page-design>
  * ## Features & Interactions
  * - 选择创建模式（经典 / AI 创作）
- * - 经典模式：选择外观、性别、性格，输入名字
+ * - 经典模式：选择外观、性格，输入名字
  * - AI 模式：选择毛色、配饰、性格标签，AI 生成猫咪形象
  * - 为猫咪起名字后进入主页
  *
@@ -20,7 +20,7 @@
  * </page-design>
  */
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/store/GameContext'
 import type { CatGenerationTags, CatPersonality, GeneratedAppearance } from '@/store/gameStore'
@@ -39,39 +39,77 @@ import {
 import { AudioToggles } from '@/components/function/AudioToggles'
 
 type Appearance = 1 | 2 | 3 | 4
-type Gender = 'male' | 'female'
-type Personality = 'homebody' | 'lively' | 'mysterious'
+type Personality = 'homebody' | 'lively' | 'mysterious' | 'sleepy'
 type Mode = 'classic' | 'ai'
 type AiStep = 'config' | 'generate'
+
+const LOADING_TIPS = [
+  '开盲盒前的每分每秒都让人兴奋呐～',
+  'AI 正在挑选最适合你的毛色…',
+  '你的猫主子正在化妆间准备登场…',
+  '据说等待的人运气会更好哦 🍀',
+  '马上就好，它正在整理自己的小围巾～',
+  '猫猫正在镜子前端详自己的新造型…',
+  '再等一下下，好东西值得等待！',
+  '你的猫咪正从次元壁那头赶来…',
+  '它可能在纠结今天戴哪顶帽子…',
+  '倒计时开始，准备迎接你的新伙伴！',
+]
 
 const APPEARANCE_OPTIONS: { id: Appearance; label: string; color: string; border?: string }[] = [
   { id: 1, label: '橘猫', color: '#F4A261' },
   { id: 2, label: '白猫', color: '#F5F5F5' },
   { id: 3, label: '黑猫', color: '#333333' },
-  { id: 4, label: '折耳猫', color: '#C0A0A0' },
-]
-
-const GENDER_OPTIONS: { id: Gender; label: string }[] = [
-  { id: 'female', label: '女生' },
-  { id: 'male', label: '男生' },
+  { id: 4, label: '三花猫', color: '#D4956A' },
 ]
 
 const PERSONALITY_OPTIONS: { id: Personality; label: string }[] = [
-  { id: 'homebody', label: '居家' },
-  { id: 'lively', label: '活泼' },
-  { id: 'mysterious', label: '神秘' },
+  { id: 'lively', label: '会后空翻的猫' },
+  { id: 'mysterious', label: '冷若冰霜的猫' },
+  { id: 'sleepy', label: '智商堪忧的猫' },
+  { id: 'homebody', label: '监狱出逃的猫' },
 ]
 
-const PERSONALITY_FLAVOR: Record<Personality, string> = {
-  homebody: '安静陪你待着。',
-  lively: '一看就很会撒娇。',
-  mysterious: '有点酷，也有点黏人。',
+const PERSONALITY_FLAVORS: Record<Personality, string[]> = {
+  lively: [
+    '别问我为什么会后空翻，快乐上头了，猫也控制不住自己。',
+    '没有什么烦恼是一个后空翻解决不了的，如果有，那就翻两个。',
+    '活着就是要大闹一场，翻个跟头把所有破事都甩在身后！',
+    '我从不在一个地方待太久，风一吹，我就翻着跟头奔向热闹。',
+    '别管我！快乐已经冲昏头脑，不翻个后空翻我根本憋不住！',
+  ],
+  mysterious: [
+    '不撒娇，不讨好，不解释，高冷是给自己的安全感。',
+    '眼神里藏着一整部猫生电影，只是你没资格看剧情。',
+    '别靠近我，别靠近我，冷漠只是在强行稳住精神状态！',
+    '见过太多无趣的人类，只对值得的人温柔。',
+    '别来烦我！人类的热情好吵，我只想独自发疯，谁也别管！',
+  ],
+  sleepy: [
+    '别骂我笨，我只是把智商都点在了可爱上。',
+    '脑袋空空，烦恼为零，简单又快乐，这才是猫生真谛。',
+    '别叫醒我我没傻！你知道什么是钝感力吗？',
+    '反应永远慢半拍，不知道在干嘛，但活得比谁都自在。',
+    '人家笨但是人家可爱啊！关键还有人疼！',
+  ],
+  homebody: [
+    '刚越狱成功，你猜我在里面干了些啥？嘿嘿（嘴角上扬）。',
+    '看上去浪迹天涯、桀骜不驯，实际上也得去码头找薯条。',
+    '刚越狱成功！谁爱流浪谁去，我只想冲回家疯狂贴贴！',
+    '外表再野，终究还是只想赖在你身边。',
+    '小小围栏不在话下，《越狱》真该请我当主角！',
+  ],
 }
 
 const PERSONALITY_MOOD: Record<Personality, string> = {
-  homebody: '温柔',
-  lively: '活泼',
-  mysterious: '神秘',
+  lively: '超活泼',
+  mysterious: '超高冷',
+  sleepy: '超呆萌',
+  homebody: '超邪恶',
+}
+
+function randomizePersonality() {
+  return PERSONALITY_OPTIONS[Math.floor(Math.random() * PERSONALITY_OPTIONS.length)]?.id ?? 'lively'
 }
 
 function describeAiCat(tags: CatGenerationTags, personality: Personality) {
@@ -131,8 +169,7 @@ function Onboarding() {
   const [mode, setMode] = useState<Mode | null>(null)
   const [aiStep, setAiStep] = useState<AiStep>('config')
   const [appearance, setAppearance] = useState<Appearance>(1)
-  const [gender, setGender] = useState<Gender>('female')
-  const [personality, setPersonality] = useState<Personality>('homebody')
+  const [personality, setPersonality] = useState<Personality>('lively')
   const [name, setName] = useState('')
   const [appearanceThumbLoaded, setAppearanceThumbLoaded] = useState<Record<number, boolean>>({})
 
@@ -141,9 +178,23 @@ function Onboarding() {
   const [generatedResult, setGeneratedResult] = useState<GeneratedAppearance | null>(null)
   const [genError, setGenError] = useState('')
   const [dailyCount, setDailyCount] = useState(() => getDailyGenerationCount())
+  const [loadingTipIdx, setLoadingTipIdx] = useState(() => Math.floor(Math.random() * LOADING_TIPS.length))
+
+  useEffect(() => {
+    if (!generating) return
+    setLoadingTipIdx(Math.floor(Math.random() * LOADING_TIPS.length))
+    const timer = setInterval(() => {
+      setLoadingTipIdx((prev) => (prev + 1) % LOADING_TIPS.length)
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [generating])
 
   const aiCatSummary = useMemo(() => describeAiCat(aiTags, personality), [aiTags, personality])
-  const aiCatFlavor = useMemo(() => PERSONALITY_FLAVOR[personality], [personality])
+  const aiCatFlavorPoolKey = PERSONALITY_FLAVORS[personality].join('|')
+  const aiCatFlavor = useMemo(() => {
+    const flavors = PERSONALITY_FLAVORS[personality]
+    return flavors[Math.floor(Math.random() * flavors.length)] ?? flavors[0]
+  }, [personality, aiCatFlavorPoolKey])
 
   const handleGenerate = useCallback(async () => {
     if (dailyCount >= MAX_DAILY_GENERATIONS) {
@@ -178,11 +229,11 @@ function Onboarding() {
         cat: {
           name: name.trim(),
           appearance: 1,
-          gender,
+          gender: 'female',
           personality: personality as CatPersonality,
           generatedAppearance: {
             ...generatedResult,
-            imageUrl: generatedResult.rawImageUrl,
+            imageUrl: generatedResult.rawImageUrl ?? generatedResult.imageUrl,
           },
         },
         onboardingDone: true,
@@ -190,7 +241,7 @@ function Onboarding() {
     } else {
       updateGameState((prev) => ({
         ...prev,
-        cat: { name: name.trim(), appearance, gender, personality },
+        cat: { name: name.trim(), appearance, gender: 'female', personality },
         onboardingDone: true,
       }))
     }
@@ -246,99 +297,95 @@ function Onboarding() {
 
   // ─── Classic Mode ──────────────────────────────────────────
 
+  const classicPreviewSrc = `/assets/cat/appearance_${appearance}_${personality}.png`
+
   if (mode === 'classic') {
     return (
       <div className="onboarding-page onboarding-page--form">
         <AudioToggles className="onboarding-page__audio" />
         <div className="onboarding-content">
-          <div className="onboarding-section">
-            <p className="onboarding-section__label">外观</p>
-            <div className="onboarding-appearance-grid" role="radiogroup" aria-label="选择猫咪外观">
-              {APPEARANCE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={appearance === opt.id}
-                  aria-label={opt.label}
-                  onClick={() => setAppearance(opt.id)}
-                  className={`onboarding-appearance-card${appearance === opt.id ? ' onboarding-appearance-card--selected' : ''}`}
-                >
-                  <div className="onboarding-appearance-card__preview">
-                    <img
-                      src={`/assets/onboarding/cat/appearance_${opt.id}.png`}
-                      alt={opt.label}
-                      className="onboarding-appearance-card__img"
-                      onLoad={() => setAppearanceThumbLoaded((prev) => ({ ...prev, [opt.id]: true }))}
-                      onError={(e) => {
-                        setAppearanceThumbLoaded((prev) => ({ ...prev, [opt.id]: false }))
-                        ;(e.target as HTMLImageElement).style.display = 'none'
-                      }}
+          <div className="onboarding-ai-header">
+            <h1 className="onboarding-ai-header__title">选择你的猫咪</h1>
+            <p className="onboarding-ai-header__subtitle">挑一只你喜欢的猫咪形象</p>
+          </div>
+
+          <div className="onboarding-ai-generate onboarding-ai-generate--vertical">
+            <div className="onboarding-ai-preview--large">
+              <img
+                src={classicPreviewSrc}
+                alt={APPEARANCE_OPTIONS.find((o) => o.id === appearance)?.label ?? '猫咪'}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            </div>
+
+            <div className="onboarding-ai-desc">
+              <p className="onboarding-ai-desc__summary">
+                {PERSONALITY_MOOD[personality]}的{APPEARANCE_OPTIONS.find((o) => o.id === appearance)?.label ?? '猫咪'}
+              </p>
+              <p className="onboarding-ai-desc__flavor">{aiCatFlavor}</p>
+            </div>
+          </div>
+
+          <div className="onboarding-ai-config">
+            <div className="onboarding-section">
+              <p className="onboarding-section__label">花色</p>
+              <div className="onboarding-tag-group" role="radiogroup" aria-label="选择花色">
+                {APPEARANCE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={appearance === opt.id}
+                    onClick={() => setAppearance(opt.id)}
+                    className={`onboarding-tag-btn ${
+                      appearance === opt.id ? 'onboarding-tag-btn--active' : 'onboarding-tag-btn--inactive'
+                    }`}
+                  >
+                    <span
+                      className="onboarding-tag-swatch"
+                      style={{ backgroundColor: opt.color }}
+                      aria-hidden="true"
                     />
-                    {!appearanceThumbLoaded[opt.id] && (
-                      <div
-                        className="onboarding-appearance-card__fallback"
-                        style={{ backgroundColor: opt.color }}
-                      />
-                    )}
-                  </div>
-                  <p className="onboarding-appearance-card__label">{opt.label}</p>
-                </button>
-              ))}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="onboarding-section">
-            <p className="onboarding-section__label">性别</p>
-            <div className="onboarding-toggle-group" role="radiogroup" aria-label="选择性别">
-              {GENDER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={gender === opt.id}
-                  onClick={() => setGender(opt.id)}
-                  className={`onboarding-toggle-btn ${
-                    gender === opt.id ? 'onboarding-toggle-btn--active' : 'onboarding-toggle-btn--inactive'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="onboarding-section">
+              <p className="onboarding-section__label">性格</p>
+              <div className="onboarding-toggle-group" role="radiogroup" aria-label="选择性格">
+                {PERSONALITY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={personality === opt.id}
+                    onClick={() => setPersonality(opt.id)}
+                    className={`onboarding-toggle-btn ${
+                      personality === opt.id ? 'onboarding-toggle-btn--active' : 'onboarding-toggle-btn--inactive'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="onboarding-section">
-            <p className="onboarding-section__label">性格</p>
-            <div className="onboarding-toggle-group" role="radiogroup" aria-label="选择性格">
-              {PERSONALITY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={personality === opt.id}
-                  onClick={() => setPersonality(opt.id)}
-                  className={`onboarding-toggle-btn ${
-                    personality === opt.id ? 'onboarding-toggle-btn--active' : 'onboarding-toggle-btn--inactive'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="onboarding-section">
+              <label className="onboarding-section__label" htmlFor="cat-name-classic">给猫咪起个名字</label>
+              <input
+                id="cat-name-classic"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="最多10个字"
+                maxLength={10}
+                autoComplete="off"
+                className="onboarding-name-input"
+              />
             </div>
-          </div>
-
-          <div className="onboarding-section">
-            <label className="onboarding-section__label" htmlFor="cat-name-classic">名字</label>
-            <input
-              id="cat-name-classic"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="最多10个字"
-              maxLength={10}
-              autoComplete="off"
-              className="onboarding-name-input"
-            />
           </div>
         </div>
 
@@ -389,6 +436,7 @@ function Onboarding() {
                 type="button"
                 onClick={() => {
                   setAiTags(randomizeTags())
+                  setPersonality(randomizePersonality())
                   setGeneratedResult(null)
                 }}
                 className="onboarding-ai-random-btn"
@@ -425,36 +473,33 @@ function Onboarding() {
             </div>
           </div>
         ) : (
-          <div className="onboarding-ai-generate">
-            <div className="onboarding-ai-preview">
-              <div className="onboarding-ai-preview__image">
-                {generatedResult ? (
-                  <img src={generatedResult.imageUrl} alt="AI 生成猫咪" />
-                ) : generating ? (
-                  <div className="onboarding-ai-spinner" role="status" aria-label="AI 创作中">
-                    <div className="onboarding-ai-spinner__ring" />
-                    <span className="onboarding-ai-spinner__text">AI 创作中...</span>
-                    <span className="onboarding-ai-spinner__time">约 15 秒</span>
-                  </div>
-                ) : (
-                  <span className="onboarding-ai-preview__placeholder" aria-hidden="true">🎨</span>
-                )}
-              </div>
-
-              <div className="onboarding-ai-preview__info">
-                <div>
-                  <p className="onboarding-ai-summary__text">{aiCatSummary}</p>
-                  <p className="onboarding-ai-summary__flavor">{aiCatFlavor}</p>
+          <div className="onboarding-ai-generate onboarding-ai-generate--vertical">
+            <div className="onboarding-ai-preview--large">
+              {generatedResult ? (
+                <img src={generatedResult.imageUrl} alt="AI 生成猫咪" />
+              ) : generating ? (
+                <div className="onboarding-ai-spinner" role="status" aria-label="AI 创作中">
+                  <div className="onboarding-ai-spinner__ring" />
+                  <span className="onboarding-ai-spinner__text">AI 创作中...</span>
+                  <span className="onboarding-ai-spinner__tip" key={loadingTipIdx}>
+                    {LOADING_TIPS[loadingTipIdx]}
+                  </span>
+                  <span className="onboarding-ai-spinner__eta">预计 15 秒</span>
                 </div>
-                <p className="onboarding-ai-preview__remaining">
-                  今日剩余 {MAX_DAILY_GENERATIONS - dailyCount} 次
-                </p>
-              </div>
+              ) : (
+                <span className="onboarding-ai-preview__placeholder" aria-hidden="true">🎨</span>
+              )}
+            </div>
+
+            <div className="onboarding-ai-desc">
+              <p className="onboarding-ai-desc__summary">{aiCatSummary}</p>
+              <p className="onboarding-ai-desc__flavor">{aiCatFlavor}</p>
+              <p className="onboarding-ai-desc__remaining">今日剩余 {MAX_DAILY_GENERATIONS - dailyCount} 次</p>
             </div>
 
             {genError && <p className="onboarding-error" role="alert">{genError}</p>}
 
-            <div className="onboarding-section">
+            <div className="onboarding-section" style={{ marginTop: 'var(--space-4xl)' }}>
               <label className="onboarding-section__label" htmlFor="cat-name-ai">给猫咪起个名字</label>
               <input
                 id="cat-name-ai"

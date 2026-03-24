@@ -9,7 +9,7 @@
  */
 
 import type { WordConfig, DifficultyLevel, SentencePair } from './words/types'
-import { getSentence, getDistractors } from './words/types'
+import { getSentence, getDistractors, getFillBlankDistractors } from './words/types'
 import { getChapterWords, chapterWordsMap } from './words'
 import { getQuestionTypeDistribution } from './difficulty'
 import type { QuestionType } from './difficulty'
@@ -115,7 +115,7 @@ function generateFillBlank(
   allWords: WordConfig[],
 ): GeneratedQuestion {
   const sentencePair = getSentence(wordConfig, difficulty)
-  const distractors = getDistractors(wordConfig, difficulty, allWords)
+  const distractors = getFillBlankDistractors(wordConfig, difficulty, allWords)
   const options = shuffle([wordConfig.word, ...distractors.slice(0, 3)])
 
   // 确保例句中包含 ___
@@ -368,7 +368,9 @@ export function applyAdjustment(
 
   // 根据题型更新
   if (question.type === 'fill_blank' || question.type === 'multiple_choice') {
-    const distractors = getDistractors(wordConfig, effectiveDifficulty, allWords)
+    const distractors = question.type === 'fill_blank'
+      ? getFillBlankDistractors(wordConfig, effectiveDifficulty, allWords)
+      : getDistractors(wordConfig, effectiveDifficulty, allWords)
     let sentence = sentencePair.en
     if (question.type === 'fill_blank' && !sentence.includes('___')) {
       const regex = new RegExp(`\\b${wordConfig.word}\\b`, 'i')

@@ -16,7 +16,7 @@ export const chapter5Words: WordConfig[] = [
       advanced: { en: 'She curled up on the ___ with a good book and a cup of tea.', zh: '她蜷在沙发上看一本好书，喝一杯茶。' },
     },
     categoryDistractors: ['chair', 'desk', 'bench'],
-    spellingDistractors: ['sofe', 'sopa', 'soda'],
+    spellingDistractors: ['soda', 'solo', 'soap'],
     semanticDistractors: ['couch', 'bench', 'loveseat'],
   },
   {
@@ -51,10 +51,10 @@ export const chapter5Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/curtain.png',
     sentences: {
-      basic: { en: 'Open the ___.', zh: '拉开窗帘。' },
+      basic: { en: 'Close the ___.', zh: '拉上窗帘。' },
       advanced: { en: 'She pulled back the ___ and sunlight flooded into the study.', zh: '她拉开窗帘，阳光洒进了书房。' },
     },
-    categoryDistractors: ['blind', 'shade', 'drape'],
+    categoryDistractors: ['window', 'door', 'wall'],
     spellingDistractors: ['certain', 'captain', 'contain'],
     semanticDistractors: ['drape', 'blind', 'shade'],
   },
@@ -77,7 +77,7 @@ export const chapter5Words: WordConfig[] = [
     pos: 'v.',
     image: '/assets/words/read.png',
     sentences: {
-      basic: { en: 'I ___ every day.', zh: '我每天读书。' },
+      basic: { en: 'I ___ before bed.', zh: '我睡前看书。' },
       advanced: { en: 'She likes to ___ stories to her cat before bedtime.', zh: '她喜欢在睡前给猫读故事。' },
     },
     categoryDistractors: ['write', 'draw', 'sing'],
@@ -95,7 +95,7 @@ export const chapter5Words: WordConfig[] = [
     },
     categoryDistractors: ['book', 'cover', 'word'],
     spellingDistractors: ['cage', 'sage', 'pace'],
-    semanticDistractors: ['leaf', 'sheet', 'chapter'],
+    semanticDistractors: ['chapter', 'paragraph', 'section'],
   },
   {
     word: 'write',
@@ -155,7 +155,7 @@ export const chapter5Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/paper.png',
     sentences: {
-      basic: { en: 'Give me some ___.', zh: '给我一些纸。' },
+      basic: { en: 'I need some ___.', zh: '我需要一些纸。' },
       advanced: { en: 'The cat knocked a stack of ___ off the desk with its tail.', zh: '猫用尾巴把桌上的一叠纸打翻了。' },
     },
     categoryDistractors: ['card', 'cloth', 'wood'],

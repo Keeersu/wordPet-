@@ -26,7 +26,7 @@ export const chapter3Words: WordConfig[] = [
     image: '/assets/words/glove.png',
     sentences: {
       basic: { en: 'Put on your ___.', zh: '戴上你的手套。' },
-      advanced: { en: 'Always wear an oven ___ when you take the hot tray out.', zh: '拿出热烤盘时一定要戴上烤箱手套。' },
+      advanced: { en: 'She put on a thick rubber ___ before washing all the dishes.', zh: '她戴上厚橡胶手套才开始洗碗。' },
     },
     categoryDistractors: ['hat', 'scarf', 'sock'],
     spellingDistractors: ['globe', 'grove', 'glue'],
@@ -38,7 +38,7 @@ export const chapter3Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/carrot.png',
     sentences: {
-      basic: { en: 'I eat a ___.', zh: '我吃了一根胡萝卜。' },
+      basic: { en: 'The rabbit eats a ___.', zh: '兔子吃了一根胡萝卜。' },
       advanced: { en: 'She chopped the fresh ___ into small pieces for the stew.', zh: '她把新鲜的胡萝卜切成小块放进炖菜里。' },
     },
     categoryDistractors: ['potato', 'onion', 'tomato'],
@@ -77,7 +77,7 @@ export const chapter3Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/rice.png',
     sentences: {
-      basic: { en: 'I eat ___.', zh: '我吃米饭。' },
+      basic: { en: 'We have ___ for lunch.', zh: '我们午饭吃米饭。' },
       advanced: { en: 'The fluffy white ___ went perfectly with the grilled fish.', zh: '松软的白米饭和烤鱼搭配得很好。' },
     },
     categoryDistractors: ['bread', 'noodle', 'pasta'],
@@ -90,12 +90,12 @@ export const chapter3Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/bread.png',
     sentences: {
-      basic: { en: 'I like ___.', zh: '我喜欢面包。' },
-      advanced: { en: 'The smell of freshly baked ___ filled the whole kitchen.', zh: '刚烤好的面包香味弥漫了整个厨房。' },
+      basic: { en: 'I want some ___.', zh: '我想吃面包。' },
+      advanced: { en: 'Mom bought a loaf of ___ from the bakery for breakfast.', zh: '妈妈从面包店买了一条面包当早餐。' },
     },
-    categoryDistractors: ['cake', 'cookie', 'toast'],
+    categoryDistractors: ['cake', 'cookie', 'rice'],
     spellingDistractors: ['break', 'braid', 'breed'],
-    semanticDistractors: ['loaf', 'toast', 'bun'],
+    semanticDistractors: ['flour', 'dough', 'crust'],
   },
   {
     word: 'knife',
@@ -117,7 +117,7 @@ export const chapter3Words: WordConfig[] = [
     image: '/assets/words/taste.png',
     sentences: {
       basic: { en: '___ this food.', zh: '尝尝这个食物。' },
-      advanced: { en: 'The soup has a wonderful ___ thanks to the fresh herbs.', zh: '由于新鲜的香草，这汤味道极佳。' },
+      advanced: { en: 'Would you like to ___ the cake I just made?', zh: '你想尝尝我刚做的蛋糕吗？' },
     },
     categoryDistractors: ['smell', 'touch', 'look'],
     spellingDistractors: ['toast', 'paste', 'waste'],
@@ -142,7 +142,7 @@ export const chapter3Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/fruit.png',
     sentences: {
-      basic: { en: 'I like ___.', zh: '我喜欢水果。' },
+      basic: { en: 'Eat more ___.', zh: '多吃水果。' },
       advanced: { en: 'A bowl of fresh ___ on the table made the kitchen look bright and cheerful.', zh: '桌上一碗新鲜水果让厨房看起来明亮又温馨。' },
     },
     categoryDistractors: ['vegetable', 'meat', 'grain'],

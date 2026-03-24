@@ -97,10 +97,10 @@
 /* 选项按钮（答题用） */
 .btn-option {
   width: 100%;
-  padding: var(--space-xl) var(--space-3xl);
+  padding: var(--space-xl) var(--space-lg);
   border-radius: var(--radius-xl);
   border: none;
-  font-size: var(--text-base);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   text-align: center;
   cursor: pointer;
@@ -177,15 +177,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3xl);
+  padding: var(--page-top-safe-offset) var(--page-padding-x) var(--space-xl);
   background: rgba(255, 248, 231, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border-light);
 }
 
 .page-header--padded {
-  padding: var(--space-3xl) var(--space-3xl) var(--space-xl);
+  padding-bottom: var(--space-xl);
 }
 
 /* 返回按钮 */
@@ -207,7 +206,9 @@
 
 .page-header__title {
   font-weight: var(--font-black);
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
+  color: var(--color-text-dark);
+  letter-spacing: 0.5px;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -215,8 +216,9 @@
 }
 
 .page-header__title--sm {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   letter-spacing: 0.5px;
+  color: var(--color-text-dark);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -400,7 +402,7 @@
 }
 
 .settings-group__label {
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-sm);
   font-weight: var(--font-bold);
   color: var(--color-text-tertiary);
   margin: 0 0 var(--space-lg) var(--space-xs);
@@ -419,7 +421,7 @@
   border-top-left-radius: var(--space-5xl);
   border-top-right-radius: var(--space-5xl);
   padding: var(--space-5xl) var(--space-4xl);
-  padding-bottom: calc(var(--space-5xl) + var(--safe-bottom, 34px));
+  padding-bottom: calc(var(--space-5xl) + var(--safe-bottom, 34px) + 16px);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
   font-family: var(--font-main);
   animation: slideUp 300ms ease-out;

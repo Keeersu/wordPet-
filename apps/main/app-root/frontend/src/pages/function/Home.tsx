@@ -61,12 +61,25 @@ import { useGameStore } from '@/store/GameContext'
 import { getCatImageSrc, getCatRoomImageSrc, type GameState } from '@/store/gameStore'
 import { CHAPTERS } from '@/data/chapters'
 import { preloadImages } from '@/lib/imageCache'
-import { useBackgroundRoomGen } from '@/lib/useBackgroundRoomGen'
+
+const BirdSvg = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg">
+    {/* Body */}
+    <path fill="currentColor" d="M 12 4 C 8.6 4 5.9 6.8 6 10.2 C 6 10.9 5.8 11.6 5.5 12.2 L 3 17 L 6.2 16.3 C 7.5 18.5 9.7 20 12.5 20 C 16.6 20 20 16.4 20 12 V 9 C 20 6.2 17.8 4 15 4 H 12 Z"/>
+    {/* Beak */}
+    <path fill="currentColor" d="M 20 8.5 L 23 10 L 20 11.5 Z"/>
+    {/* Eye */}
+    <circle cx="16.5" cy="8" r="1.2" fill="#5A3A31"/>
+    {/* Wing */}
+    <path className="home-roof-bird__wing" fill="#ffffff" fillOpacity="0.6" d="M 12.5 10 C 14.5 10 15.5 12 14.5 14.5 C 13.5 17 11.5 18 9.5 17 C 7.5 16 7.5 13 8.5 11.5 C 9.5 10 11 10 12.5 10 Z"/>
+  </svg>
+)
 
 const PAPER_FAB_FALLBACK_IMAGE_URL =
   'https://workers.paper.design/file-assets/01KKNBS08ZA5774YRC17FK851S/01KM676Q1YAXV1MJ9VC50EBM6S.png'
+const EMPTY_ROOM_LOCKED_OVERLAY_SRC = '/assets/rooms/empty/locked-overlay.png'
 
-type RoomStatus = 'available' | 'in_progress' | 'completed' | 'locked'
+type RoomStatus = 'empty' | 'available' | 'in_progress' | 'completed' | 'locked'
 
 interface Room {
   id: number
@@ -82,6 +95,7 @@ interface Room {
 const chapterMeta = CHAPTERS
 
 const statusLabel: Record<RoomStatus, string> = {
+  empty: '',
   available: '已开启',
   in_progress: '进行中',
   completed: '已完成',
@@ -89,6 +103,7 @@ const statusLabel: Record<RoomStatus, string> = {
 }
 
 const statusBgColor: Record<RoomStatus, string> = {
+  empty: 'transparent',
   available: 'var(--color-primary)',
   in_progress: 'var(--color-primary)',
   completed: 'var(--color-success)',
@@ -108,29 +123,29 @@ function getCompletedLevelCount(
   return count
 }
 
-function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
+function RoomCard({ room, emptyUnlocked, onClick }: { room: Room; emptyUnlocked?: boolean; onClick?: () => void }) {
   const isLocked = room.status === 'locked'
+  const isEmpty = room.status === 'empty'
   const isCompleted = room.status === 'completed'
   const [bgLoaded, setBgLoaded] = useState(false)
 
   return (
     <div
-      className={`home-room-card${isLocked ? ' home-room-card--locked' : ''}`}
+      className={`home-room-card${isLocked ? ' home-room-card--locked' : ''}${isEmpty ? ' home-room-card--empty' : ''}`}
       data-room-id={room.id}
       onClick={onClick}
-      style={{
-        filter: isCompleted ? 'saturate(0.7)' : isLocked ? 'grayscale(0.8)' : undefined,
-        opacity: isLocked ? 0.7 : 1,
-      }}
     >
       {/* 层1：房间背景图（独立） */}
       <div
         className="home-room-card__bg"
-        style={{ backgroundColor: bgLoaded ? 'transparent' : room.themeColor }}
+        style={{
+          backgroundColor: bgLoaded ? 'transparent' : (isEmpty ? '#F5EDE8' : room.themeColor),
+          filter: isCompleted ? 'saturate(0.7)' : undefined,
+        }}
       >
         <img
-          src={`/assets/rooms/ch${room.id}/progress/stage${room.stage}.jpg`}
-          alt={room.nameCn}
+          src={isEmpty ? '/assets/rooms/empty/bg.jpg' : `/assets/rooms/ch${room.id}/progress/stage${room.stage}.jpg`}
+          alt={isEmpty ? '空房间' : room.nameCn}
           className="home-room-card__bg-img"
           onLoad={() => setBgLoaded(true)}
           onError={(e) => {
@@ -138,9 +153,16 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
             ;(e.target as HTMLImageElement).style.display = 'none'
           }}
         />
-        {isLocked && (
-          <div className="home-room-card__lock">
-            <span>🔒</span>
+        {(isLocked || isEmpty) && (
+          <div
+            className="home-room-card__locked-cover"
+            style={{ opacity: (isEmpty && emptyUnlocked) ? 0 : 1 }}
+          >
+            <img
+              src={EMPTY_ROOM_LOCKED_OVERLAY_SRC}
+              alt=""
+              className="home-room-card__locked-cover-img"
+            />
           </div>
         )}
       </div>
@@ -152,18 +174,21 @@ function RoomCard({ room, onClick }: { room: Room; onClick?: () => void }) {
           alt=""
           className="home-room-card__border"
         />
-        <div className="home-room-card__name">
-          {room.nameCn} · {room.nameEn}
-        </div>
+        {room.nameCn && (
+          <div className="home-room-card__name">
+            {room.nameEn ? `${room.nameCn} · ${room.nameEn}` : room.nameCn}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
+const hasScrolledRef = { current: false }
+
 function Home() {
   const navigate = useNavigate()
   const { gameState, updateGameState } = useGameStore()
-  useBackgroundRoomGen()
   const [showSettings, setShowSettings] = useState(false)
   const [fabImageSrc, setFabImageSrc] = useState('/assets/ui/buttons/btn-quick-start.png')
   const [fabHasVisualAsset, setFabHasVisualAsset] = useState(true)
@@ -194,7 +219,10 @@ function Home() {
     })
   }, [gameState.completedLevels, gameState.currentChapter])
 
+  const allRoomsCompleted = rooms.every((r) => r.status === 'completed')
+
   const scrollRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   const activeChapterId = gameState.currentChapter
   const activeLevelId = gameState.currentLevel
@@ -211,13 +239,26 @@ function Home() {
   }, [activeChapterId, gameState.cat, gameState.completedLevels])
 
   useEffect(() => {
+    if (hasScrolledRef.current) return
     const container = scrollRef.current
-    if (!container) return
-    const target = container.querySelector<HTMLElement>(`[data-room-id="${activeChapterId}"]`)
-    if (!target) return
-    requestAnimationFrame(() => {
-      target.scrollIntoView({ block: 'center' })
-    })
+    const el = bottomRef.current
+    if (!container || !el) return
+
+    const scroll = () => el.scrollIntoView({ block: 'end' })
+    scroll()
+
+    const observer = new ResizeObserver(scroll)
+    observer.observe(container)
+
+    const timer = setTimeout(() => {
+      observer.disconnect()
+      hasScrolledRef.current = true
+    }, 2000)
+
+    return () => {
+      observer.disconnect()
+      clearTimeout(timer)
+    }
   }, [])
 
   const handleRoomCardClick = (room: Room) => {
@@ -251,6 +292,44 @@ function Home() {
 
       {/* 3. Scrollable room card list — reversed so ch1 is at bottom (tower layout) */}
       <div className="home-scroll" ref={scrollRef}>
+        {/* Blue gradient behind top scene, extends down to empty room */}
+        <div className="home-top-gradient" />
+
+        {/* Top scene (above empty room, overlaps gradient) */}
+        <div className="home-scene-placeholder home-scene-placeholder--top">
+          <div className="home-chimney-smoke" aria-hidden="true">
+            <span className="home-chimney-smoke__puff home-chimney-smoke__puff--1" />
+            <span className="home-chimney-smoke__puff home-chimney-smoke__puff--2" />
+            <span className="home-chimney-smoke__puff home-chimney-smoke__puff--3" />
+            <span className="home-chimney-smoke__puff home-chimney-smoke__puff--big" />
+          </div>
+          <div className="home-roof-birds" aria-hidden="true">
+            <div className="home-roof-bird home-roof-bird--yellow home-roof-bird--red-path">
+              <BirdSvg className="home-roof-bird__svg" />
+            </div>
+            <div className="home-roof-bird home-roof-bird--cyan home-roof-bird--red-path-partner">
+              <BirdSvg className="home-roof-bird__svg" />
+            </div>
+            <div className="home-roof-bird home-roof-bird--yellow home-roof-bird--green-path">
+              <BirdSvg className="home-roof-bird__svg" />
+            </div>
+            <div className="home-roof-bird home-roof-bird--cyan home-roof-bird--green-path-partner">
+              <BirdSvg className="home-roof-bird__svg" />
+            </div>
+          </div>
+          <img
+            src="/assets/ui/home-scene-top.png"
+            alt=""
+            className="home-scene-placeholder__img"
+          />
+        </div>
+
+        {/* Empty room placeholder */}
+        <RoomCard
+          room={{ id: 0, nameCn: '这个房间里什么都没有哦～', nameEn: '', progress: '', stage: 0, status: 'empty', themeColor: 'transparent' }}
+          emptyUnlocked={allRoomsCompleted}
+        />
+
         {[...rooms].reverse().map((room) => (
           <RoomCard key={room.id} room={room} onClick={() => handleRoomCardClick(room)} />
         ))}
@@ -266,6 +345,7 @@ function Home() {
             className="home-scene-placeholder__img"
           />
         </div>
+        <div ref={bottomRef} />
       </div>
 
       {/* 5. Floating nav buttons — left side */}

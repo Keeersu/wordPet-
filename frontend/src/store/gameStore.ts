@@ -58,8 +58,7 @@ export function getCatImageSrc(cat: CatProfile): string {
   if (cat.generatedAppearance?.imageUrl) {
     return cat.generatedAppearance.imageUrl
   }
-  const g = cat.gender === 'female' ? 'f' : 'm'
-  return `/assets/cat/appearance_${cat.appearance}_${cat.personality}_${g}.png`
+  return `/assets/cat/appearance_${cat.appearance}_${cat.personality}.png`
 }
 
 /**

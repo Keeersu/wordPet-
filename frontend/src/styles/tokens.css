@@ -93,6 +93,7 @@
   --text-8xl: 48px;
 
   /* ── 字重 ── */
+  --font-semibold: 600;
   --font-medium: 600;
   --font-bold: 700;
   --font-extrabold: 800;
@@ -156,6 +157,10 @@
   --header-height: 56px;
   --tabbar-height: 52px;
   --fab-size: 20vw;
+  --page-padding-x: var(--space-3xl);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --page-top-safe-offset: calc(var(--safe-top) + var(--space-3xl));
+  --page-section-gap-top: var(--space-4xl);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --scroll-safe-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }

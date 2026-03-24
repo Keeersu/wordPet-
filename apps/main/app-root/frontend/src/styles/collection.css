@@ -17,72 +17,103 @@
 .collection-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-3xl);
+  overflow-x: hidden;
+  padding: var(--page-section-gap-top) var(--page-padding-x) 128px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xl);
-  padding-bottom: 120px;
+  gap: var(--space-3xl);
+}
+
+.collection-content > * {
+  flex-shrink: 0;
 }
 
 /* ── 收集进度概览 ── */
 .collection-progress {
-  padding: var(--space-3xl);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-4xl);
+  background:
+    radial-gradient(circle at top right, rgba(255, 180, 80, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 239, 0.95));
+  border: 2px solid rgba(255, 120, 33, 0.14);
+  box-shadow: 0 10px 24px rgba(255, 191, 105, 0.14), var(--shadow-card);
 }
 
 .collection-progress__header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
 
 .collection-progress__title {
   font-weight: var(--font-black);
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
+  color: var(--color-text-dark);
+  min-width: 0;
 }
 
 .collection-progress__count {
-  font-size: var(--text-base) - 1;
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
+  flex-shrink: 0;
+  font-size: var(--text-5xl);
+  font-weight: var(--font-black);
+  color: var(--color-accent-dark);
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .collection-progress__bar {
   width: 100%;
-  height: 10px;
-  border-radius: 5px;
+  height: 12px;
+  border-radius: var(--radius-full);
   background-color: rgba(93, 64, 55, 0.08);
   overflow: hidden;
 }
 
 .collection-progress__fill {
   height: 100%;
-  border-radius: 5px;
+  border-radius: var(--radius-full);
   transition: width var(--transition-slowest);
 }
 
 .collection-progress__fill--complete {
-  background-color: var(--color-success);
+  background: linear-gradient(90deg, var(--color-success), #8bd18f);
 }
 
 .collection-progress__fill--partial {
-  background-color: var(--color-accent);
+  background: linear-gradient(90deg, var(--color-accent), #69d9d9);
 }
 
 .collection-progress__percent {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--color-text-hint);
-  margin-top: var(--space-sm);
+  margin-top: var(--space-md);
   text-align: right;
+}
+
+.collection-chapter {
+  box-sizing: border-box;
+  width: 100%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 252, 246, 0.98));
+  border-color: rgba(93, 64, 55, 0.1);
+  box-shadow: 0 8px 20px rgba(93, 64, 55, 0.06), var(--shadow-card);
 }
 
 /* ── 章节区块 ── */
 .collection-chapter__header {
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2xl) var(--space-3xl);
+  padding: var(--space-3xl);
   border: none;
   background-color: transparent;
   cursor: pointer;
@@ -94,76 +125,92 @@
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  flex: 1;
+  min-width: 0;
 }
 
 .collection-chapter__right {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  flex-shrink: 0;
 }
 
 .collection-chapter__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-lg);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .collection-chapter__name {
   text-align: left;
+  min-width: 0;
 }
 
 .collection-chapter__name-cn {
   font-weight: var(--font-extrabold);
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
+  color: var(--color-text-dark);
 }
 
 .collection-chapter__name-en {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--color-text-tertiary);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .collection-chapter__count {
-  font-size: var(--text-base) - 1;
+  padding: var(--space-xs) var(--space-lg);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: var(--color-text-secondary);
+  color: var(--color-primary-dark);
+  background-color: var(--color-primary-bg);
 }
 
 .collection-chapter__expand-icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   color: var(--color-text-disabled);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  background-color: rgba(93, 64, 55, 0.04);
 }
 
 /* ── 章节展开内容 ── */
 .collection-chapter__body {
   border-top: 1px solid var(--color-border-light);
-  padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
+  padding: var(--space-xl) var(--space-3xl) var(--space-3xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  background: linear-gradient(180deg, rgba(255, 248, 231, 0.45), transparent 55%);
 }
 
 .collection-chapter__empty {
   text-align: center;
   padding: var(--space-3xl) 0;
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-sm);
   color: var(--color-text-hint);
 }
 
 /* ── 单词卡片 ── */
 .collection-word {
-  padding: var(--space-lg) var(--space-xl);
-  border-radius: var(--radius-xl);
-  background-color: var(--color-bg-subtle);
-  border: 1.5px solid rgba(93, 64, 55, 0.08);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-xl) var(--space-2xl);
+  border-radius: var(--radius-2xl);
+  background-color: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(93, 64, 55, 0.07);
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.04);
 }
 
 .collection-word__text {
@@ -179,38 +226,44 @@
 
 .collection-word__name {
   font-weight: var(--font-extrabold);
-  font-size: var(--text-xl);
-  color: var(--color-text);
+  font-size: var(--text-2xl);
+  color: var(--color-text-dark);
 }
 
 .collection-word__pos {
-  font-size: 11px;
-  color: var(--color-text-hint);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
   font-weight: var(--font-medium);
 }
 
 .collection-word__meaning {
   font-size: var(--text-base);
   color: var(--color-text-secondary);
-  margin-top: 2px;
-  white-space: nowrap;
+  margin-top: var(--space-xs);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .collection-word__rate {
   flex-shrink: 0;
-  padding: var(--space-xs) var(--space-lg);
-  border-radius: var(--radius-4xl);
-  font-size: var(--text-base) - 1;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
   font-weight: var(--font-extrabold);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 /* ── 全空状态 ── */
 .collection-empty {
   text-align: center;
-  padding: var(--space-7xl) var(--space-4xl);
+  padding: 40px var(--space-4xl);
   color: var(--color-text-tertiary);
+  background-color: rgba(255, 255, 255, 0.72);
+  border: 1.5px dashed rgba(255, 120, 33, 0.24);
+  border-radius: var(--radius-3xl);
 }
 
 .collection-empty__emoji {
@@ -225,5 +278,5 @@
 }
 
 .collection-empty__text {
-  font-size: var(--text-base) - 1;
+  font-size: var(--text-sm);
 }

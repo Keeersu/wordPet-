@@ -312,15 +312,10 @@ function Practice() {
           <div className="practice-quiz-header__count">
             第 {currentIdx + 1} 题 · 共 {questions.length} 题
           </div>
-          <div className="page-header__spacer" />
-        </div>
-
-        {/* Progress bar */}
-        <div className="progress-bar progress-bar--sm" style={{ margin: '0 16px' }}>
-          <div
-            className="progress-bar__fill progress-bar__fill--primary"
-            style={{ width: `${((currentIdx + (isCorrect !== null ? 1 : 0)) / questions.length) * 100}%` }}
-          />
+          <div className="practice-quiz-header__back practice-quiz-header__back--ghost" aria-hidden="true">
+            <Icon icon="lucide:x" width={16} height={16} />
+            退出
+          </div>
         </div>
 
         {/* Question content */}
@@ -338,7 +333,7 @@ function Practice() {
           </div>
 
           {/* Question card */}
-          <div className="card card--padded">
+          <div className="card card--padded practice-quiz-card">
             {/* 题型标签 */}
             <div className="practice-quiz-tag">
               {currentQ.type === 'multiple_choice' && '看图选词'}
@@ -367,7 +362,7 @@ function Practice() {
 
             {/* 选择题 options */}
             {isChoiceType && (
-              <div className="practice-quiz-options">
+              <div className="practice-quiz-options practice-quiz-answer-area">
                 {currentQ.options.map((opt, i) => {
                   let bg = 'white'
                   let borderColor = 'rgba(93,64,55,0.12)'
@@ -403,7 +398,7 @@ function Practice() {
 
             {/* 字母题 */}
             {isLetterType && (
-              <div>
+              <div className="practice-quiz-answer-area">
                 {/* 已填字母槽 */}
                 <div className="practice-quiz-letter-slots">
                   {letterSlots.map((letter, i) => (
@@ -491,23 +486,24 @@ function Practice() {
     const rate = sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0
     const emoji = rate >= 80 ? '\u{1F389}' : rate >= 60 ? '\u{1F4AA}' : '\u{1F4DA}'
     const message = rate >= 80 ? '太棒了！进步很大！' : rate >= 60 ? '继续加油！快要掌握了' : '别灰心，多练几次就好！'
+    const rateClass = rate >= 80 ? 'practice-result__score-value--success' : rate >= 60 ? 'practice-result__score-value--warning' : 'practice-result__score-value--error'
 
     return (
       <div className="practice-page">
         <div className="practice-result">
           <div className="practice-result__emoji">{emoji}</div>
-          <div className="practice-result__title">复习完成！</div>
-          <div className="practice-result__subtitle">{message}</div>
+          <h1 className="practice-result__title">复习完成！</h1>
+          <p className="practice-result__subtitle">{message}</p>
 
-          {/* 成绩卡 */}
           <div className="card card--padded practice-result__score-card">
             <div className="practice-result__score-grid">
               <div className="practice-result__score-item">
-                <div className="practice-result__score-value" style={{ color: '#1A8F8F' }}>{sessionCorrect}/{sessionTotal}</div>
+                <div className="practice-result__score-value practice-result__score-value--accent">{sessionCorrect}/{sessionTotal}</div>
                 <div className="practice-result__score-label">答对</div>
               </div>
+              <div className="practice-result__score-divider" />
               <div className="practice-result__score-item">
-                <div className="practice-result__score-value" style={{ color: rateColor(rate) }}>{rate}%</div>
+                <div className={`practice-result__score-value ${rateClass}`}>{rate}%</div>
                 <div className="practice-result__score-label">正确率</div>
               </div>
             </div>
@@ -566,10 +562,10 @@ function Practice() {
           {weakWords.length > 0 ? (
             <div className="practice-summary__rate">
               平均正确率
-              <span style={{ color: rateColor(totalAvgRate), fontWeight: 900 }}>{totalAvgRate}%</span>
+              <span className="practice-summary__rate-value" style={{ color: rateColor(totalAvgRate) }}>{totalAvgRate}%</span>
             </div>
           ) : (
-            <div className="practice-summary__label">
+            <div className="practice-summary__support">
               {Object.keys(gameState.wordHistory).length === 0 ? '\u8FD8\u6CA1\u6709\u5B66\u4E60\u8BB0\u5F55\uFF0C\u5FEB\u53BB\u5192\u9669\u5427\uFF01' : '\u6240\u6709\u5B66\u8FC7\u7684\u5355\u8BCD\u6B63\u786E\u7387\u90FD \u2265 70% \u2728'}
             </div>
           )}
@@ -588,7 +584,7 @@ function Practice() {
           {weakWords.length === 0 && Object.keys(gameState.wordHistory).length === 0 && (
             <button
               onClick={() => navigate(`/chapter/${gameState.currentChapter}/level/${gameState.currentLevel}`)}
-              className="practice-adventure-btn btn-primary"
+              className="practice-adventure-btn btn btn-secondary"
             >
               去冒险
             </button>

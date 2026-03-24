@@ -24,9 +24,9 @@ const FADE_MS = 400
 
 const SFX_VOLUME: Record<SfxTrack, number> = {
   'button-click': 1.0,
-  'correct': 0.9,
-  'wrong': 0.9,
-  'furniture-unlock': 0.85,
+  'correct': 1.0,
+  'wrong': 1.0,
+  'furniture-unlock': 1.0,
 }
 
 const BGM_VOLUME: Record<BgmTrack, number> = {

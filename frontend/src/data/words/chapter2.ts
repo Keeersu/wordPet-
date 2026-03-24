@@ -15,7 +15,7 @@ export const chapter2Words: WordConfig[] = [
       advanced: { en: 'She fell asleep on the comfortable ___ after a long day.', zh: '漫长的一天后，她在舒适的沙发上睡着了。' },
     },
     categoryDistractors: ['chair', 'desk', 'bench'],
-    spellingDistractors: ['sofe', 'sopa', 'soda'],
+    spellingDistractors: ['soda', 'solo', 'soap'],
     semanticDistractors: ['couch', 'bench', 'loveseat'],
   },
   {
@@ -50,7 +50,7 @@ export const chapter2Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/cup.png',
     sentences: {
-      basic: { en: 'This is my ___.', zh: '这是我的杯子。' },
+      basic: { en: 'I need a ___ of water.', zh: '我需要一杯水。' },
       advanced: { en: 'She poured warm milk into a small ___ for the hungry kitten.', zh: '她把温牛奶倒进一个小杯子里给饥饿的小猫。' },
     },
     categoryDistractors: ['bowl', 'plate', 'glass'],
@@ -141,7 +141,7 @@ export const chapter2Words: WordConfig[] = [
     pos: 'n.',
     image: '/assets/words/carpet.png',
     sentences: {
-      basic: { en: 'The cat is on the ___.', zh: '猫在地毯上。' },
+      basic: { en: 'The ___ is so soft.', zh: '地毯很柔软。' },
       advanced: { en: 'The soft ___ in the living room is the cat\'s favorite playground.', zh: '客厅柔软的地毯是猫最喜欢的游乐场。' },
     },
     categoryDistractors: ['curtain', 'blanket', 'towel'],
@@ -159,7 +159,7 @@ export const chapter2Words: WordConfig[] = [
     },
     categoryDistractors: ['glass', 'screen', 'frame'],
     spellingDistractors: ['miller', 'mister', 'dinner'],
-    semanticDistractors: ['reflection', 'glass', 'looking glass'],
+    semanticDistractors: ['reflection', 'glass', 'surface'],
   },
   {
     word: 'table',

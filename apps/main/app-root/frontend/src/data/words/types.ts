@@ -36,7 +36,7 @@ export function getSentence(word: WordConfig, difficulty: DifficultyLevel): Sent
 }
 
 /**
- * 根据难度获取干扰项
+ * 根据难度获取干扰项（通用 — 用于看图选词、图片配对等非填空题型）
  * PRD 规范：
  * - 纯新手：干扰项与正确答案差异大（如 sofa vs tree）
  * - 略知一二：干扰项与正确答案同类别（如 sofa vs chair vs desk）
@@ -50,20 +50,46 @@ export function getDistractors(
 ): string[] {
   switch (difficulty) {
     case 1:
-      // 纯新手：从不同类别中随机取 3 个词
       return allWords
         .filter((w) => w.word !== word.word)
         .sort(() => Math.random() - 0.5)
         .slice(0, 3)
         .map((w) => w.word)
     case 2:
-      // 略知一二：同类别干扰词
       return word.categoryDistractors.slice(0, 3)
     case 3:
-      // 勉强应付：拼写相近
       return word.spellingDistractors.slice(0, 3)
     case 4:
-      // 还不错哦：语义相近
       return word.semanticDistractors.slice(0, 3)
+  }
+}
+
+/**
+ * 填空题专用干扰项策略
+ *
+ * 填空题用句子作为语境，语义相近的词（如 bread vs loaf/toast/bun）
+ * 往往都能填入同一个句子，导致多选项合理。
+ * 因此填空题避免使用语义干扰项，改用：
+ * - 纯新手(1)：随机不同词（差异大，易排除）
+ * - 略知一二(2)：同类别词（同主题但含义不同，需理解句意）
+ * - 勉强应付(3)、还不错哦(4)：拼写相近词（外形相似但含义不同，需仔细辨认）
+ */
+export function getFillBlankDistractors(
+  word: WordConfig,
+  difficulty: DifficultyLevel,
+  allWords: WordConfig[],
+): string[] {
+  switch (difficulty) {
+    case 1:
+      return allWords
+        .filter((w) => w.word !== word.word)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((w) => w.word)
+    case 2:
+      return word.categoryDistractors.slice(0, 3)
+    case 3:
+    case 4:
+      return word.spellingDistractors.slice(0, 3)
   }
 }

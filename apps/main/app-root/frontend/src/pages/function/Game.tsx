@@ -92,13 +92,6 @@ async function adjustDifficultyViaLLM(
 
 // 鼓励文案 & 章节名称使用公共模块 ↑
 
-const QUESTION_TYPE_HINT: Record<string, string> = {
-  multiple_choice: '这张图对应哪个单词？',
-  fill_blank: '选出空格处的单词',
-  picture_matching: '选出对应的中文含义',
-  letter_match: '把字母排列成正确的单词',
-  word_spelling: '看图片拼出单词',
-}
 
 // ============================================================================
 // Types
@@ -193,7 +186,7 @@ function FeedbackSheet({
                 className="speak-btn speak-btn--lg"
                 style={{ marginLeft: 'auto' }}
               >
-                🔊
+                <Icon icon="lucide:volume-2" style={{ width: 18, height: 18, color: 'var(--color-primary)' }} />
               </button>
             )}
           </div>
@@ -257,15 +250,18 @@ function LetterPuzzle({
 
   const handleLetterClick = (index: number) => {
     if (disabled || selected.includes(index)) return
-    playSfx('button-click')
 
     const newSelected = [...selected, index]
+    const isLastLetter = newSelected.length === correctWord.length
+    if (!isLastLetter) {
+      playSfx('button-click')
+    }
+
     setSelected(newSelected)
 
     const newWord = newSelected.map((idx) => letters[idx]).join('')
 
-    // 检查是否完成
-    if (newWord.length === correctWord.length) {
+    if (isLastLetter) {
       if (newWord === correctWord) {
         onComplete()
       } else {
@@ -372,7 +368,7 @@ function Game() {
   const { chapterId: chapterIdParam, levelId: levelIdParam } = useParams()
   const { gameState, updateGameState } = useGameStore()
 
-  const { playSfx } = useAudio()
+  const { playSfx, stopBgm } = useAudio()
   const chapterId = Number(chapterIdParam ?? gameState.currentChapter)
   const levelId = Number(levelIdParam ?? gameState.currentLevel)
   const chapterName = getChapterName(chapterId)
@@ -472,10 +468,6 @@ function Game() {
 
   // ── 难度指示器文字 ──
   const DIFFICULTY_LABELS: Record<number, string> = { 1: '🐾 入门', 2: '🐾🐾 进阶', 3: '🐾🐾🐾 挑战', 4: '🐾🐾🐾🐾 大师' }
-  const difficultyLabel = useMemo(() => {
-    const labels: Record<number, string> = { 1: '🐾', 2: '🐾🐾', 3: '🐾🐾🐾', 4: '🐾🐾🐾🐾' }
-    return labels[currentDifficulty] ?? '🐾'
-  }, [currentDifficulty])
 
   // ── 选项样式 ──
   const getOptionClass = useCallback(
@@ -542,6 +534,8 @@ function Game() {
       const newAttemptCount = attemptCount + 1
       setAttemptCount(newAttemptCount)
 
+      const isLastQuestion = currentIndex + 1 >= TOTAL_QUESTIONS
+
       if (option === question.correctAnswer) {
         setAnswerState('correct')
         setEncourageText(getRandomEncourage(true))
@@ -549,6 +543,7 @@ function Game() {
         recordAnswer(question.word, true, newAttemptCount)
         speak(question.word)
         playSfx('correct')
+        if (isLastQuestion) stopBgm()
         setShowFeedback(true)
         return
       } else if (newAttemptCount === 1) {
@@ -562,10 +557,11 @@ function Game() {
         setEncourageText('正确答案是——')
         recordAnswer(question.word, false, newAttemptCount)
         speak(question.correctAnswer, question.sentence)
+        if (isLastQuestion) stopBgm()
         setShowFeedback(true)
       }
     },
-    [optionsDisabled, attemptCount, question, speak, recordAnswer, playSfx],
+    [optionsDisabled, attemptCount, question, speak, recordAnswer, playSfx, currentIndex, TOTAL_QUESTIONS, stopBgm],
   )
 
   // ── 字母拼写完成回调 ──
@@ -577,8 +573,9 @@ function Game() {
     recordAnswer(question.word, true, 1)
     speak(question.word)
     playSfx('correct')
+    if (currentIndex + 1 >= TOTAL_QUESTIONS) stopBgm()
     setShowFeedback(true)
-  }, [question, speak, recordAnswer, playSfx])
+  }, [question, speak, recordAnswer, playSfx, currentIndex, TOTAL_QUESTIONS, stopBgm])
 
   const handleSpellingWrong = useCallback(() => {
     if (!question) return
@@ -590,11 +587,12 @@ function Game() {
       setEncourageText('正确答案是——')
       recordAnswer(question.word, false, newAttemptCount)
       speak(question.correctAnswer, question.sentence)
+      if (currentIndex + 1 >= TOTAL_QUESTIONS) stopBgm()
       setShowFeedback(true)
     } else {
       recordAnswer(question.word, false, newAttemptCount)
     }
-  }, [question, attemptCount, speak, recordAnswer])
+  }, [question, attemptCount, speak, recordAnswer, currentIndex, TOTAL_QUESTIONS, stopBgm])
 
   // ── 下一题 ──
   const handleNext = useCallback(() => {
@@ -756,9 +754,6 @@ function Game() {
             <span className="game-header__title">
               第 {levelId} 关 · {chapterName}
             </span>
-            <span className="game-header__difficulty">
-              {difficultyLabel}
-            </span>
           </div>
 
           {/* 自动朗读开关：全局 ttsEnabled 关闭时，视觉上也显示为关 */}
@@ -828,7 +823,7 @@ function Game() {
         <div
           className="game-question-card"
           style={{
-            paddingTop: showImage ? '68px' : '24px',
+            paddingTop: showImage ? '68px' : '32px',
             marginTop: showImage ? 0 : 16,
           }}
         >
@@ -857,10 +852,12 @@ function Game() {
             </p>
           )}
 
-          {/* Question hint */}
-          <p className="game-question-hint">
-            {QUESTION_TYPE_HINT[question.type] ?? '选出正确答案'}
-          </p>
+          {/* ── 中文含义占位（答对后可见，避免布局跳动） ── */}
+          {(question.type === 'multiple_choice' || question.type === 'fill_blank') && (
+            <p className={`game-meaning-reveal ${answerState === 'correct' ? 'game-meaning-reveal--visible' : ''}`}>
+              {question.meaning}
+            </p>
+          )}
 
           {/* ── 选项类题型 ── */}
           {isChoiceType && (
